@@ -38,13 +38,9 @@ ymaxval=24 ; maximum height for y axis
 
 ; open/reference desired file (use addfiles to reference multiple data file)
 title1="50M"
-;title1="SST=297K"
-; infile = addfile(iFile+".nc","r")
-; infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_384gp_"+sst+"_more_"+ddate+"_fldtmn.nc","r")
-; full domain mean time mean profile:
-; infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_384gp_297_more_4mn_fldtmn.nc","r")
 ; upward/downward domain mean tme mean profile: 
-  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_384gp_"+sstval+"_more_JA10_total_tmn.nc","r")
+;  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_384gp_"+sstval+"_more_JA10_total_tmn.nc","r")
+ infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_384gp_297_more_4mn_fldtmn.nc","r")
 
 ; default title is "exp name"
 if (.not. isvar("title")) then
@@ -75,15 +71,7 @@ end if
   label1=" "
   label2=" "
 
-;; increment is the increment of time between the two profiles 
-;if (isvar("iFile2")) then
-;  plotincrement=0
-;  print("Second input file detected")
-;else
-;  plotincrement=4
-;end if
 plotincrement=0
-;print("plotting increment is: "+plotincrement)
 ;-setParameters-----------------------------------------------------------
 
 plotTime = stringtointeger(timeStep)
@@ -135,7 +123,8 @@ if (sst .eq. 301) then
   if (.not. isvar("diff")) then
     maintitle = "Mean Vertical Structure SST=301"
   end if 
-  infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_384gp_301_more_4mn_fldtmn.nc","r")
+  ;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_384gp_301_more_4mn_fldtmn.nc","r")
+  infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_384gp_301_more_4mn_fldtmn.nc","r")
   fieldrh = infile->$varnamerh$(plotTime,:,0,0)
   fieldtemp = infile->$varnamet$(plotTime,:,0,0)
   fieldclc = infile->$varnameclc$(plotTime,:,0,0)
@@ -162,14 +151,9 @@ end if
 ;--------------------------------------------------------------------------
 ; from file 2
 title2="12M"
-;title2="SST=301K"
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_192gp_"+sst+"_more_"+ddate+"_fldtmn.nc","r")
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_301_more_junjulaug11_fldtmn.nc","r")
-;infile = addfile("to_ecs/rce_ecs_20km_192gp_"+sst+"_more_augsep10_fldtmn.nc","r")
-; full domain mean time mean profile
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_192gp_297_more_amjjason12_fldtmn.nc","r")
 ; upward/downward domain mean tme mean profile: 
-  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_192gp_"+sstval+"_more_ason12_total_tmn.nc","r")
+;  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_192gp_"+sstval+"_more_ason12_total_tmn.nc","r")
+infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_192gp_297_more_amjjason12_fldtmn.nc","r")
 
 fieldrh = infile->$varnamerh$(plotTime2,:,0,0)
 fieldtemp = infile->$varnamet$(plotTime,:,0,0)
@@ -190,7 +174,8 @@ delete([/infile,fieldrh,fieldtemp,fieldclc,fieldqi,fieldqc/])
 
 ;read in data from 301K experiment
 if (sst .eq. 301) then
-  infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_192gp_301_more_amjjason12_fldtmn.nc","r")
+  ;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_192gp_301_more_amjjason12_fldtmn.nc","r")
+  infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_192gp_301_more_amjjason12_fldtmn.nc","r")
   fieldrh = infile->$varnamerh$(plotTime,:,0,0)
   fieldtemp = infile->$varnamet$(plotTime,:,0,0)
   fieldclc = infile->$varnameclc$(plotTime,:,0,0)
@@ -217,14 +202,9 @@ end if
 ;--------------------------------------------------------------------------
 ; from file 3
 title3="3M"
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_"+sst+"_more_"+ddate+"_fldtmn.nc","r")
-;infile = addfile("to_data/cdodata/rce_ecs_20km_96gp_301_more_fldsum_tmn.nc","r")
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_301_more_junjulaug11_fldtmn.nc","r")
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_"+sst+"_more_"+ddate+"_fldtmn.nc","r")
-; full domain mean time mean profile:
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_297_more_MJJA18_fldtmn.nc","r")
 ; upward/downward domain mean tme mean profile: 
-  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_96gp_"+sstval+"_more_MJJ18_total_tmn.nc","r")
+;  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_96gp_"+sstval+"_more_MJJ18_total_tmn.nc","r")
+infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_96gp_297_more_MJJA18_fldtmn.nc","r")
 
 fieldrh = infile->$varnamerh$(plotTime2,:,0,0)
 fieldtemp = infile->$varnamet$(plotTime,:,0,0)
@@ -245,7 +225,8 @@ delete([/infile,fieldrh,fieldtemp,fieldclc,fieldqi,fieldqc/])
 
 ;read in data from 301K experiment
 if (sst .eq. 301) then
-  infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_301_more_MJJA18_fldtmn.nc","r")
+  ;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_96gp_301_more_MJJA18_fldtmn.nc","r")
+  infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_96gp_301_more_MJJA18_fldtmn.nc","r")
   fieldrh = infile->$varnamerh$(plotTime,:,0,0)
   fieldtemp = infile->$varnamet$(plotTime,:,0,0)
   fieldclc = infile->$varnameclc$(plotTime,:,0,0)
@@ -272,13 +253,9 @@ end if
 ;--------------------------------------------------------------------------
 ; from file 4
 title4="200M"
-;title4="50M Rotation"
-;title4="3/4 M"
-;infile = addfile("elisa_rce_ecs_20km_384gp_297_more_select_fldtmn.nc","r")
-; full domain mean time mean profile:
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_768gp_297_more_aprjul23d_fldtmn.nc","r")
 ; upward/downward domain mean tme mean profile: 
-  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_768gp_"+sstval+"_more_aprjul_total_tmn.nc","r")
+;  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_768gp_"+sstval+"_more_aprjul_total_tmn.nc","r")
+infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_768gp_297_more_aprjul23d_fldtmn.nc","r")
 
 fieldrh = infile->$varnamerh$(plotTime2,:,0,0)
 fieldtemp = infile->$varnamet$(plotTime,:,0,0)
@@ -299,7 +276,8 @@ delete([/infile,fieldrh,fieldtemp,fieldclc,fieldqi,fieldqc/])
 
 ;read in data from 301K experiment
 if (sst .eq. 301) then
-  infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_768gp_301_more_aprjul23d_fldtmn.nc","r")
+  ;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_768gp_301_more_aprjul23d_fldtmn.nc","r")
+  infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_768gp_301_more_aprjul23d_fldtmn.nc","r")
   ;infile = addfile("elisa_rce_ecs_20km_384gp_297_more_select_fldtmn.nc","r")
   ;infile = addfile("to_exps/rce_ecs_20km_48gp_301/rce_ecs_20km_48gp_301_more_fldtmn.nc","r")
   fieldrh = infile->$varnamerh$(plotTime,:,0,0)
@@ -330,10 +308,9 @@ end if
 ;--------------------------------------------------------------------------
 ; from file 5
 title5="3/4 M"
-; full domain mean time mean profile
-;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_48gp_297_more_lstyr_fldtmn.nc","r")
 ; upward/downward domain mean tme mean profile: 
-  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_48gp_"+sstval+"_more_lstyr_total_tmn.nc","r")
+;  infile = addfile("/Users/levi/data/nwprce/rce_ecs/updown/fldmean_masked_w_"+wval+"_rce_ecs_20km_48gp_"+sstval+"_more_lstyr_total_tmn.nc","r")
+infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_48gp_297_more_lstyr_fldtmn.nc","r")
 
 fieldrh = infile->$varnamerh$(plotTime2,:,0,0)
 fieldtemp = infile->$varnamet$(plotTime,:,0,0)
@@ -354,7 +331,8 @@ delete([/infile,fieldrh,fieldtemp,fieldclc,fieldqi,fieldqc/])
 
 ;read in data from 301K experiment
 if (sst .eq. 301) then
-  infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_48gp_301_more_lstyr_fldtmn.nc","r")
+  ;infile = addfile("to_ecs/mean_timerun/rce_ecs_20km_48gp_301_more_lstyr_fldtmn.nc","r")
+  infile = addfile("../to_ecs/mean_timerun/rce_ecs_20km_48gp_301_more_lstyr_fldtmn.nc","r")
   ;infile = addfile("elisa_rce_ecs_20km_384gp_297_more_select_fldtmn.nc","r")
   ;infile = addfile("to_exps/rce_ecs_20km_48gp_301/rce_ecs_20km_48gp_301_more_fldtmn.nc","r")
   fieldrh = infile->$varnamerh$(plotTime,:,0,0)
@@ -394,11 +372,11 @@ if (isvar("reldiff")) then
   end if
 
   ; set which field is the reference field
-  refrh=fieldrha
-  reftemp=fieldtempa
-  refclc=fieldclca
-  refqi=fieldqia
-  refqc=fieldqca
+  refrh=fieldrhd
+  reftemp=fieldtempd
+  refclc=fieldclcd
+  refqi=fieldqid
+  refqc=fieldqcd
   ;3/4M
   fieldrhe   =fieldrhe-refrh
   fieldtempe =fieldtempe-reftemp
@@ -453,7 +431,7 @@ print("scale factor is currently: "+scale)
 ;=========================================================================;
         plot_type=plottype
 	wks  = gsn_open_wks(plot_type,"testplot")   	; output using eps
-        gsn_define_colormap(wks,"gui_default")
+        gsn_define_colormap(wks,"CBR_drywet")
         ;create a plot array
         plot = new(5,graphic)
 
@@ -466,7 +444,8 @@ print("scale factor is currently: "+scale)
         ldash  = 1   ; dashed marking for lines
 ;       colors1 defines the colors of the different spectra
 ;        colors1 = (/"Black","SteelBlue","GoldenRod","OrangeRed","LawnGreen","DarkTurquoise","Blue","Red"/) 
-        colors1 = (/"OrangeRed","Black","GoldenRod","SteelBlue","LawnGreen"/) 
+        ;colors1 = (/"OrangeRed","Black","GoldenRod","SteelBlue","LawnGreen"/) 
+        colors1 = (/12,11,10,9,8/) ; greens
      	res          = True
 
         res@gsnDraw          = False
