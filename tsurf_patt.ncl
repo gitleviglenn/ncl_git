@@ -16,13 +16,18 @@ basedir="/archive/Levi.Silvers/sstpatt/am4g10/"
 ;expname="/atmos_c96L32_am4g9_1860climo_"
 ; define the filenames for the incoming experiments
 ;infile1=basedir+"/am4g5r11_cess_test/atmos_c96L32_am4g5r11_2000climo_t_surf_0007-0011.nc"
-infile1=basedir+"/c96L32_am4g10r8_2000climo_atmos.000201-001112.t_surf_tmn.nc"
+;infile1=basedir+"/c96L32_am4g10r8_2000climo_atmos.000201-001112.t_surf_tmn.nc"
+;infile1="/archive/Levi.Silvers/sstpatt/sst.climo.1981-2000.data_tmean_t_surf_remap.nc"
+infile1=basedir+"/c96L32_am4g10r8_2000climo_tsurf_tmn.nc"
 ;infile2=basedir+"/am4g5r11_cess_test/atmos_c96L32_am4g5r11_2000climo_p2K_t_surf_0007-0011.nc"
-infile2=basedir+"c96L32_am4g10r8_2000climo_p2K_atmos.000201-001112.t_surf_tmn.nc"
+;infile2=basedir+"c96L32_am4g10r8_2000climo_p2K_atmos.000201-001112.t_surf_tmn.nc"
+infile2=basedir+"c96L32_am4g10r8_2000climo_p2K_tsurf_tmn.nc"
 ;infile3=basedir+"/am4_1pc_test/atmos_AM4OM2F_c96l32_am4g5r11_2000climo_t_surf_0136-0140.nc"
-infile3=basedir+"c96L32_am4g10r8_hadsstp1pctco2_climo_atmos.000201-001112.t_surf_tmn.nc"
+;infile3=basedir+"c96L32_am4g10r8_hadsstp1pctco2_climo_atmos.000201-001112.t_surf_tmn.nc"
+infile3=basedir+"c96L32_am4g10r8_had_p_1pctco2_climo_tsurf_tmn.nc"
 ;infile4=basedir+"/am4_1pc_test/atmos_AM4OM2F_c96l32_am4g5r11_2000climo_1pct_t_surf_0136-0140.nc"
-infile4=basedir+"c96L32_am4g10r8_hadsstp1pctco2_AM4OM2ice_climo_atmos.000201-001112.t_surf_tmn.nc"
+;infile4=basedir+"c96L32_am4g10r8_hadsstp1pctco2_AM4OM2ice_climo_atmos.000201-001112.t_surf_tmn.nc"
+infile4=basedir+"c96L32_am4g10r8_had_p_4xCO2_climo_tsurf_tmn.nc"
 ;
 maintitle="what are you doing?"
 print("infile is: "+infile1)
@@ -49,22 +54,28 @@ print("dimensions of ctl_t_surf: "+dimsizes(ctl_t_surf))
 ;************************************************
 ;************************************************
 ; compute lat weights to determine the global mn
-lat  = file1_tsurf->lat
-rad  = 4.0*atan(1.0)/180.0
-clat = cos(lat*rad)
-ctl_ave_weight     =wgt_areaave(ctl_t_surf,clat,1.0,1)
-ctlpreg_ave_weight     =wgt_areaave(file3_t_surf,clat,1.0,1)
-warm_ave_weight     =wgt_areaave(file2_t_surf,clat,1.0,1)
-;ctlpreg_4xco2_ave_weight     =wgt_areaave(t4,clat,1.0,1)
+  lat  = file1_tsurf->lat
+  rad  = 4.0*atan(1.0)/180.0
+  clat = cos(lat*rad)
+  ctl_ave_weight     =wgt_areaave(ctl_t_surf,clat,1.0,1)
+  ctlpreg_ave_weight     =wgt_areaave(file3_t_surf,clat,1.0,1)
+  warm_ave_weight     =wgt_areaave(file2_t_surf,clat,1.0,1)
+  ;ctlpreg_4xco2_ave_weight     =wgt_areaave(t4,clat,1.0,1)
 print("global mean tsfc of ctl is: "+ctl_ave_weight)
 print("global mean tsfc of ctl+reg is: "+ctlpreg_ave_weight)
 print("global mean tsfc of warm is: "+warm_ave_weight)
 ;************************************************
 ; compute the diff between the ctlpreg and ctlp4k
 ;tdiff=ctl_t_surf-file3_t_surf
-diff_f2mctl=file2_t_surf-ctl_t_surf
-diff_f3mctl=file3_t_surf-ctl_t_surf
-diff_f4mctl=file4_t_surf-ctl_t_surf
+  diff_f2mctl=file2_t_surf-ctl_t_surf
+  f2mctl_weightmn     =wgt_areaave(diff_f2mctl,clat,1.0,1)
+print("global mean tsfc of f2 m ctl is: "+f2mctl_weightmn)
+  diff_f3mctl=file3_t_surf-ctl_t_surf
+  f3mctl_weightmn     =wgt_areaave(diff_f3mctl,clat,1.0,1)
+print("global mean tsfc of f3 m ctl is: "+f3mctl_weightmn)
+  diff_f4mctl=file4_t_surf-ctl_t_surf
+  f4mctl_weightmn     =wgt_areaave(diff_f4mctl,clat,1.0,1)
+print("global mean tsfc of f4 m ctl is: "+f4mctl_weightmn)
 ;tdiff4co2=file4_t_surf-ctl_t_surf
 ;tdiff4co2=file4_t_surf-file3_t_surf
 ;tdiffhistmreg=file2_t_surf-file3_t_surf
@@ -107,7 +118,7 @@ my_colors_diff = (/28,41,44,47,53,59,65,69,73,77,81,85,89,93,97,101/)
 ;;my_colors = (/101,97,95,91,85,79,75,69,65,59,53,46,41,35,28,25/)
 
 ;************************************************
-  wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("pdf","testplot")          ; send graphics to PNG file
 ;  gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"WhBlGrYeRe")
   plot = new(4,graphic)
@@ -145,13 +156,13 @@ my_colors_diff = (/28,41,44,47,53,59,65,69,73,77,81,85,89,93,97,101/)
 
   res@lbLabelFontHeightF  = 0.015           ; label bar font height
 
-  res@tiMainString       = "Hadley Center SST yr mean"; add a title
+  res@tiMainString       = "Hadley Center SST climo yr mean"; add a title
   res@tiMainFontHeightF  = .018                               ; font height
   contour1 = gsn_csm_contour_map(wks,ctl_t_surf,res)  ; create the plot
   plot(0) = contour1
 
   res@gsnFrame         = False
-  res@tiMainString       = "title2" 
+  res@tiMainString       = "Had SST p2K anom" 
   res@cnLevels          = my_levels_diff
   res@cnFillColors      = my_colors_diff
   contour2 = gsn_csm_contour_map(wks,diff_f2mctl,res)  ; create the plot
@@ -159,7 +170,7 @@ my_colors_diff = (/28,41,44,47,53,59,65,69,73,77,81,85,89,93,97,101/)
 
   res@gsnFrame         = False
   ;res@tiMainString       = "20 last year patt"
-  res@tiMainString       = "title3"
+  res@tiMainString       = "1pct CO2 reg patt anom"
   res@cnLevels          = my_levels_diff
   res@cnFillColors      = my_colors_diff
   contour3 = gsn_csm_contour_map(wks,diff_f3mctl,res)  ; create the plot
@@ -167,7 +178,7 @@ my_colors_diff = (/28,41,44,47,53,59,65,69,73,77,81,85,89,93,97,101/)
 
   res@gsnFrame         = False
   ;res@tiMainString       = "warm - reg"
-  res@tiMainString       = "title4"
+  res@tiMainString       = "4xCO2 reg patt anom"
   res@cnLevels          = my_levels_diff
   res@cnFillColors      = my_colors_diff
   ;contour4 = gsn_csm_contour_map(wks,tdiff4co2,res)  ; create the plot
