@@ -90,7 +90,9 @@ begin
 ;exptree="gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_misr/av/monthly_10yr/"
 ;;filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_"+file_base+".nc"
 ;filein=archdir+expname+exptree+file_name
-  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.01.nc"
+;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.01.nc"
+;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
+  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn.nc"
 ;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
 ;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
   infile = addfile(filein,"r")
@@ -99,15 +101,30 @@ begin
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
-;;field_misr1=infile->misr_1
-;;print("----------------info for misr1---------------")
-;
-  varnames="clisccp_"+ispan(1,7,1)
-  fields=new((/7,7/),float)
-;
   ftime=0
-  flat=0
-  flon=0
+  flat=70
+  flon=70
+  fields=new((/7,7/),float)
+  varnames="clisccp_"+ispan(1,7,1)
+  varnamemn="cltisccp" ; ISCCP total cloud fraction
+;
+print("infile is: "+filein)
+  field1=infile->$varnamemn$(ftime,:,:)          
+print("infile is: "+filein)
+print("dimensions of "+varnamemn+" are "+dimsizes(field1))
+print("max of infile is: "+max(field1))
+print("min of infile is: "+min(field1))
+; compute lat weights to determine the global mn
+  lat  = infile->lat
+  rad  = 4.0*atan(1.0)/180.0
+  clat = cos(lat*rad)
+  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
+  field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
+  field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
+print("raw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
+print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
+;
+;
   do i=0,6,1
     tempvar=varnames(i)
     tempvars=tempvar+"_"+ispan(1,7,1)

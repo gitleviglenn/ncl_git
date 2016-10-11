@@ -72,6 +72,8 @@ print("global mean tsfc of warm is: "+warm_ave_weight)
 print("global mean tsfc of f2 m ctl is: "+f2mctl_weightmn)
   diff_f3mctl=file3_t_surf-ctl_t_surf
   f3mctl_weightmn     =wgt_areaave(diff_f3mctl,clat,1.0,1)
+  ;the output can be normalized by the global mean change..
+  ;diff_f3mctl=diff_f3mctl/f3mctl_weightmn
 print("global mean tsfc of f3 m ctl is: "+f3mctl_weightmn)
   diff_f4mctl=file4_t_surf-ctl_t_surf
   f4mctl_weightmn     =wgt_areaave(diff_f4mctl,clat,1.0,1)
@@ -127,6 +129,7 @@ my_colors_diff = (/28,41,44,47,53,59,65,69,73,77,81,85,89,93,97,101/)
   res@cnLinesOn            = False
   res@mpProjection      = "Robinson"       ; choose projection
 ;  res@mpProjection      = "Mollweide"       ; choose projection
+  res@mpCenterLonF      = 180.
   res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
