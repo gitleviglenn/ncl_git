@@ -58,19 +58,9 @@ title6="SW CRE Response"
 ;***********************************************************************************
 ;
 ;infile1="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
-;infile1="/home/lgs/am4g6_2000climo_cntpreg_1pct_response.nc"
-;infile1="/home/lgs/am4g6_2000climo_CESS_response.nc"
-;infile1="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
-;infile1="/home/lgs/test_response.nc"
-;infile1="/home/lgs/am4g6_2000climo_CESS_response.nc"
-;infile1="/home/lgs/am4g6_2000climo_cntpreg_1pct_response.nc"
-;infile1="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
-;infile1="/home/lgs/c96L32_am4g6_2000climo_ctlpreg_1per_co2_response.nc"
-;infile1="/home/lgs/c96L32_am4g6_2000climo_ctlpreg_4xco2_response.nc"
-;infile1="/home/lgs/c96L32_am4g10r8_hadssticep1pctco2_climo_feedback.nc"
-;infile1="/home/lgs/c96L32_am4g10r8_hadsstp1pctco2_climo_feedback.nc"
-;infile1="/home/lgs/testout.nc"
-infile1="/home/lgs/test_1Pcntsst_moisture.nc"
+;infile1="/home/lgs/test_1Pcntsst_moisture.nc"
+;infile1="/home/lgs/c96L32_am4g10r8_2000climo_p2K_feedback.nc"
+infile1="/home/lgs/am3_sst_hadclimo_p_cmip3_fdbck.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
@@ -145,13 +135,12 @@ print("************************************************")
 ; read in netCDF files for column on right; experiment two
 ;***********************************************************************************
 
-;infile1="/home/lgs/AM4OM2F_c96l32_am4g5r11_2000climo_1pct_response.nc"
-;infile1="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
-;infile1="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
-infile1="/home/lgs/c96L32_am4g10r8_2000climo_p2K_feedback.nc"
+;infile2="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
+;infile2="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
+infile2="/home/lgs/c96L32_am4g10r8_sst_hadclimo_p_cmip3_fdbck.nc"
 
-aa=addfile(infile1,"r")
-print("incoming file is: "+infile1)
+aa=addfile(infile2,"r")
+print("incoming file is: "+infile2)
 
 ;
   toa_b         = aa->toa_response(:,:)    
