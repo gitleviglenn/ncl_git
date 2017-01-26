@@ -76,44 +76,33 @@ begin
 ; but the main problem is that i had to grab just clisccp_2_2.  this needs to be eliminated or automated becauese I need 49 vars
 
 ;; open/reference desired file (use addfiles to reference multiple data file)
-;;file_name="atmos_month_misr5yr_march_fldmn.nc"
-;modv="am4g9"
-  toptitle="COSP_ISCCP "
+  toptitle="COSP_ISCCP cld fraction"
   xtitle="pressure(hPa)"
   ytitle="optical depth"
-;file_name="atmos_month_misr_"+modv+"_5yrjan_fldmean.nc"
-;;expname="c96L32_"+modv+"_2000climo_cosp/"
-;expname="c96L32_am4g9_2000climo_cosp_isccp/"
-;;archdir="/archive/Levi.Silvers/awg/ulm_201505/"
-;archdir="/archive/Levi.Silvers/awg/ulm_201505/"
-;;exptree="gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/"
-;exptree="gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_misr/av/monthly_10yr/"
-;;filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_"+file_base+".nc"
-;filein=archdir+expname+exptree+file_name
-;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.01.nc"
 ;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
-  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn.nc"
+  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_fldmn.nc"
+  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_uw_ncwa2.nc"
 ;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
 ;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
   infile = addfile(filein,"r")
+  infile2 = addfile(filein2,"r")
 ;
   print("infile is: "+filein)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
   ftime=0
-  flat=70
-  flon=70
+  flat=0
+  flon=0
   fields=new((/7,7/),float)
   varnames="clisccp_"+ispan(1,7,1)
   varnamemn="cltisccp" ; ISCCP total cloud fraction
 ;
-print("infile is: "+filein)
   field1=infile->$varnamemn$(ftime,:,:)          
-print("infile is: "+filein)
 print("dimensions of "+varnamemn+" are "+dimsizes(field1))
 print("max of infile is: "+max(field1))
 print("min of infile is: "+min(field1))
+;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
   lat  = infile->lat
   rad  = 4.0*atan(1.0)/180.0
@@ -121,28 +110,39 @@ print("min of infile is: "+min(field1))
   field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
   field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
   field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
-print("raw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
+  field1_nonweighted_ave= wgt_areaave(field1,1.0,1.0,1)
+print("raw w global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
+print("raw uw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_nonweighted_ave)
 print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
 ;
-;
-  do i=0,6,1
-    tempvar=varnames(i)
+  do j=0,6,1
+    tempvar=varnames(j)
     tempvars=tempvar+"_"+ispan(1,7,1)
-    do j=0,6,1
-    ;print("piss off: "+tempvar)
-      pisso=tempvars(j)
-      ;print("single piss off: "+pisso)
+    do i=0,6,1
+      pisso=tempvars(i)
+      print("single piss off: "+pisso+" varname at i="+i+" j="+j)
       ;print("piss offs: "+tempvars)
-      fields(j,i)=infile->$pisso$(ftime,flat,flon)
+      ;fields(i,j)=infile2->$pisso$(ftime,flat,flon)
+      fields(i,j)=infile2->$pisso$(ftime)
+      ;print(fields(i,j)+" at i="+i+" j="+j)
     end do
+;    print("fields for i= "+i+" "+fields(i,6))
   end do
 ;
+print("single piss off: "+pisso)
+; some schenanigans were necessary to get the plot to line up correctly with the 
+; pressure and tau levels
+;
+fields=fields(::-1,:)
 print("dimensions of fields: "+dimsizes(fields))
   ncr=dimsizes(fields)
 ;
 print("ncr is: "+ncr)
 print("overall max of fields is: "+max(fields))
 print("overall min of fields is: "+min(fields))
+;
+tot_cldfrac_isccp=sum(fields)
+print("total cloud fraction from clisccp_tau_p : "+tot_cldfrac_isccp)
 ;
   fields=where(fields.le.0.001,0.0,fields)
   fields=decimalPlaces(fields,2,True)
