@@ -80,21 +80,67 @@ begin
 ; but the main problem is that i had to grab just clisccp_2_2.  this needs to be eliminated or automated becauese I need 49 vars
 
 ;; open/reference desired file (use addfiles to reference multiple data file)
-  ;xtitle="pressure(hPa)"
-  ;ytitle="optical depth"
+;xtitle="pressure(hPa)"
+;ytitle="optical depth"
 ; below for am4g10r8
-  toptitle="COSPMODIS cfrac am4g10r8 2yrgmn"
-  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_bigout/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_2yr/atmos_month_modis.0002-0003.alltmn.nc"
-  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_bigout/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_2yr/atmos_month_modis.0002-0003.alltmn_ncwa.nc"
+;
+;filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_bigout/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_2yr/atmos_month_modis.0002-0003.alltmn.nc"
+;filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_bigout/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_2yr/atmos_month_modis.0002-0003.alltmn_ncwa.nc"
 ;; below for am4g11r11
 ;  toptitle="COSPMODIS cfrac am4g11r11 5yrgmn"
 ;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g11r11_2010climo_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_5yr/atmos_month_modis.0007-0011.alltmn.nc"
 ;  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g11r11_2010climo_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_modis/av/monthly_5yr/atmos_month_modis.0007-0011.alltmn_ncwa.nc"
+;
+;
+; titlebase="COSPMODIS cfrac am4g12r18 10yrm"
+;
+; regions: .nc _perustr.nc, _npac.nc, _wp.nc
+;
+;region="_gmn"
+;regi="gl"
+;region="_perustr_mn"
+; regi="peru st"
+;region="_npac_mn"
+; regi="npac"
+;region="_wpmn"
+; regi="wm pl"
+region="_trop_mn"
+ regi="trops"
+;
+;outputfile=model+region
+;
+; model="c96L32_am4G12r18_2010climo_A_cosp"
+; mode="r18"
+ model="c96L32_am4G12r17_2010climo_A_cosp"
+ mode="r17"
+;model="c96L32_am4G12r16_2010climo_new_cosp"
+; mode="r16"
+outputfile=model+region
+;
+ titlebase=mode+" 10yrm "+regi
+;
+; am4G12r18
+;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn_gmn.nc"
+;filein_glb="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn_wpmn.nc"
+;region="npac_mn.nc"
+;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn_npac_mn.nc"
+;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn_perustr_mn.nc"
+;; am4G12r17
+;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn_gmn.nc"
+;;filein_glb="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;
+; specify paths
+filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn"+region+".nc"
+filein_glb="/archive/Levi.Silvers/data/"+model+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;
+;
+;
   infile = addfile(filein,"r")
-; do we need to use latitude weighting?  
-  infile2 = addfile(filein2,"r")
+  infile_glb = addfile(filein_glb,"r")
 ;
   print("infile is: "+filein)
+  print("infile_glb is: "+filein_glb)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
@@ -106,13 +152,13 @@ begin
   varnames="tauctpmodis_"+ispan(1,7,1)
   varnamemn="tclmodis" ; MODIS total cloud fraction
 ;
-  field1=infile->$varnamemn$(ftime,:,:)          
+  field1=infile_glb->$varnamemn$(ftime,:,:)          
 print("dimensions of "+varnamemn+" are "+dimsizes(field1))
 print("max of infile is: "+max(field1))
 print("min of infile is: "+min(field1))
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
-  lat  = infile->lat
+  lat  = infile_glb->lat
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
   field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
@@ -124,7 +170,7 @@ print("raw uw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_nonwei
 print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
 ;
 ;tauctpmodis
-print("infle2 is: "+filein2)
+;print("infile is: "+filein)
 print("dimensions of fields are: "+dimsizes(fields))
   do j=1,6,1
     tempvar=varnames(j)
@@ -136,7 +182,7 @@ print("dimensions of fields are: "+dimsizes(fields))
       print(fields(i,j)+" at i="+i+" j="+j) 
       ;print("piss offs: "+tempvars
       ;fields(i,j)=infile2->$pisso$(ftime,flat,flon) ; for single point
-      fields(i,j)=infile2->$pisso$(ftime); for global mean
+      fields(i,j)=infile->$pisso$(ftime); for global mean
       print(fields(i,j)+" at i="+i+" j="+j)
     end do
 ;    print("fields for i= "+i+" "+fields(i,6))
@@ -160,7 +206,8 @@ print("total cloud fraction from modis_tau_p : "+tot_cldfrac_modis)
 xtitle="total clfract: "
 ;
   fields=where(fields.le.0.001,0.0,fields)
-  fields=decimalPlaces(fields,2,True)
+  fields=decimalPlaces(fields,1,True)
+  mntcl=decimalPlaces(tot_cldfrac_modis,1,True)
   text_values=""+fields
 ;
   ncols=7
@@ -225,7 +272,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ; Start the graphics.
 
 ; why doesn't png work?
-  wks = gsn_open_wks("ps","testplot")
+;  wks = gsn_open_wks("ps","testplot")
+  wks = gsn_open_wks("newPDF",outputfile)
   gsn_define_colormap(wks,colors)
 
   ;
@@ -275,7 +323,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 
 ; Main title
   ;resb@tiMainString            = file_base
-  resb@tiMainString            = toptitle
+  totaltitle = titlebase+" tcl:"+mntcl
+  resb@tiMainString            = totaltitle
 
   blank = gsn_csm_blank_plot(wks,resb)
   add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
