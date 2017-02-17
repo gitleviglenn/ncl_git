@@ -65,6 +65,7 @@ title6="SW CRE Response"
 ;infile1="/home/lgs/am3_sst_hadclimo_p_cmip3_fdbck.nc"
 ;infile1="/home/lgs/c96L32_am4g10r8_cm3_sst_P1.nc"
 infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_early.nc"
+;infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_late.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
@@ -145,6 +146,7 @@ print("************************************************")
 ;infile2="/home/lgs/c96L32_am4g10r8_cm3_sst_P2.nc"
 ;infile2="/home/lgs/am3_p2.nc"
 infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_early.nc"
+;infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_late.nc"
 
 aa=addfile(infile2,"r")
 print("incoming file is: "+infile2)
@@ -222,6 +224,7 @@ print("************************************************")
 
 ;infile3="/home/lgs/c96L32_am4g10r8_cm3_sst_P3.nc"
 infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_early.nc"
+;infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_late.nc"
 
 cc=addfile(infile3,"r")
 print("incoming file is: "+infile3)
@@ -328,7 +331,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   ;res@lbOrientation     = "Vertical"
   res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
-  res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
+  ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
   res@mpCenterLonF      = 180.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
