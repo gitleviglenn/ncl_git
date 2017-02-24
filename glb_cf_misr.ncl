@@ -22,7 +22,7 @@ begin
 ;***********************************************************************************
 ; read in netCDF file
 ;***********************************************************************************
-dirin="/work/Levi.Silvers/moddata/misr_pp_am4g10r8_taugt0p3/"
+dirin="/work/Levi.Silvers/moddata/misr_am4g10r8_taugt0p3/"
 ;infile="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4h6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_misr_mtime_under3km_tau_mn_final.nc"
 infile=dirin+"atmos_month_misr_mtime_under3km_tau_mn_final.nc"
 maintitle="MISR cloud fraction am4g10r8 below 3km (tau>0.3)"

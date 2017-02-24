@@ -26,11 +26,13 @@ begin
 ; read in netCDF file
 ;***********************************************************************************
 dirin="/work/Levi.Silvers/moddata/misr_pp_am4g10r8_taugt0p3/"
-infile_isccpdata="/net2/Levi.Silvers/data/isccpdata/cltisccp_3yr_tmn.nc"
+infile_isccpdata="/net2/Levi.Silvers/data/isccpdata/cltisccp_7yr_tmn.nc"
   isccp_data = addfile(infile_isccpdata,"r")
 print("infile for isccp data is: "+infile_isccpdata)
-maintitle="isccp data 2001-2003 mean"
+maintitle="cltisccp obs 2001-2007"
+  isc_data_test = isccp_data->cltisccp(0,:,:)                                
   isc_data = isccp_data->cltisccp(0,:,:)                                
+  print("dims of isc_data are: "+dimsizes(isc_data))
   tot_cld_sum=sum(isc_data)
   t2=where(isc_data.ge.100.,0.0,isc_data)
   tot_cld_sum2=sum(t2)
@@ -41,6 +43,7 @@ maintitle="isccp data 2001-2003 mean"
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
 lat  = isccp_data->latitude
+lon  = isccp_data->longitude_2
 rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
@@ -51,6 +54,12 @@ print("weighted global mean of cltisccp is: "+field1_weighted_ave)
 ;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
 ;print("global mean of non missing data "+cltisccp+" at time "+time+" is: "+field1_weighted_ave_test)
 ;
+isc_data!0="latitude"
+isc_data&latitude@units="degrees_north"
+;isc_data&latitude=isc_data_test&latitude
+isc_data!1="lon"
+isc_data&lon@units="degrees_east"
+;isc_data&lon=isc_data_test&longitude_2
 ;***********************************************************************************
 ; create plot
 ;***********************************************************************************
@@ -59,13 +68,21 @@ print("weighted global mean of cltisccp is: "+field1_weighted_ave)
 my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/)
 my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/)
 
-  wks = gsn_open_wks("eps","proj")          ; send graphics to ps file
+my_levels1 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
+my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
+
+  ;wks = gsn_open_wks("eps","proj")          ; send graphics to ps file
+  wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
-  gsn_define_colormap(wks,"WhBlGrYeRe")
+  ;gsn_define_colormap(wks,"WhBlGrYeRe")
+  gsn_define_colormap(wks,"matlab_jet")
 
 
   res                   = True
+  res@mpProjection      = "Robinson"       ; choose projection
 ;  res@mpProjection      = "Mollweide"       ; choose projection
+  res@cnLinesOn         = False
+  res@mpCenterLonF      = 180.
   res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
@@ -96,5 +113,6 @@ my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/)
 
   ;contour = gsn_csm_contour_map(wks,t,res)  ; create the plot
   contour = gsn_csm_contour_map(wks,isc_data,res)  ; create the plot
+  ;contour = gsn_csm_contour_map(wks,isc_data_test,res)  ; create the plot
 end
 

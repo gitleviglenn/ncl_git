@@ -75,19 +75,46 @@ begin
 ;
 ; but the main problem is that i had to grab just clisccp_2_2.  this needs to be eliminated or automated becauese I need 49 vars
 
-;; open/reference desired file (use addfiles to reference multiple data file)
-  toptitle="COSP_ISCCP cld fraction"
-  xtitle="pressure(hPa)"
-  ytitle="optical depth"
-;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
-  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_fldmn.nc"
-  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_uw_ncwa2.nc"
-;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
-;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
-  infile = addfile(filein,"r")
-  infile2 = addfile(filein2,"r")
+;;; open/reference desired file (use addfiles to reference multiple data file)
+  toptitle="COSPISCCP cfrac fraction"
+;  xtitle="pressure(hPa)"
+;  ytitle="optical depth"
+;;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
+;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_fldmn.nc"
+;  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_uw_ncwa2.nc"
+;  ;filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_ncwa.nc"
+;;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
+;;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
+;  infile = addfile(filein,"r")
+;  infile2 = addfile(filein2,"r")
 ;
-  print("infile is: "+filein)
+region="_gmn"
+regi="gl"
+;region="_perustr_mn"
+; regi="peru st"
+;region="_npac_mn"
+; regi="npac"
+;region="_wpmn"
+; regi="wm pl"
+;region="_trop_mn"
+; regi="trops"
+;
+ model="c96L32_am4G12r18_2010climo_A_cosp"
+ mode="r18"
+; model="c96L32_am4G12r17_2010climo_A_cosp"
+; mode="r17"
+;model="c96L32_am4G12r16_2010climo_new_cosp"
+; mode="r16"
+outputfile=model+region
+;
+ titlebase=mode+" 10yrm "+regi
+;
+; specify paths
+filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn"+region+".nc"
+;
+  infile = addfile(filein,"r")
+  ;infile_glb = addfile(filein_glb,"r")
+print("infile is: "+filein)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
@@ -96,34 +123,34 @@ begin
   flon=0
   fields=new((/7,7/),float)
   varnames="clisccp_"+ispan(1,7,1)
-  varnamemn="cltisccp" ; ISCCP total cloud fraction
+;  varnamemn="cltisccp" ; ISCCP total cloud fraction
 ;
-  field1=infile->$varnamemn$(ftime,:,:)          
-print("dimensions of "+varnamemn+" are "+dimsizes(field1))
-print("max of infile is: "+max(field1))
-print("min of infile is: "+min(field1))
+;  field1=infile->$varnamemn$(ftime,:,:)          
+;print("dimensions of "+varnamemn+" are "+dimsizes(field1))
+;print("max of infile is: "+max(field1))
+;print("min of infile is: "+min(field1))
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
   lat  = infile->lat
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
-  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
-  field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
-  field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
-  field1_nonweighted_ave= wgt_areaave(field1,1.0,1.0,1)
-print("raw w global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
-print("raw uw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_nonweighted_ave)
-print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
+;  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
+;  field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
+;  field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
+;  field1_nonweighted_ave= wgt_areaave(field1,1.0,1.0,1)
+;print("raw w global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
+;print("raw uw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_nonweighted_ave)
+;print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
 ;
   do j=0,6,1
     tempvar=varnames(j)
     tempvars=tempvar+"_"+ispan(1,7,1)
     do i=0,6,1
       pisso=tempvars(i)
-      print("single piss off: "+pisso+" varname at i="+i+" j="+j)
+      ;print("single piss off: "+pisso+" varname at i="+i+" j="+j)
       ;print("piss offs: "+tempvars)
       ;fields(i,j)=infile2->$pisso$(ftime,flat,flon)
-      fields(i,j)=infile2->$pisso$(ftime)
+      fields(i,j)=infile->$pisso$(ftime)
       ;print(fields(i,j)+" at i="+i+" j="+j)
     end do
 ;    print("fields for i= "+i+" "+fields(i,6))
@@ -145,7 +172,7 @@ tot_cldfrac_isccp=sum(fields)
 print("total cloud fraction from clisccp_tau_p : "+tot_cldfrac_isccp)
 ;
   fields=where(fields.le.0.001,0.0,fields)
-  fields=decimalPlaces(fields,2,True)
+  fields=decimalPlaces(fields,1,True)
   text_values=""+fields
 ;
   ncols=7
@@ -210,7 +237,7 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ; Start the graphics.
 
 ; why doesn't png work?
-  wks = gsn_open_wks("ps","testplot")
+  wks = gsn_open_wks("newPDF","testplot")
   gsn_define_colormap(wks,colors)
 
   ;
@@ -260,7 +287,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 
 ; Main title
   ;resb@tiMainString            = file_base
-  resb@tiMainString            = toptitle
+  totaltitle = titlebase
+  resb@tiMainString            = totaltitle
 
   blank = gsn_csm_blank_plot(wks,resb)
   add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
