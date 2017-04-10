@@ -241,7 +241,7 @@ plot_colors_diff=my_colors_diff_lwp
   res@mpFillOn          = False
   res@gsnDraw          = False
   res@gsnFrame         = False
-  ;res@gsnMaximize       = True
+  ;res@gsnMaximize       = True      ; this influences how much of the page is filled
  
 ; these commands turn off/on the varname and units at top of image
   res@gsnLeftString = ""

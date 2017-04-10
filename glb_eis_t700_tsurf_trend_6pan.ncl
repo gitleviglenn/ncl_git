@@ -44,19 +44,23 @@ title6="T on 700 hPa "
 ;infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_early.nc"
 ;infile1="/home/lgs/am4g10r8_eiscl_trends_test.nc"
 ;
-infile1="/home/lgs/am2_eiscl_trends_am2.nc"
+;infile1="/home/lgs/am2_eiscl_trends_am2.nc"
 ;infile1="/home/lgs/am3p9_eiscl_trends.nc"
 ;infile1="/home/lgs/am4g10r8_eiscl_trends_test.nc"
 ;infile1="/home/lgs/am4g10r8_eiscl_trends_am4b.nc"
-;infile1="/home/lgs/am4g10r8_eiscl_trends_am4_1620.nc"
+infile1="/home/lgs/am4g10r8_eiscl_trends_am4_1620.nc"
 ;infile1="/home/lgs/am3p9_eiscl_trends_am3_1620.nc"
 ;infile1="/home/lgs/am4g10r8_eiscl_trends_am4_1740.nc"
+;infile1="/home/lgs/am2_eiscl_trends_1620_tsurf.nc"
+
+infile1="/home/lgs/am2_eiscl_trends_early.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
 
 ;
   lcloud         = f1->lcloud_trend(:,:)    
+  hcloud         = f1->hcloud_trend(:,:)    
   cre         = f1->hcloud_trend(:,:)  
   omega       = f1->omega_trend(:,:)     
   eis      = f1->eis_trend(:,:)    
@@ -158,10 +162,12 @@ my_levels_swup = (/60,80,100,120,140,160,180,200,220/)
 my_levels_simple= (/-4.,-3.,-2.,-1.,0.,1.,2.,3.,4./)
 ;my_levels_eis= (/-2.0,-1.5,-1.0,-0.5,0.,0.5,1.0,1.5,2.0/)
 my_levels_eis= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
-my_levels_omega= (/-0.02,-0.015,-0.010,-0.005,0,0.005,0.01,0.015,0.02/)
+;my_levels_omega= (/-0.02,-0.015,-0.010,-0.005,0,0.005,0.01,0.015,0.02/)
+my_levels_omega= (/-0.015,-0.010,-0.005,-0.0025,0,0.0025,0.005,0.01,0.015/)
 ;my_levels_lwp=(/-0.008,-0.006,-0.004,-0.002,0,0.002,0.004,0.006,0.008/)
 my_levels_lwp=(/-8.,-6.,-4.,-2.,0,2.,4.,6.,8./)
-my_levels_tsfc=(/-2.0,-1.5,-1.,-0.5,0,0.5,1.0,1.5,2.5/)
+;my_levels_tsfc=(/-2.0,-1.5,-1.,-0.5,0,0.5,1.0,1.5,2.5/)
+my_levels_tsfc= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
 ;
 my_colors_olr = (/55, 60,  65, 70, 75, 80, 85, 90, 95,100,105/)
 my_colors_swup = (/35,40, 45, 50, 55, 60, 65, 70, 75,80,85/)
@@ -224,7 +230,9 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@tiMainString       = l_title1 
   ;res@mpMajorLatSpacingF  = 45
   res@gsnTickMarksOn     = False
-  contour1 = gsn_csm_contour_map(wks,lcloud,res)  ; create the plot
+  ;contour1 = gsn_csm_contour_map(wks,lcloud,res)  ; create the plot
+  res@tiMainString       = "HCC (% per 30 yr)"
+  contour1 = gsn_csm_contour_map(wks,hcloud,res)  ; create the plot
   plot(0) = contour1
 
 ; row 2
@@ -251,11 +259,19 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   contour10 = gsn_csm_contour_map(wks,eis,res)  ; create the plot
   plot(3) = contour10
 
+;; row 5
+;  res@tiMainString       = l_title5 
+;  res@cnLevels          = my_levels_tsfc
+;  res@cnFillColors      = my_colors_posneg
+;  contour13 = gsn_csm_contour_map(wks,tsfc,res)  ; create the plot
+;  plot(4) = contour13
+
 ; row 5
-  res@tiMainString       = l_title5 
-  res@cnLevels          = my_levels_tsfc
+  ;res@tiMainString       = l_title5 
+  res@tiMainString       = "omega"
+  res@cnLevels          = my_levels_omega
   res@cnFillColors      = my_colors_posneg
-  contour13 = gsn_csm_contour_map(wks,tsfc,res)  ; create the plot
+  contour13 = gsn_csm_contour_map(wks,omega,res)  ; create the plot
   plot(4) = contour13
 
 ; row 6
