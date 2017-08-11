@@ -22,23 +22,10 @@ begin
 ; define directories, var names, and periods
 ; for incoming files
 ;***********************************************************************************
-; 
-;; for column on left of figure
-;dirin1="/archive/Levi.Silvers/sstpatt/am4g5r11_cess_test"
-;period="0007-0011"
-;expname="/atmos_c96L32_am4g5r11_"
-;suf1=period+"_fdbk_am4g5r11_p2Kmctl.nc"
-;temp1_ctl="2000climo_t_surf_"+period+".nc"
-;temp1_wrm="2000climo_p2K_t_surf_"+period+".nc"
-;;
-;; for column in the center of figure
-;dirin2="/archive/Levi.Silvers/sstpatt/am4_1pc"
-;;period2="0061-0065"
-;period2="0136-0140"
-;expname2="/atmos_AM4OM2F_c96l32_am4g5r11_"
-;suf2=period2+"_fdbk_am4g5r11_1pctmctl.nc"
-;temp2_ctl="2000climo_t_surf_"+period2+".nc"
-;temp2_wrm="2000climo_1pct_t_surf_"+period2+".nc"
+;
+datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
+period="late"
+;period="early" 
 ;;
 fdbk_type1="toaflux_"
 title1="Net TOA Response"
@@ -59,26 +46,51 @@ title6="SW CRE Response"
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-;infile1="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
-;infile1="/home/lgs/test_1Pcntsst_moisture.nc"
-;infile1="/home/lgs/c96L32_am4g10r8_2000climo_p2K_feedback.nc"
-;infile1="/home/lgs/am3_sst_hadclimo_p_cmip3_fdbck.nc"
-;infile1="/home/lgs/c96L32_am4g10r8_cm3_sst_P1.nc"
-infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_early.nc"
-;infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_late.nc"
+;;infile1="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
+;;infile1="/home/lgs/test_1Pcntsst_moisture.nc"
+;;infile1="/home/lgs/c96L32_am4g10r8_2000climo_p2K_feedback.nc"
+;;infile1="/home/lgs/am3_sst_hadclimo_p_cmip3_fdbck.nc"
+;;infile1="/home/lgs/c96L32_am4g10r8_cm3_sst_P1.nc"
+;infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_early.nc"
+;;infile1="/net2/Levi.Silvers/data/amip_long/datafiles/am4g10r8_trends_late.nc"
+
+;infile1="/net2/Levi.Silvers/am4_trends_late.nc"
+;infile1="/net2/Levi.Silvers/data/amip_long/pp_files/am4_trends_tref_early_crediff.nc"
+;infile1=datapath+"am4_trends_tref_"+period+"_crediff.nc"
+;infile1=datapath+"am4_trends_tref_"+period+"_crediff_4ens.nc" ; this involves the mean of 3 ens for AM4
+infile1=datapath+"am4_trends_tref_"+period+"_pdown.nc" ; this involves the mean of 3 ens for AM4
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
 
 ;
-  toa         = f1->toa_response(:,:)    
-  cre         = f1->toa_cre_response(:,:)  
-  olr_clr     = f1->lw_clr_response(:,:)     
-  sw_clr      = f1->sw_clr_response(:,:)    
-  olr_cre     = f1->lw_cre_response(:,:) 
-  sw_cre      = f1->sw_cre_response(:,:) 
+  ;toa         = f1->toa_response(:,:)    
+  ;cre         = f1->toa_cre_response(:,:)  
+  ;olr_clr     = f1->lw_clr_response(:,:)     
+  ;sw_clr      = f1->sw_clr_response(:,:)    
+  ;olr_cre     = f1->lw_cre_response(:,:) 
+  ;sw_cre      = f1->sw_cre_response(:,:) 
+  toa         = f1->net_rflux_trend(:,:)    
+  cre         = f1->net_cre_trend(:,:)  
+  olr_clr     = f1->lw_clr_trend(:,:)     
+  sw_clr      = f1->sw_clr_trend(:,:)    
+  olr_cre     = f1->lw_cre_trend(:,:) 
+  sw_cre      = f1->sw_cre_trend(:,:) 
 ;;
 ;***********************************************************************************
+; test the additive properity of trends
+toa_app=cre+olr_clr+sw_clr
+;toa_app=olr_cre+sw_cre-olr_clr-sw_clr
+toa_app!0="lat"
+toa_app&lat=toa&lat
+toa_app!1="lon"
+toa_app&lon=toa&lon
+
+toa_diff=toa-toa_app
+toa_diff!0="lat"
+toa_diff&lat=toa&lat
+toa_diff!1="lon"
+toa_diff&lon=toa&lon
 ;***********************************************************************************
 ;
 print("max of file1 toaflux feedbck: "+max(toa))
@@ -140,26 +152,35 @@ print("************************************************")
 ; read in netCDF files for column on right; experiment two
 ;***********************************************************************************
 
-;infile2="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
-;infile2="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
-;infile2="/home/lgs/c96L32_am4g10r8_sst_hadclimo_p_cmip3_fdbck.nc"
-;infile2="/home/lgs/c96L32_am4g10r8_cm3_sst_P2.nc"
-;infile2="/home/lgs/am3_p2.nc"
-infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_early.nc"
-;infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_late.nc"
+;;infile2="/home/lgs/CM2.1U-D4_1PctTo2X_response.nc"
+;;infile2="/home/lgs/c48l24_am2p14_CESSp2k_response.nc"
+;;infile2="/home/lgs/c96L32_am4g10r8_sst_hadclimo_p_cmip3_fdbck.nc"
+;;infile2="/home/lgs/c96L32_am4g10r8_cm3_sst_P2.nc"
+;;infile2="/home/lgs/am3_p2.nc"
+;infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_early.nc"
+;;infile2="/net2/Levi.Silvers/data/amip_long/datafiles/am2_trends_late.nc"
+;infile2="/net2/Levi.Silvers/am3_trends_late.nc"
+;infile2=datapath+"am3_trends_tref_"+period+"_crediff.nc"
+infile2=datapath+"am3_trends_tref_"+period+"_pdown.nc"
 
 aa=addfile(infile2,"r")
 print("incoming file is: "+infile2)
 
 ;
-  toa_b         = aa->toa_response(:,:)    
-  cre_b         = aa->toa_cre_response(:,:)  
-  olr_clr_b     = aa->lw_clr_response(:,:)     
-  sw_clr_b      = aa->sw_clr_response(:,:)    
-  olr_cre_b     = aa->lw_cre_response(:,:) 
-  sw_cre_b      = aa->sw_cre_response(:,:) 
+  ;toa_b         = aa->toa_response(:,:)    
+  ;cre_b         = aa->toa_cre_response(:,:)  
+  ;olr_clr_b     = aa->lw_clr_response(:,:)     
+  ;sw_clr_b      = aa->sw_clr_response(:,:)    
+  ;olr_cre_b     = aa->lw_cre_response(:,:) 
+  ;sw_cre_b      = aa->sw_cre_response(:,:) 
 ;  ctl_t_surf_b  = aa->t_surf(month,:,:)  
 ;  wrm_t_surf_b  = aa->t_surf(month,:,:)  
+  toa_b         = aa->net_rflux_trend(:,:)    
+  cre_b         = aa->net_cre_trend(:,:)  
+  olr_clr_b     = aa->lw_clr_trend(:,:)     
+  sw_clr_b      = aa->sw_clr_trend(:,:)    
+  olr_cre_b     = aa->lw_cre_trend(:,:) 
+  sw_cre_b      = aa->sw_cre_trend(:,:) 
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -222,22 +243,32 @@ print("************************************************")
 ; read in netCDF files for column on right; experiment three
 ;***********************************************************************************
 
-;infile3="/home/lgs/c96L32_am4g10r8_cm3_sst_P3.nc"
-infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_early.nc"
-;infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_late.nc"
+;;infile3="/home/lgs/c96L32_am4g10r8_cm3_sst_P3.nc"
+;infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_early.nc"
+;;infile3="/net2/Levi.Silvers/data/amip_long/datafiles/am3p9_trends_late.nc"
+;infile3="/net2/Levi.Silvers/am2_trends_late.nc"
+;infile3=datapath+"am2_trends_tref_"+period+"_crediff.nc"
+;infile3="/home/lgs/am2_trends_tref_"+period+"_crediff_test.nc"
+infile3=datapath+"am2_trends_tref_"+period+"_pdown.nc"
 
 cc=addfile(infile3,"r")
 print("incoming file is: "+infile3)
 
 ;
-  toa_c         = cc->toa_response(:,:)    
-  cre_c         = cc->toa_cre_response(:,:)  
-  olr_clr_c     = cc->lw_clr_response(:,:)     
-  sw_clr_c      = cc->sw_clr_response(:,:)    
-  olr_cre_c     = cc->lw_cre_response(:,:) 
-  sw_cre_c      = cc->sw_cre_response(:,:) 
+;  toa_c         = cc->toa_response(:,:)    
+;  cre_c         = cc->toa_cre_response(:,:)  
+;  olr_clr_c     = cc->lw_clr_response(:,:)     
+;  sw_clr_c      = cc->sw_clr_response(:,:)    
+;  olr_cre_c     = cc->lw_cre_response(:,:) 
+;  sw_cre_c      = cc->sw_cre_response(:,:) 
 ;  ctl_t_surf_c  = cc->t_surf(month,:,:)  
 ;  wrm_t_surf_c  = cc->t_surf(month,:,:)  
+  toa_c         = cc->net_rflux_trend(:,:)    
+  cre_c         = cc->net_cre_trend(:,:)  
+  olr_clr_c     = cc->lw_clr_trend(:,:)     
+  sw_clr_c      = cc->sw_clr_trend(:,:)    
+  olr_cre_c     = cc->lw_cre_trend(:,:) 
+  sw_cre_c      = cc->sw_cre_trend(:,:) 
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -322,6 +353,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 
 ;************************************************
   wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
   plot = new(18,graphic)
@@ -375,10 +407,12 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@gsnFrame         = False
   res@tiMainString       = c_title1
   contour2 = gsn_csm_contour_map(wks,toa_b,res)  ; create the plot
+  ;contour2 = gsn_csm_contour_map(wks,toa_app,res)  ; create the plot
   plot(1) = contour2
   res@gsnFrame         = False
   res@tiMainString       = r_title1
   contour3 = gsn_csm_contour_map(wks,toa_c,res)  ; create the plot
+  ;contour3 = gsn_csm_contour_map(wks,toa_diff,res)  ; create the plot
   plot(2) = contour3
 
 ; row 2

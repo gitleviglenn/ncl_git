@@ -96,16 +96,16 @@ begin
 ;
 ; regions: .nc _perustr.nc, _npac.nc, _wp.nc
 ;
-;region="_gmn"
-;regi="gl"
+region="_gmn"
+regi="gl"
 ;region="_perustr_mn"
 ; regi="peru st"
 ;region="_npac_mn"
 ; regi="npac"
 ;region="_wpmn"
 ; regi="wm pl"
-region="_trop_mn"
- regi="trops"
+;region="_trop_mn"
+; regi="trops"
 ;
 ;outputfile=model+region
 ;
@@ -187,6 +187,13 @@ print("dimensions of fields are: "+dimsizes(fields))
     end do
 ;    print("fields for i= "+i+" "+fields(i,6))
   end do
+;
+sum_over_depth=dim_sum_n(fields,1)
+profile1=sum_over_depth
+print("sum over dim 1 is: "+sum_over_depth)
+sum_over_depth=dim_sum_n(fields,0)
+profile2=sum_over_depth
+print("sum over dim 0 is: "+sum_over_depth)
 ;
 print("single piss off: "+pisso)
 ; some schenanigans were necessary to get the plot to line up correctly with the 
@@ -271,92 +278,202 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ;;-----------------------------------------------------------------------------
 ; Start the graphics.
 
-; why doesn't png work?
-;  wks = gsn_open_wks("ps","testplot")
-  wks = gsn_open_wks("newPDF",outputfile)
-  gsn_define_colormap(wks,colors)
+scalarlogicalexpression=0
 
+if (scalarlogicalexpression .gt. 0) then
+
+  print("HAVE YOU REACHED THE PROBLEM?")
+  
+  ; why doesn't png work?
+  ;  wks = gsn_open_wks("ps","testplot")
+    wks = gsn_open_wks("newPDF",outputfile)
+    gsn_define_colormap(wks,colors)
+  
+    ;
+  ; Create a blank plot so we can get some tickmarks.
   ;
-; Create a blank plot so we can get some tickmarks.
-;
-; Do the blank plot before the table, so we can maximize
-; the blank plot. Later we'll make sure the table goes
-; in the same location as the blank plot.
-;
-  resb                         = True
-  resb@gsnDraw                 = False
-  resb@gsnFrame                = False
+  ; Do the blank plot before the table, so we can maximize
+  ; the blank plot. Later we'll make sure the table goes
+  ; in the same location as the blank plot.
+  ;
+    resb                         = True
+    resb@gsnDraw                 = False
+    resb@gsnFrame                = False
+  
+    resb@vpYF                    = 0.92
+    resb@vpXF                    = 0.10
+    resb@vpHeightF               = 0.85
+    resb@vpWidthF                = 0.75
+  
+  ; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
+    resb@tmXBMode                = "Explicit"
+    ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
+    resb@tmXBValues              = fspan(0.,1.-col_width,ncols)
+  ;  print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
+    ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23.0,60.0/)
+    nrow_labels=(/1000,800,680,560,440,310,180/)
+    vaxis      =(/900,740,620,500,375,245,100/)
+    htauaxis      =(/1.0,2.5,6.5,16,42,62,80/)
+    resb@tmXBLabels              = ncol_labels
+    resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
+  
+  ; Explicitly label Y axis.
+    resb@tmYLMode                = "Explicit"
+    resb@tmYLValues              = fspan(0.,1.-row_width,nrows)
+    resb@tmYLLabels              = nrow_labels
+  ;
+  ; The Y labels need to be reversed, because the label in the first
+  ; row in the ASCII file is associated with the top of the plot.
+  ;
+    ;resb@tmYLLabels              = nrow_labels(::-1)
+    resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
+  
+  ; Rotate the X axis labels 90 degrees.
+    ;resb@tmXBLabelAngleF         = 90.
+  ;  resb@tmXBLabelJust           = "CenterRight"
+  
+  ; Turn off right and top tickmarks
+    resb@tmYROn                  = False
+    resb@tmXTOn                  = False
+  
+  print("HAVE YOU REACHED THE PROBLEM?")
+  
+  ; Main title
+    ;resb@tiMainString            = file_base
+    totaltitle = titlebase+" tcl:"+mntcl
+    resb@tiMainString            = totaltitle
+  
+  print("4 HAVE YOU REACHED THE PROBLEM?")
+  
+    blank = gsn_csm_blank_plot(wks,resb)
+    add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
+    draw(blank)                                 ; Draw tickmarks and labelbar
+  
+  print("3 HAVE YOU REACHED THE PROBLEM?")
+  ;
+  ; Get position and size of the blank plot so we can
+  ; be sure to draw the table in same location.
+  ;
+    getvalues blank
+      "vpXF"      : vpx
+      "vpYF"      : vpy
+      "vpWidthF"  : vpw
+      "vpHeightF" : vph
+    end getvalues
+  
+  ; Start and end coordinates for table.
+    x = (/vpx,vpx+vpw/)
+    y = (/vpy-vph,vpy/)
+  
+  
+  ; Set up resources for table
+    rest               = True
+  
+  print("2 HAVE YOU REACHED THE PROBLEM?")
+  
+    rest@tiXAxisString    = xtitle
+    ;rest@tiYAxisString    = ytitle
+    rest@gsLineColor   = -1                ; No border lines
+    rest@gsFillColor   = cols_for_vals     ; Each cell of table
+    rest@txFontColor   = cols_for_txt
+  
+    rest@txFontHeightF = 0.015             ; Size of centered text
+  
+    gsn_table(wks,ncr,x,y,text_values,rest)    ; Draw table
+  
+else
+ 
+  print("cloud table not printed")
+        plot_type="newPDF"
+	wks  = gsn_open_wks(plot_type,"testplot")   	; output using eps
+        gsn_define_colormap(wks,"CBR_drywet")
+        plot = new(2,graphic)
 
-  resb@vpYF                    = 0.92
-  resb@vpXF                    = 0.10
-  resb@vpHeightF               = 0.85
-  resb@vpWidthF                = 0.75
+; plot resources
+        ;ymaxval = 24 ; maximum height for y axis
+        ;ymaxval = 4.0 ; maximum height for y axis
+     	lthick = 2.0 ; line thickness
+        hxaxis = 0.03; x axis font height
+        tmxheight = 0.025
+        lsolid = 0   ; solid marking for lines
+        ldot  = 5   ; dashed marking for lines
+        ldash  = 16   ; dashed marking for lines
+        ;ldot  = 5   ; dashed marking for lines
+;       colors1 defines the colors of the different spectra
+;        colors1 = (/"OrangeRed","Black","GoldenRod","SteelBlue","LawnGreen"/) 
+        ;colors1 = (/"gray57","gray2","gray29","gray35","gray41","gray51","gray57","white"/) 
+        colors1 = (/"black","black","gray36","gray55","gray75"/) 
+        ;colors1 = (/12,11,10,9,8/) 
+     	res          = True
 
-; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-  resb@tmXBMode                = "Explicit"
-  ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
-  resb@tmXBValues              = fspan(0.,1.-col_width,ncols)
-;  print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
-  ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23.0,60.0/)
-  nrow_labels=(/1000,800,680,560,440,310,180/)
-  resb@tmXBLabels              = ncol_labels
-  resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
+        res@gsnDraw          = False
+        res@gsnFrame         = False
+;	pltTitle="title" ; Plot title if required 
 
-; Explicitly label Y axis.
-  resb@tmYLMode                = "Explicit"
-  resb@tmYLValues              = fspan(0.,1.-row_width,nrows)
-  resb@tmYLLabels              = nrow_labels
-;
-; The Y labels need to be reversed, because the label in the first
-; row in the ASCII file is associated with the top of the plot.
-;
-  ;resb@tmYLLabels              = nrow_labels(::-1)
-  resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
+     	;res@gsnCenterString   = varname
+        res@trYReverse        = True     ; reverse the y-axis
+        res@tmYROn            = False
+        res@tmXTOn            = False
+        res@tmYRBorderOn      = False
+        res@tmXTBorderOn      = False
+     	res@tiXAxisString     = xtitle
+        res@tiXAxisFontHeightF= hxaxis
+        res@tmXBLabelFontHeightF = tmxheight
+        res@tiYAxisFontHeightF= 0.04
+     	res@tiYAxisString     = "pressure"
+        res@tmYLLabelFontHeightF = 0.025
+   ; resgc@tmXBMode      = "Explicit"
+   ; resgc@tmXBValues    = (/0.0,0.02,0.04/)
+   ; resgc@tmXBLabels    = "" + resgc@tmXBValues
+        res@vpWidthF          = 0.4 ; vpWidth and Height control box size
+        res@vpHeightF         = 0.7
+     	res@gsnFrame          = False
+     	res@xyLineThicknessF  = lthick
 
-; Rotate the X axis labels 90 degrees.
-  ;resb@tmXBLabelAngleF         = 90.
-;  resb@tmXBLabelJust           = "CenterRight"
+        ;res@xyLineColor       = line_col
+        ;res@xyDashPattern     = line_pat
 
-; Turn off right and top tickmarks
-  resb@tmYROn                  = False
-  resb@tmXTOn                  = False
+; set up axis limits
+;if (sst .eq. 301) then
+;  if (isvar("diff")) then
+;    res@trXMinF = -5.       
+;    res@trXMaxF = 5.       
+;  else
+    res@trXMinF = 0.       
+    res@trXMaxF = 60.       
+;  end if
+;end if
+   ; res@trYMinF = 0       
+   ; res@trYMaxF = ymaxval       
 
-; Main title
-  ;resb@tiMainString            = file_base
-  totaltitle = titlebase+" tcl:"+mntcl
-  resb@tiMainString            = totaltitle
+    vaxis      =(/900,740,620,500,375,245,100/)
+    ;htauaxis      =(/0.3,1.3,3.6,9.4,23,60,100/)
+    htauaxis      =(/0.3,1.3,3.6,9,12,20,70/)
 
-  blank = gsn_csm_blank_plot(wks,resb)
-  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
-  draw(blank)                                 ; Draw tickmarks and labelbar
-;
-; Get position and size of the blank plot so we can
-; be sure to draw the table in same location.
-;
-  getvalues blank
-    "vpXF"      : vpx
-    "vpYF"      : vpy
-    "vpWidthF"  : vpw
-    "vpHeightF" : vph
-  end getvalues
+    res@xyDashPattern = lsolid
+    res@xyLineColors  = colors1(1) 
+    plota    = gsn_csm_xy (wks,profile1(:),vaxis,res) 		; create plot    
+    res@trYReverse        = False     ; reverse the y-axis
+    res@tiYAxisString     = "Cloud Fraction"
+    ;res@xyDashPattern = lsolid
+    ;res@xyLineColors  = colors1(2) 
+    res@trXMinF = 0.       
+    res@trXMaxF = 25.       
+    res@tiXAxisString     = "Optical Depth"
+    plotb    = gsn_csm_xy (wks,htauaxis,profile2(:),res) 		; create plot    
+    print("profile2 values are: "+profile2)
 
-; Start and end coordinates for table.
-  x = (/vpx,vpx+vpw/)
-  y = (/vpy-vph,vpy/)
+    plot(0) = plota
+    plot(1) = plotb
+
+    respanel = True
+    maintitle="test cf profile"
+    respanel@txString = maintitle
+
+    gsn_panel(wks,plot,(/1,2/),respanel)
 
 
-; Set up resources for table
-  rest               = True
-
-  rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
-  rest@gsLineColor   = -1                ; No border lines
-  rest@gsFillColor   = cols_for_vals     ; Each cell of table
-  rest@txFontColor   = cols_for_txt
-
-  rest@txFontHeightF = 0.015             ; Size of centered text
-
-  gsn_table(wks,ncr,x,y,text_values,rest)    ; Draw table
+end if
 
 end
 ;
