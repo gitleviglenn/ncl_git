@@ -180,7 +180,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   ;res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 180.
+  res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -226,12 +226,42 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   plot(0) = contour1
 
 ; row 2
+  gnres                   = True
+  ;gnres@gsFillColor       = "yellow"
+  gnres@gsFillColor       = "white"
+  gnres@gsLineThicknessF  = 20.0
+  gnres@gsFillOpacityF    = 0.0
+  gnres@gsEdgesOn         = True
+  gnres@gsLineThicknessF  = 4.0
+
+; East Pacific 
+  ;lonbox = (/28.,41.,41.,28.,28./)
+  ;latbox = (/37.,37.,44.,44.,37./)
+  lonbox1 = (/210.,240.,240.,210.,210./)
+  latbox1 = (/10.,10.,30.,30.,10./)
+  lonbox2 = (/250.,280.,280.,250.,250./)
+  latbox2 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox3 = (/60.,90.,90.,60.,60./)
+  latbox3 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox4 = (/330.,360.,360.,330.,330./)
+  latbox4 = (/-10.,-10.,-30.,-30.,-10./)
+
   ;res@tiMainString       = l_title2 
   res@tiMainString       = "CMIP6 Tsfc trend 1975-2005 (K per 30 yr)"
   res@cnLevels          = my_levels_tsfc
   res@cnFillColors      = my_colors_posneg
   contour4 = gsn_csm_contour_map(wks,tsfcmask_f2,res)  ; create the plot
+
+  dum1=gsn_add_polygon(wks, contour4, lonbox1, latbox1, gnres)
+  dum2=gsn_add_polygon(wks, contour4, lonbox2, latbox2, gnres)
+  dum3=gsn_add_polygon(wks, contour4, lonbox3, latbox3, gnres)
+  dum4=gsn_add_polygon(wks, contour4, lonbox4, latbox4, gnres)
+
+  ;draw(contour4)
+  ;frame(wks)
+
   plot(1) = contour4
+  ;plot(1) = dum1
 
 ;;;------------------------------------------------------------------------------
 ; row 1

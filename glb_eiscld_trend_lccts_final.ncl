@@ -287,7 +287,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 180.
+  res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -393,6 +393,42 @@ overlay(am2_lcc_cloud,am3_sst)
 overlay(am2_lcc_cloud,am4_lcc_cloud)
 overlay(am2_lcc_cloud,am4_alcc_cloud)
 overlay(am2_lcc_cloud,am4_sst)
+
+ltitle3="  GFDL AM4.0"
+ltitle2="  GFDL AM3"
+ltitle1="  GFDL AM2.1"
+lthick=3.0
+
+colors1 = (/am2line,am3line,am4line/) 
+
+; crap for the legend
+lgres                      = True
+lgres@xyLabelMode            = "Custom"
+lgres@xyLineLabelFontHeightF = 0.015                ; font height
+lgres@lgLineColors         = (/colors1(0),colors1(1),colors1(2)/)
+lgres@lgItemType           = "Lines"
+;lgres@lgLabelFontHeightF   = .10
+lgres@lgLabelFontHeightF   = .08
+lgres@vpWidthF             = 0.12        ; width of legend
+;lgres@vpHeightF            = 0.18        ; height of legend
+lgres@vpHeightF            = 0.1        ; height of legend
+lgres@lgLineThicknessF     = lthick
+lgres@lgPerimThicknessF    = 2.0
+lgres@lgMonoDashIndex      = False
+lgres@lgDashIndexes          = (/"0","0","0"/)
+lgres@lgPerimOn            = False
+
+
+labels = (/ltitle1,ltitle2,ltitle3/)
+legend  = gsn_create_legend (wks, 3, labels, lgres)
+amres = True
+amres@amJust = "BottomRight"
+;amres@amJust = "TopRight"
+amres@amParallelPosF   = 0.44    ; Move legend to right
+;amres@amOrthogonalPosF = 0.47     ; Move legend down
+amres@amOrthogonalPosF = -0.05     ; Move legend down
+
+annoid = gsn_add_annotation(am2_lcc_cloud,legend,amres) ; add legend to plot
 
 plot3(0) = am2_lcc_cloud
 
