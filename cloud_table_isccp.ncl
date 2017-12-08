@@ -110,7 +110,8 @@ outputfile=model+region
  titlebase=mode+" 10yrm "+regi
 ;
 ; specify paths
-filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn"+region+".nc"
+;filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn"+region+".nc"
+filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
 ;
   infile = addfile(filein,"r")
   ;infile_glb = addfile(filein_glb,"r")
@@ -119,7 +120,7 @@ print("infile is: "+filein)
 ;;;-read data----------------------------------------------------------------
 ;;
   ftime=0
-  flat=0
+  flat=90
   flon=0
   fields=new((/7,7/),float)
   varnames="clisccp_"+ispan(1,7,1)
@@ -132,6 +133,7 @@ print("infile is: "+filein)
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
   lat  = infile->lat
+  lon  = infile->lon
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
 ;  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
@@ -150,7 +152,8 @@ print("infile is: "+filein)
       ;print("single piss off: "+pisso+" varname at i="+i+" j="+j)
       ;print("piss offs: "+tempvars)
       ;fields(i,j)=infile2->$pisso$(ftime,flat,flon)
-      fields(i,j)=infile->$pisso$(ftime)
+      ;fields(i,j)=infile->$pisso$(ftime)
+      fields(i,j)=infile->$pisso$(ftime,flat,flon)
       ;print(fields(i,j)+" at i="+i+" j="+j)
     end do
 ;    print("fields for i= "+i+" "+fields(i,6))

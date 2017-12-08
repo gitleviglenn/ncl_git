@@ -34,9 +34,16 @@ dirin="/archive/Levi.Silvers/sstpatt/am4_1pc_test"
 ;expname="/atmos_c96L32_am4g9_1860climo_ctl_qc_test"
 expname="/atmos_AM4OM2F_c96l32_am4g5r11_2000climo_1pct"
 period="0136-0140"
+
+;path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
+
+;path="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/annual_5yr/"
+;filename="atmos.2004-2008.ann.nc"
+;infile=path+filename
 ;---------------------------------------------------------------------
-; read in netCDF files for top row
+; read in netCDF files 
 ;---------------------------------------------------------------------
+;
 ; olr,olr_clr,swdn_toa,swup_toa,swdn_toa_clr,swup_toa_clr
 ;varname1="olr" ; this is not the actual var, but should
 tempvarname="t_surf"
@@ -82,7 +89,7 @@ month=0
   tempctl = atemp->$tempvarname$(month,:,:)          
 ;  tempctlpreg = btemp->$tempvarname$(month,:,:)         
 ;
-;---------------------------------------------------------------------
+;;---------------------------------------------------------------------
 ; print max and min values
 print("infile1 is: "+infile1)
 print("max of toaflux is: "+max(field1))
