@@ -122,8 +122,6 @@ print(latS+"  "+latN+"   "+var1cal&lat(1)+"  "+var1cal&lat(89))
 
    opt = True 
 
-   ;NLAT2x2    = 180                               ; RES   = "180x288"    
-   ;MLON2x2    = 288                              
    NLAT2x2    = 90                               ; RES   = "180x288"    
    MLON2x2    = 180                              
    LAT_2x2   = latGlobeFo(NLAT2x2, "LAT_2x2", "latitude" , "degrees_north")  
@@ -148,9 +146,11 @@ lat  = data->lat
 rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
+
 field1_weighted_ave     = wgt_areaave(var1,clat,1.0,1)
 field2_weighted_ave     = wgt_areaave(var2,clat,1.0,1)
 field3_weighted_ave     = wgt_areaave(var3,clat,1.0,1)
+
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ; available non-missing data. 
 print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
@@ -158,6 +158,19 @@ print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
 print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
 ;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
 ;print("global mean of non missing data "+varname1+" at time "+time+" is: "+field1_weighted_ave_test)
+;
+rad2x2 = 4.0*atan(1.0)/90.0
+clat_2x2 = cos(LAT_REG_2x2*rad2x2)
+print("dims of NLAT2x2: "+dimsizes(NLAT2x2))
+print("dims of LAT_REG_2x2: "+dimsizes(LAT_REG_2x2)+" dims of var1_90x180 are: "+dimsizes(var1_90x180))
+print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
+;print("clat_2x2: "+LAT_REG_2x2)
+;print("And the values of lat are: "+lat)
+
+field1_2x2_weighted_ave  = wgt_areaave(var1_90x180,clat_2x2,1.0,1)
+
+print("raw global mean of 2x2 "+varname1+" is: "+field1_2x2_weighted_ave)
+;---------------------------------------------------------------------
 ;
 posh1=flt2string(decimalPlaces(field1_weighted_ave,2,True))
 posh2=flt2string(decimalPlaces(field2_weighted_ave,2,True))

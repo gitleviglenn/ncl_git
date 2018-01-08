@@ -181,8 +181,8 @@ my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
 my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 
 ;************************************************
-  ;wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
   ;wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
