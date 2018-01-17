@@ -34,17 +34,23 @@ title6="T on 700 hPa "
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
+datapath="~/data/amip_Long/"
+;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 period="late"
 ;period="early" 
 ;
 
-infile1=datapath+"am2_trends_tref_late_pdown.nc"
-infile2=datapath+"am2_trends_tref_early_pdown.nc"
-infile3=datapath+"am3_trends_tref_late_pdown.nc"
-infile4=datapath+"am3_trends_tref_early_pdown.nc"
-infile5=datapath+"am4_trends_tref_late_pdown.nc"
-infile6=datapath+"am4_trends_tref_early_pdown.nc"
+;infile1=datapath+"am2_trends_tref_late_pdown.nc"
+;infile2=datapath+"am2_trends_tref_early_pdown.nc"
+;infile3=datapath+"am3_trends_tref_late_pdown.nc"
+;infile4=datapath+"am3_trends_tref_early_pdown.nc"
+
+infile1=datapath+"am4_trends_tsfc_late_pdown.nc"
+infile2=datapath+"am4_trends_tsfc_early_pdown.nc"
+infile3=datapath+"am4_trends_tsfc_late_pdown.nc"
+infile4=datapath+"am4_trends_tsfc_early_pdown.nc"
+infile5=datapath+"am4_trends_tsfc_late_pdown.nc"
+infile6=datapath+"am4_trends_tsfc_early_pdown.nc"
 
 
 f1=addfile(infile1,"r")

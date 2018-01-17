@@ -34,7 +34,8 @@ title6="T on 700 hPa "
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
+datapath="~/data/amip_Long/"
+;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 ;period="late"
 period="early" 
 ;
@@ -181,8 +182,8 @@ my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
 my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 
 ;************************************************
-  ;wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
   ;wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
