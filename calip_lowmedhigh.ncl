@@ -53,22 +53,49 @@ print("infile is: "+infile1)
 print("infile is: "+infile2)
 print("infile is: "+infile3)
 print("infile is: "+infile4)
+print("infile is: "+infile5)
+print("infile is: "+infile6)
   ;t = a->tot_cld_amt(0,:,:)                                
 var1 = data->$varname1$(0,:,:)                                
 var2 = data2->$varname2$(0,:,:)                                
 var3 = data3->$varname3$(0,:,:)                                
   print("dimensions of model data: "+dimsizes(var1))
+
 var1cal = data4->$varname1$(:,:)                                
+print("max of var1cal: "+max(var1cal))
+print("min of var1cal: "+min(var1cal))
 var1calscale=100*var1cal
 var2cal = data5->$varname2$(:,:)                                
 var2calscale=100*var2cal
 var3cal = data6->$varname3$(:,:)                                
 var3calscale=100*var3cal
 
+var1cal@_FillValue = 1.e+20
+;clat_cobs@_FillValue = 1.e+20
+var2cal@_FillValue = 1.e+20
+var3cal@_FillValue = 1.e+20
+
+print("max of var2cal: "+max(var2cal))
+print("min of var2cal: "+min(var2cal))
+print("max of var3cal: "+max(var3cal))
+print("min of var3cal: "+min(var3cal))
+
 var1calscale!0="lat"
 var1calscale&lat=var1cal&lat
 var1calscale!1="lon"
 var1calscale&lon=var1cal&lon
+
+;;======================================
+;lat_test  = data4->lat
+;;print("wah wah: "+var1calscale&lat)
+;rad_test  = 4.0*atan(1.0)/180.0
+;;clat_test=cos(var1calscale&lat*rad_test)
+;clat_test=cos(lat_test*rad_test)
+;print("latitudes: "+lat_test+" and weights: "+clat_test)
+;;print("latitudes: "+car1calscale&lat+" and weights: "+clat_test)
+;field_weighted_ave_test     = wgt_areaave(var1calscale,clat_test,1.0,0)
+;print("3 wgt mean of field_test ="+field_weighted_ave_test)
+;;======================================
 
 var2calscale!0="lat"
 var2calscale&lat=var1cal&lat
@@ -79,6 +106,11 @@ var3calscale!0="lat"
 var3calscale&lat=var1cal&lat
 var3calscale!1="lon"
 var3calscale&lon=var1cal&lon
+
+print("max of var2calscale: "+max(var2calscale))
+print("min of var2calscale: "+min(var2calscale))
+print("max of var3calscale: "+max(var3calscale))
+print("min of var3calscale: "+min(var3calscale))
 
   print("dimensions of calipso data: "+dimsizes(var1calscale))
   print("maximum minimum of calipso data are: "+max(var1calscale)+"  "+min(var1calscale))
@@ -170,6 +202,42 @@ print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
 field1_2x2_weighted_ave  = wgt_areaave(var1_90x180,clat_2x2,1.0,1)
 
 print("raw global mean of 2x2 "+varname1+" is: "+field1_2x2_weighted_ave)
+;---------------------------------------------------------------------
+; compute latitude weighted mean values for the 2x2 data both calipso and am4
+
+lat_cobs  = data4->lat
+rad_cobs  = 4.0*atan(1.0)/180.0
+clat_cobs=cos(lat_cobs*rad_cobs)
+
+; calipso simulator data from am4.0
+; low level clouds
+var1_90x180_weighted_ave  = wgt_areaave(var1_90x180,clat_cobs,1.0,0)
+var1_mask = where(var1calscale.eq.var1calscale@_FillValue,var1calscale@_FillValue,var1_90x180)
+var1_masked_weighted_ave  = wgt_areaave(var1_mask,clat_cobs,1.0,0)
+print("weighted low level am4 cal sim: "+var1_90x180_weighted_ave)
+print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
+
+; mid level clouds
+var2_90x180_weighted_ave  = wgt_areaave(var2_90x180,clat_cobs,1.0,0)
+var2_mask = where(var2calscale.eq.var2calscale@_FillValue,var2calscale@_FillValue,var2_90x180)
+var2_masked_weighted_ave  = wgt_areaave(var2_mask,clat_cobs,1.0,0)
+print("weighted mid level am4 cal sim: "+var2_90x180_weighted_ave)
+print("weighted and masked mid level am4 cal sim: "+var2_masked_weighted_ave)
+
+; high level clouds
+var3_90x180_weighted_ave  = wgt_areaave(var3_90x180,clat_cobs,1.0,0)
+var3_mask = where(var3calscale.eq.var3calscale@_FillValue,var3calscale@_FillValue,var3_90x180)
+var3_masked_weighted_ave  = wgt_areaave(var3_mask,clat_cobs,1.0,0)
+print("weighted high level am4 cal sim: "+var3_90x180_weighted_ave)
+print("weighted and masked high level am4 cal sim: "+var3_masked_weighted_ave)
+
+; calipso
+field4_weighted_ave     = wgt_areaave(var1calscale,clat_cobs,1.0,0)
+field5_weighted_ave     = wgt_areaave(var2calscale,clat_cobs,1.0,0)
+field6_weighted_ave     = wgt_areaave(var3calscale,clat_cobs,1.0,0)
+print("weighted low level calipso: "+field4_weighted_ave)
+print("weighted mid level calipso: "+field5_weighted_ave)
+print("weighted upper level calipso: "+field6_weighted_ave)
 ;---------------------------------------------------------------------
 ;
 posh1=flt2string(decimalPlaces(field1_weighted_ave,2,True))

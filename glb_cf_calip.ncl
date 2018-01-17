@@ -29,8 +29,8 @@ begin
 ;***********************************************************************************
 ; variable to read: 
 ;varname1="tclmodis" ; MODIS total cloud fraction
-;varname1="cltlidarradar"
-varname1="tot_cld_amt" 
+varname1="cltlidarradar"
+;varname1="tot_cld_amt" 
 ; "lclmodis" ; MODIS total Liquid Cloud Fraction
 ; "iclmodis" ; MODIS total Ice Cloud Fraction
 ; "hicldmodis"
@@ -47,8 +47,8 @@ varname1="tot_cld_amt"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
-infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
+infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
+;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
 
 modelv="am4g12r17"
 
