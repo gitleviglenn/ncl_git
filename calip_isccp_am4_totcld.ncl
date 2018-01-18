@@ -40,6 +40,8 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 infile8=path_obs+"calip_2x2xL40_avg_clt/cltcalipso_tmn_20060615_20101215.nc"
 infile8_new=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
 
+infile_isccp="/net2/Levi.Silvers/data/isccpdata/cltisccp_7yr_tmn.nc"
+
 modelv="am4.0"
 
 ; from model
