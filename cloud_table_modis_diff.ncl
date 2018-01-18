@@ -225,6 +225,8 @@ filein_obs11="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.11.C051.V02."+r
 filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+region+".nc"
 ;
 ;
+filein_test="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2004.09.C051.V02.gmn.nc"
+;
   infile_obs1 = addfile(filein_obs1,"r")
   infile_obs2 = addfile(filein_obs2,"r")
   infile_obs3 = addfile(filein_obs3,"r")
@@ -237,6 +239,7 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+r
   infile_obs10 = addfile(filein_obs10,"r")
   infile_obs11 = addfile(filein_obs11,"r")
   infile_obs12 = addfile(filein_obs12,"r")
+  infile_obs13 = addfile(filein_test,"r")
 ;
   print("infile_obs1 is: "+filein_obs1)
   print("infile_obs11 is: "+filein_obs11)
@@ -292,6 +295,7 @@ print("dimensions of fieldobss are: "+dimsizes(field_obs))
       oct(i,j)=100.*infile_obs10->$varname$(i,j) ; for single point
       nov(i,j)=100.*infile_obs11->$varname$(i,j) ; for single point
       dec(i,j)=100.*infile_obs12->$varname$(i,j) ; for single point
+      ;dec(i,j)=100.*infile_obs13->$varname$(i,j) ; for single point
       ;field_obs(i,j)=100.*infile_obs1->$varname$(i,j) ; for single point
       field_obs(i,j)=(jan(i,j)+feb(i,j)+mar(i,j)+\
                   apr(i,j)+may(i,j)+jun(i,j)+\
