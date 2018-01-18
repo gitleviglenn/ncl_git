@@ -35,11 +35,10 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
 ;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
 
-;infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
-;infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
 ;infile6=path_obs+"calip_2x2xL40_avg_clh/clhcalipso_tmn_20060615_20101215.nc"
 
-infile8="/net2/Levi.Silvers/data_calipso/calip_2x2xL40_avg_clt/cltcalipso_tmn_20060615_20101215.nc"
+infile8=path_obs+"calip_2x2xL40_avg_clt/cltcalipso_tmn_20060615_20101215.nc"
+infile8_new=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
 
 modelv="am4.0"
 
@@ -47,27 +46,36 @@ modelv="am4.0"
 data = addfile(infile,"r")
 ; from obs
 data8 = addfile(infile8,"r")
+data_cal25 = addfile(infile8_new,"r")
 
 print("infile is: "+infile)
 print("infile is: "+infile8)
+print("infile is: "+infile8_new)
 var4 = data->$varname4$(0,:,:)                                
 ;  print("dimensions of model data: "+dimsizes(var1))
 
 var4cal = data8->$varname4$(:,:)                                
+var4cal25 = data_cal25->$varname4$(0,:,:)                                
 var4calscale=100*var4cal
+var4cal25scale=100*var4cal25
 
 var4cal@_FillValue = 1.e+20
+var4cal25@_FillValue = 1.e+20
 ;
-;print("max of var2cal: "+max(var2cal))
-;print("min of var2cal: "+min(var2cal))
+print("max of var4cal: "+max(var4calscale))
+print("min of var4cal: "+min(var4calscale))
+print("max of var4cal25: "+max(var4cal25scale))
+print("min of var4cal25: "+min(var4cal25scale))
 
 var4calscale!0="lat"
 var4calscale&lat=var4cal&lat
 var4calscale!1="lon"
 var4calscale&lon=var4cal&lon
+var4cal25scale!0="lat"
+var4cal25scale&lat=var4cal25&latitude
+var4cal25scale!1="lon"
+var4cal25scale&lon=var4cal25&longitude
 ;
-;print("max of var4calscale: "+max(var4calscale))
-;print("min of var4calscale: "+min(var4calscale))
 ;------------------------------------------------------------
 ; the calipso data and am4 data are not on the same grid...
 
@@ -108,11 +116,10 @@ print(latS+"  "+latN+"   "+var4cal&lat(1)+"  "+var4cal&lat(89))
    opt@NLATo       = NLAT2x2
    LAT_REG_2x2     = LAT_2x2({latS:latN})
    interpolated_var = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
-   ;interpolated_var2 = area_conserve_remap_Wrap (var2_to_interpolate&lon, var2_to_interpolate&lat, var2_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
 ;*************************************************************
 
 var_90x180=interpolated_var
-;  print("dimensions of interpolated model data: "+dimsizes(var1_90x180))
+  print("dimensions of interpolated model data: "+dimsizes(var_90x180))
 
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
@@ -153,11 +160,18 @@ clat_cobs=cos(lat_cobs*rad_cobs)
 ; calipso simulator data from am4.0
 ; low level clouds
 var_90x180_weighted_ave  = wgt_areaave(var_90x180,clat_cobs,1.0,0)
-var1_mask = where(var4calscale.eq.var4calscale@_FillValue,var4calscale@_FillValue,var_90x180)
-var1_masked_weighted_ave  = wgt_areaave(var1_mask,clat_cobs,1.0,0)
+var_mask = where(var4calscale.eq.var4calscale@_FillValue,var4calscale@_FillValue,var_90x180)
+var_masked_weighted_ave  = wgt_areaave(var_mask,clat_cobs,1.0,0)
 print("weighted low level am4 cal sim: "+var_90x180_weighted_ave)
-print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
+print("weighted and masked low level am4 cal sim: "+var_masked_weighted_ave)
 
+; model minus calipso
+am4tcl_bias=var_mask-var4calscale
+am4tcl_bias!0="lat"
+am4tcl_bias&lat=var4cal&lat
+am4tcl_bias!1="lon"
+am4tcl_bias&lon=var4cal&lon
+;
 
 ; calipso
 field8_weighted_ave     = wgt_areaave(var4calscale,clat_cobs,1.0,0)
@@ -233,11 +247,12 @@ my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
   contour1 = gsn_csm_contour_map(wks,var4calscale,res)  ; create the plot
   res@tiMainString       = titletotcl  ; add a title
   contour2 = gsn_csm_contour_map(wks,var4calscale,res)  ; create the plot
-  res@tiMainString       = titletotcl  ; add a title
-  contour3 = gsn_csm_contour_map(wks,var4calscale,res)  ; create the plot
   res@tiMainString       = titletotcl_am4  ; add a title
-  contour4 = gsn_csm_contour_map(wks,var_90x180,res)  ; create the plot
-
+  contour3 = gsn_csm_contour_map(wks,var_90x180,res)  ; create the plot
+  res@cnLevels          = my_levels_15posneg
+  res@cnFillColors      = my_colors_posneg
+  res@tiMainString       = "AM4.0 - CALIPSO"; add a title
+  contour4 = gsn_csm_contour_map(wks,am4tcl_bias,res)  ; create the plot
 
   plot(0)=contour1
   plot(1)=contour2
