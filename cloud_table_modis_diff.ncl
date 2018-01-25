@@ -98,16 +98,16 @@ begin
 ;
 ; regions: .nc _perustr.nc, _npac.nc, _wp.nc
 ;
-;region="_gmn"
-;regi="gl"
+region="_gmn"
+regi="gl"
 ;region="_perustr_mn"
 ; regi="peru st"
 ;region="_npac_mn"
 ; regi="npac"
 ;region="_wpmn"
 ; regi="wm pl"
-region="_trop_mn"
- regi="trops"
+;region="_trop_mn"
+; regi="trops"
 ;
 ;
  model="c96L32_am4G12r18_2010climo_A_cosp"
@@ -210,7 +210,7 @@ print("dimensions of fields: "+dimsizes(fields))
 ;
 ; specify paths
 ; specify region of interest
-region="tropmn"
+region="gmn"
 filein_obs1="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.01.C051.V02."+region+".nc"
 filein_obs2="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.02.C051.V02."+region+".nc"
 filein_obs3="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.03.C051.V02."+region+".nc"
@@ -322,7 +322,8 @@ xtitle="total clfract: "
 ;----------------------------------------------------------------------
 ;----------------------------------------------------------------------
 
-field_moonhooch=field_obs-fields
+field_moonhooch=field_obs-fields ; default
+;field_moonhooch=fields ; to print only model data
 ;field_moonhooch=fields-field_obs
 field_moonhooch=decimalPlaces(field_moonhooch,1,True)
 tot_diff=sum(field_moonhooch)

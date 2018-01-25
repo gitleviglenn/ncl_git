@@ -29,8 +29,8 @@ begin
 ;***********************************************************************************
 ; variable to read: 
 ;varname1="tclmodis" ; MODIS total cloud fraction
-varname1="cltlidarradar"
-;varname1="tot_cld_amt" 
+;varname1="cltlidarradar"
+varname1="tot_cld_amt" 
 ; "lclmodis" ; MODIS total Liquid Cloud Fraction
 ; "iclmodis" ; MODIS total Ice Cloud Fraction
 ; "hicldmodis"
@@ -50,15 +50,22 @@ varname1="cltlidarradar"
 infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
 
-modelv="am4g12r17"
+; input file for c96L33_am4p0_cosp
+infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.200501-200912.tot_cld_amt.nc"
+infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.198001-200912.tot_cld_amt.timmean.nc"
+
+;modelv="am4g12r17"
+modelv="am4p0_cosp"
 
   data = addfile(infile,"r")
 print("infile is: "+infile)
   ;t = a->tot_cld_amt(0,:,:)                                
   t = data->$varname1$(0,:,:)                                
+  t@_FillValue = 1.e+20
   tot_cld_sum=sum(t)
   t2=where(t.ge.100.,0.0,t)
   tot_cld_sum2=sum(t2)
+  print("dimensions of incoming data are: "+dimsizes(t))
   mean_cld=tot_cld_sum2/51840.
   print("sum of tot_cld_amt: "+tot_cld_sum)
   print("sum2 of tot_cld_amt: "+tot_cld_sum2)
@@ -70,11 +77,12 @@ rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
 field1_weighted_ave     = wgt_areaave(t,clat,1.0,1)
+field1_weighted_ave_b     = wgt_areaave(t,clat,1.0,0)
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ; available non-missing data. 
 print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
-;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
-;print("global mean of non missing data "+varname1+" at time "+time+" is: "+field1_weighted_ave_test)
+field1_weighted_ave_test     = wgt_areaave(t,clat,1.0,0)
+print("global mean of non missing data "+varname1+" is: "+field1_weighted_ave_test)
 ;
 posh=flt2string(decimalPlaces(field1_weighted_ave,2,True))
 maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh

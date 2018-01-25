@@ -93,6 +93,8 @@ filein_obs9="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.09.C051.V02."+re
 filein_obs10="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.10.C051.V02."+region+".nc"
 filein_obs11="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.11.C051.V02."+region+".nc"
 filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+region+".nc"
+
+filein_obs13="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.C051.V02.gmn_ymn.nc"
 ;
 ;
   infile_obs1 = addfile(filein_obs1,"r")
@@ -107,14 +109,19 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+r
   infile_obs10 = addfile(filein_obs10,"r")
   infile_obs11 = addfile(filein_obs11,"r")
   infile_obs12 = addfile(filein_obs12,"r")
+
+  infile_obs13 = addfile(filein_obs13,"r")
 ;
   print("infile_obs1 is: "+filein_obs1)
   print("infile_obs11 is: "+filein_obs11)
+  print("infile_obs13 is: "+filein_obs13)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
   fields=new((/7,7/),float)
   fields=0.0
+  field_new=new((/7,7/),float)
+  field_new=0.0
   jan=new((/7,7/),float)
   jan=0.0
   feb=new((/7,7/),float)
@@ -170,6 +177,13 @@ print("dimensions of fields are: "+dimsizes(fields))
       print(fields(i,j)+" at i="+i+" j="+j)
     end do
   end do
+  do j=1,6,1
+    do i=0,6,1
+      field_new(i,j)=100.*infile_obs13->$varname$(0,i,j) ; for global mean
+    end do
+  end do
+;
+fields=field_new
 ;
 print("dimensions of fields: "+dimsizes(fields))
   ncr=dimsizes(fields)
