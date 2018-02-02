@@ -77,45 +77,28 @@ begin
 
 ;;; open/reference desired file (use addfiles to reference multiple data file)
   toptitle="COSPISCCP cfrac fraction"
-;  xtitle="pressure(hPa)"
-;  ytitle="optical depth"
-;;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
-;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_fldmn.nc"
-;  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_uw_ncwa2.nc"
-;  ;filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_ncwa.nc"
-;;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
-;;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
-;  infile = addfile(filein,"r")
-;  infile2 = addfile(filein2,"r")
 ;
-region="_gmn"
-regi="gl"
-;region="_perustr_mn"
-; regi="peru st"
-;region="_npac_mn"
-; regi="npac"
-;region="_wpmn"
-; regi="wm pl"
-;region="_trop_mn"
-; regi="trops"
+;region="_gmn"
+;regi="gl"
 ;
- model="c96L32_am4G12r18_2010climo_A_cosp"
- mode="r18"
-; model="c96L32_am4G12r17_2010climo_A_cosp"
-; mode="r17"
-;model="c96L32_am4G12r16_2010climo_new_cosp"
-; mode="r16"
-outputfile=model+region
+; model="c96L32_am4G12r18_2010climo_A_cosp"
+; model="CM4_piControl_test_OM4_1p0"
+ model="c96L33_am4p0"
+
 ;
- titlebase=mode+" 10yrm "+regi
+ titlebase=" ISCCP "+model
 ;
 ; specify paths
-;filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn"+region+".nc"
-filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
+;filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
+
+filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
+
+filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"
 ;
   infile = addfile(filein,"r")
-  ;infile_glb = addfile(filein_glb,"r")
+  infile_obs = addfile(filein_obs,"r")
 print("infile is: "+filein)
+print("infile for observations is: "+filein_obs)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;

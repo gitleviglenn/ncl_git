@@ -94,7 +94,7 @@ filein_obs10="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.10.C051.V02."+r
 filein_obs11="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.11.C051.V02."+region+".nc"
 filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+region+".nc"
 
-filein_obs13="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.C051.V02.gmn_ymn.nc"
+filein_obs13="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2003th2010.total.C051.V02.gmn.nc"
 ;
 ;
   infile_obs1 = addfile(filein_obs1,"r")
@@ -221,7 +221,8 @@ xtitle="total clfract: "
 ;;           "Yellow","Orange","Firebrick1"/)
 ;;colors = (/"White","Black","aliceblue","darkslategray1","darkslategray2","darkslategray3","darkslategray4","darkslategray","SeaGreen1"/)
 ;;colors = (/2,2,17,14,12,10,8,6,4/) 
-colors = (/"White","Black","white","floralwhite","lightcyan","darkslategray1","darkslategray2","darkslategray3","deepskyblue1","deepskyblue3","blue"/)
+;colors = (/"White","Black","white","floralwhite","lightcyan","darkslategray1","darkslategray2","darkslategray3","deepskyblue1","deepskyblue3","blue"/)
+colors = (/"White","Black","white","honeydew2","lightblue1","darkslategray1","darkslategray2","darkslategray3","deepskyblue1","deepskyblue3","dodgerblue3"/)
 ;
 labels = new(dimsizes(colors)-1,string)    ; for labelbar
 ;
@@ -229,7 +230,9 @@ labels = new(dimsizes(colors)-1,string)    ; for labelbar
 cols_for_vals = new(ncr,"string")
 cols_for_txt = new(ncr,"string")
 ;
-contours=(/0.0,0.1,0.5,1.0,2.0,3.0,5.0,7.0,10,30/)
+;contours=(/0.0,0.1,0.5,1.0,2.0,3.0,5.0,7.0,10,30/)
+;contours=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5/)
+contours=(/0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0/)
 ;
 cols_for_vals = colors(3)
 do i=2,10
@@ -264,7 +267,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 
 ; why doesn't png work?
 ;  wks = gsn_open_wks("ps","testplot")
-  wks = gsn_open_wks("newpdf",outputfile)
+;  wks = gsn_open_wks("newpdf",outputfile)
+  wks = gsn_open_wks("eps",outputfile)
   gsn_define_colormap(wks,colors)
 
   ;
@@ -315,7 +319,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ; Main title
   ;resb@tiMainString            = file_base
   ;resb@tiMainString            = toptitle
-  totaltitle=titlebase+" "+region+" tcl:"+mntcl
+  ;totaltitle=titlebase+" "+region+" tcl:"+mntcl
+  totaltitle="MODIS Obs 2003-2010 glb mn"
   resb@tiMainString            = totaltitle
 
   blank = gsn_csm_blank_plot(wks,resb)
