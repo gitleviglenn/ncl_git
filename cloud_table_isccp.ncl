@@ -1,10 +1,12 @@
 ;================================================;
-;cloud_table.ncl 
+;cloud_table_isccp.ncl 
 ;
 ; produces a table of values for cloud types ordered
 ; as tau vs. cloud top height
 ;
-; levi silvers  		jan 2016
+; can process either observational or model output
+;
+; levi silvers  		feb 2018
 ;================================================;
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
@@ -77,53 +79,49 @@ begin
 
 ;;; open/reference desired file (use addfiles to reference multiple data file)
   toptitle="COSPISCCP cfrac fraction"
-;  xtitle="pressure(hPa)"
-;  ytitle="optical depth"
-;;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn_npac.nc"
-;  filein="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_fldmn.nc"
-;  filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_uw_ncwa2.nc"
-;  ;filein2="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.0002-0003.alltmn_ncwa.nc"
-;;  filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g9_2000climo_cosp_isccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_10yr/atmos_month_cospx.0002-0011.SON_selname_box_tmn_fmn.nc"
-;;;filein="/Users/silvers/data/gfdlcosp/atmos_month_"+file_base+".nc"
-;  infile = addfile(filein,"r")
-;  infile2 = addfile(filein2,"r")
 ;
-region="_gmn"
-regi="gl"
-;region="_perustr_mn"
-; regi="peru st"
-;region="_npac_mn"
-; regi="npac"
-;region="_wpmn"
-; regi="wm pl"
-;region="_trop_mn"
-; regi="trops"
+;region="_gmn"
+;regi="gl"
 ;
- model="c96L32_am4G12r18_2010climo_A_cosp"
- mode="r18"
-; model="c96L32_am4G12r17_2010climo_A_cosp"
-; mode="r17"
-;model="c96L32_am4G12r16_2010climo_new_cosp"
-; mode="r16"
-outputfile=model+region
+; model="c96L32_am4G12r18_2010climo_A_cosp"
+; model="CM4_piControl_test_OM4_1p0"
+ model="c96L33_am4p0"
+
 ;
- titlebase=mode+" 10yrm "+regi
+ titlebase=" ISCCP "+model
 ;
 ; specify paths
-filein="/archive/Levi.Silvers/data/"+model+"/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn"+region+".nc"
+;filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
+
+;filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
+filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
+
+;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"
+filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
 ;
   infile = addfile(filein,"r")
-  ;infile_glb = addfile(filein_glb,"r")
+  infile_obs = addfile(filein_obs,"r")
 print("infile is: "+filein)
+print("infile for observations is: "+filein_obs) ; (time, tau, plev7, lat, lon)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
   ftime=0
-  flat=0
+  flat=45
   flon=0
   fields=new((/7,7/),float)
+  field_obs=new((/7,7/),float)
   varnames="clisccp_"+ispan(1,7,1)
-;  varnamemn="cltisccp" ; ISCCP total cloud fraction
+  varname="clisccp"
+;;  varnamemn="cltisccp" ; ISCCP total cloud fraction
+;     fieldobs_temp0a=infile_obs->$varname$(ftime,:,0,36,72)
+;     fieldobs_temp0b=infile_obs->$varname$(ftime,:,3,36,72)
+;     fieldobs_temp0c=infile_obs->$varname$(ftime,:,5,36,72)
+;     fieldobs_temp1=infile_obs->$varname$(ftime,3,:,36,72)
+;print("test of isccp tau1: "+fieldobs_temp0a)
+;print("test of isccp tau2: "+fieldobs_temp0b)
+;print("test of isccp tau3: "+fieldobs_temp0c)
+;print("test of isccp plev7: "+fieldobs_temp1)
 ;
 ;  field1=infile->$varnamemn$(ftime,:,:)          
 ;print("dimensions of "+varnamemn+" are "+dimsizes(field1))
@@ -132,37 +130,54 @@ print("infile is: "+filein)
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
   lat  = infile->lat
+  lato  = infile_obs->lat
+  lon  = infile->lon
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
+  clato = cos(lato*rad)
 ;  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
 ;  field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
-;  field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
-;  field1_nonweighted_ave= wgt_areaave(field1,1.0,1.0,1)
-;print("raw w global mean of "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave)
-;print("raw uw global mean of "+varnamemn+" at time "+ftime+" is: "+field1_nonweighted_ave)
-;print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+field1_weighted_ave_test)
 ;
-  do j=0,6,1
+field_temp=infile_obs->$varname$(:,:,:,:,:)
+print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
+  do j=0,6,1 ; this should be the tau dimension
     tempvar=varnames(j)
     tempvars=tempvar+"_"+ispan(1,7,1)
-    do i=0,6,1
+    do i=0,6,1 ; this should be the plev7 dimenion
       pisso=tempvars(i)
       ;print("single piss off: "+pisso+" varname at i="+i+" j="+j)
       ;print("piss offs: "+tempvars)
-      ;fields(i,j)=infile2->$pisso$(ftime,flat,flon)
-      fields(i,j)=infile->$pisso$(ftime)
+      ;
+      ;fields(i,j)=infile->$pisso$(ftime,flat,flon)
+      fields_temp=infile->$pisso$(ftime,:,:)
+      fields(i,j)   = wgt_areaave(fields_temp,clat,1.0,0)
+      ;
       ;print(fields(i,j)+" at i="+i+" j="+j)
+      ; if j/tua is gt zero
+      if (i .le. 5) then
+        fieldobs_full=infile_obs->$varname$(:,i,j,:,:)
+        fieldobs_temp=dim_avg_n(fieldobs_full,0)
+        fieldobs_temp@_FillValue=1.e+20
+        field_obs(j,i+1)   = wgt_areaave(fieldobs_temp,clato,1.0,0)
+      end if
     end do
-;    print("fields for i= "+i+" "+fields(i,6))
+        field_obs(j,0) = 0.0
   end do
+;
+;
+;print("field_obs at 0:"+field_obs(0,:)+" 1:"+field_obs(1,:)+" 2:"+field_obs(2,:)+" 3:"+field_obs(3,:)+" 4:"+field_obs(4,:)+" 5:"+field_obs(5,:)+" 6:"+field_obs(6,:))
 ;
 print("single piss off: "+pisso)
 ; some schenanigans were necessary to get the plot to line up correctly with the 
 ; pressure and tau levels
 ;
-fields=fields(::-1,:)
-print("dimensions of fields: "+dimsizes(fields))
-  ncr=dimsizes(fields)
+;
+; deterine which field will be tabulated and output...
+;fields=fields(::-1,:) ; for am4 data
+fields=field_obs ; for isccp sat observations
+
+  print("dimensions of fields: "+dimsizes(fields))
+ncr=dimsizes(fields)
 ;
 print("ncr is: "+ncr)
 print("overall max of fields is: "+max(fields))
