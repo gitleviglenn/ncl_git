@@ -1,5 +1,5 @@
 ;***********************************************************************************
-; tsfc_4pan.ncl
+; tsfc_radflux_6pan_landmask_test.ncl
 ;***********************************************************************************
 ;
 ; plot the trend of surface temperature for period between 1925-1955 and 1975-2005
@@ -17,16 +17,16 @@ begin
 ; for incoming files
 ;***********************************************************************************
 ; 
-;; for column on left of figure
-;;
-title1="LCC"
-;  res@tiMainString       = "LCC ~ 3.7*EIS - 0.9*Tsfc"
-title2="LCC ~ 3.7*EIS - 0.9*Tsfc"
-title3="EIS ~ T700 - 1.2*Tsfc"
-;  res@tiMainString       = "EIS ~ T700 - 1.2*Tsfc"
-title4="EIS "
-title5="Tsfc "
-title6="T on 700 hPa "
+;;; for column on left of figure
+;;;
+;title1="LCC"
+;;  res@tiMainString       = "LCC ~ 3.7*EIS - 0.9*Tsfc"
+;title2="LCC ~ 3.7*EIS - 0.9*Tsfc"
+;title3="EIS ~ T700 - 1.2*Tsfc"
+;;  res@tiMainString       = "EIS ~ T700 - 1.2*Tsfc"
+;title4="EIS "
+;title5="Tsfc "
+;title6="T on 700 hPa "
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -34,33 +34,28 @@ title6="T on 700 hPa "
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
-;period="late"
-period="early" 
-;
+datapath="~/data/amip_Long/"
+;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 
 infile1=datapath+"am4_trends_tsfc_early_pdown.nc"
 ;infile2=datapath+"am4_trends_tsfc_19802005_pdown.nc"
 infile2=datapath+"am4_trends_tsfc_late_pdown.nc"
 
-infile3=datapath+"am2_trends_tsfc_early_pdown.nc"
-infile4=datapath+"am2_trends_tsfc_19802005_pdown.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
 f2=addfile(infile2,"r")
 print("incoming file is: "+infile2)
-f3=addfile(infile3,"r")
-print("incoming file is: "+infile3)
-f4=addfile(infile4,"r")
-print("incoming file is: "+infile4)
 
 ; from file 1
   tsfc_f1           = f1->tsurf_trend(:,:) 
   tsfc_f2           = f2->tsurf_trend(:,:) 
-  tsfc_f3           = f3->tsurf_trend(:,:) 
-  tsfc_f4           = f4->tsurf_trend(:,:) 
 ;;
+  sw_cre_f1         = f1->sw_cre_trend(:,:)
+  lw_cre_f1         = f1->lw_cre_trend(:,:)
+
+  sw_cre_f2         = f2->sw_cre_trend(:,:)
+  lw_cre_f2         = f2->lw_cre_trend(:,:)
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -104,43 +99,45 @@ lsm=landsea_mask(lsdata,lat,lon)
 ;; apply land sea mask
 ; -----first file-----
 tsfcmask_f1=mask(tsfc_anom,lsm.ge.1,False)  ; apply mask to anomaly
-;tsfcmask_f1=mask(tsfc_f1,lsm.ge.1,False) ; apply mask to basic tsfc field
-;tsfcmask_f1=tsfcmask_f1-tsfc_wmn ; create anomaly field from masked tsfc (probably not best)
+sw_cre_mask_f1=mask(sw_cre_f1,lsm.ge.1,False)  ; apply mask to anomaly
+lw_cre_mask_f1=mask(lw_cre_f1,lsm.ge.1,False)  ; apply mask to anomaly
 
 tsfcmask_f1!0="lat"
 tsfcmask_f1&lat=tsfc&lat
 tsfcmask_f1!1="lon"
 tsfcmask_f1&lon=tsfc&lon
 
-;tsfc_masked_wmn    =wgt_areaave(tsfcmask_f1,clat,1.0,0)
-;print("global mean of first masked tsfc: "+tsfc_masked_wmn)
+sw_cre_mask_f1!0="lat"
+sw_cre_mask_f1&lat=tsfc&lat
+sw_cre_mask_f1!1="lon"
+sw_cre_mask_f1&lon=tsfc&lon
+
+lw_cre_mask_f1!0="lat"
+lw_cre_mask_f1&lat=tsfc&lat
+lw_cre_mask_f1!1="lon"
+lw_cre_mask_f1&lon=tsfc&lon
+
 ;
-;tsfcmask_f1=tsfcmask_f1-tsfc_masked_wmn ; create anomaly field from masked tsfc and masked mn (probably not best)
-;
-;tsfcmask_f1!0="lat"
-;tsfcmask_f1&lat=tsfc&lat
-;tsfcmask_f1!1="lon"
-;tsfcmask_f1&lon=tsfc&lon
 
 ; -----second file-----
 tsfcmask_f2=mask(tsfc2_anom,lsm.ge.1,False)
-;tsfcmask_f2=mask(tsfc_f2,lsm.ge.1,False)
-;tsfcmask_f2=tsfcmask_f2-tsfc2_wmn ; subtract weighted mean with land
+sw_cre_mask_f2=mask(sw_cre_f2,lsm.ge.1,False)  ; apply mask to anomaly
+lw_cre_mask_f2=mask(lw_cre_f2,lsm.ge.1,False)  ; apply mask to anomaly
 
 tsfcmask_f2!0="lat"
 tsfcmask_f2&lat=tsfc&lat
 tsfcmask_f2!1="lon"
 tsfcmask_f2&lon=tsfc&lon
 
-;tsfc2_masked_wmn    =wgt_areaave(tsfcmask_f2,clat,1.0,0)
-;print("global mean of second masked tsfc: "+tsfc2_masked_wmn)
-;
-;tsfcmask_f2=tsfcmask_f2-tsfc2_masked_wmn ; subtract weighted mean without land
-;
-;tsfcmask_f2!0="lat"
-;tsfcmask_f2&lat=tsfc&lat
-;tsfcmask_f2!1="lon"
-;tsfcmask_f2&lon=tsfc&lon
+sw_cre_mask_f2!0="lat"
+sw_cre_mask_f2&lat=tsfc&lat
+sw_cre_mask_f2!1="lon"
+sw_cre_mask_f2&lon=tsfc&lon
+
+lw_cre_mask_f2!0="lat"
+lw_cre_mask_f2&lat=tsfc&lat
+lw_cre_mask_f2!1="lon"
+lw_cre_mask_f2&lon=tsfc&lon
 
 ;;***********************************************************************************
 ;; create plot
@@ -156,18 +153,13 @@ my_levels_olr_fdbk= (/-15,-10,-5,-1,0, 1,5,10,15/)
 my_levels_swclr= (/-15,-10,-5,-1,0, 1,5,10,15/)
 my_levels_swup = (/60,80,100,120,140,160,180,200,220/)
 my_levels_simple= (/-4.,-3.,-2.,-1.,0.,1.,2.,3.,4./)
-;my_levels_eis= (/-2.0,-1.5,-1.0,-0.5,0.,0.5,1.0,1.5,2.0/)
 my_levels_eis= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
-;my_levels_omega= (/-0.02,-0.015,-0.010,-0.005,0,0.005,0.01,0.015,0.02/)
 my_levels_omega= (/-0.015,-0.010,-0.005,-0.0025,0,0.0025,0.005,0.01,0.015/)
-;my_levels_lwp=(/-0.008,-0.006,-0.004,-0.002,0,0.002,0.004,0.006,0.008/)
 my_levels_lwp=(/-8.,-6.,-4.,-2.,0,2.,4.,6.,8./)
-;my_levels_tsfc=(/-2.0,-1.5,-1.,-0.5,0,0.5,1.0,1.5,2.5/)
 my_levels_tsfc= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
 ;
 my_colors_olr = (/55, 60,  65, 70, 75, 80, 85, 90, 95,100,105/)
 my_colors_swup = (/35,40, 45, 50, 55, 60, 65, 70, 75,80,85/)
-;my_colors_posneg = (/ 34, 24,19,14,4,76,80,85,90,95,100/)
 my_colors_posneg = (/ 2, 4,6,8,10,11,13,15,17,19,1/)
 my_colors_posneg_lwp = (/ 2, 4,6,8,10,11,13,15,17,19,1/)
 my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
@@ -180,14 +172,15 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
   plot = new(2,graphic)
+  plot2 = new(4,graphic)
 
   res                   = True
   res@cnLinesOn         = False
   ;res@lbOrientation     = "Vertical"
-  res@gsnPaperOrientation = "portrait" 
+  ;res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 180.
+  res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -201,7 +194,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@gsnRightString = ""
 
   res@cnFillOn          = True              ; color plot desired
-  res@gsnMaximize       = True
+  ;res@gsnMaximize       = True
 ;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
@@ -212,9 +205,8 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@vpWidthF        = 0.8
   res@vpHeightF       = 0.8
 
-  res@lbLabelFontHeightF  = 0.018           ; label bar font height
-  ;res@lbLabelBarOn       = False
-  res@lbLabelBarOn       = True
+  ;res@lbLabelFontHeightF  = 0.018           ; label bar font height
+  res@lbLabelBarOn       = False  ; turn off individual label bars
 
   ;res@tiMainString       = maintitle  ; add a title
   res@tiMainFontHeightF  = .023                               ; font height
@@ -222,48 +214,83 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 ;;;------------------------------------------------------------------------------
 ; row 1
   ;res@tiMainString       = l_title1 
-  res@tiMainString      = "CMIP6 Tsfc 1925-1955 (K per 30 yr)"
+  res@tiMainString       = "CMIP6 Tsfc trend 1975-2005 (K per 30 yr)"
   res@cnLevels          = my_levels_tsfc
   res@cnFillColors      = my_colors_posneg
+  res@mpCenterLonF      = 180.
   res@cnFillOn          = True
   ;res@cnFillPalette     = cmap(10:96,:)
   ;res@mpMajorLatSpacingF  = 45
   res@gsnTickMarksOn     = False
   ;contour1 = gsn_csm_contour_map(wks,tsfc_f1,res)  ; create the plot
-  contour1 = gsn_csm_contour_map(wks,tsfcmask_f1,res)  ; create the plot
+  contour1 = gsn_csm_contour_map(wks,tsfcmask_f2,res)  ; create the plot
   plot(0) = contour1
 
 ; row 2
+  gnres                   = True
+  ;gnres@gsFillColor       = "yellow"
+  gnres@gsFillColor       = "white"
+  gnres@gsLineThicknessF  = 20.0
+  gnres@gsFillOpacityF    = 0.0
+  gnres@gsEdgesOn         = True
+  gnres@gsLineThicknessF  = 4.0
+
+; East Pacific 
+  ;lonbox = (/28.,41.,41.,28.,28./)
+  ;latbox = (/37.,37.,44.,44.,37./)
+  lonbox1 = (/210.,240.,240.,210.,210./)
+  latbox1 = (/10.,10.,30.,30.,10./)
+  lonbox2 = (/250.,280.,280.,250.,250./)
+  latbox2 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox3 = (/60.,90.,90.,60.,60./)
+  latbox3 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox4 = (/330.,360.,360.,330.,330./)
+  latbox4 = (/-10.,-10.,-30.,-30.,-10./)
+
   ;res@tiMainString       = l_title2 
-  res@tiMainString       = "CMIP6 Tsfc 1975-2005 (K per 30 yr)"
+  res@tiMainString       = "CMIP6 Tsfc trend 1975-2005 (K per 30 yr)"
+  res@mpCenterLonF      = 200.
   res@cnLevels          = my_levels_tsfc
   res@cnFillColors      = my_colors_posneg
   contour4 = gsn_csm_contour_map(wks,tsfcmask_f2,res)  ; create the plot
+
+  dum1=gsn_add_polygon(wks, contour4, lonbox1, latbox1, gnres)
+  dum2=gsn_add_polygon(wks, contour4, lonbox2, latbox2, gnres)
+  dum3=gsn_add_polygon(wks, contour4, lonbox3, latbox3, gnres)
+  dum4=gsn_add_polygon(wks, contour4, lonbox4, latbox4, gnres)
+
+  draw(contour4)
+  frame(wks)
+
   plot(1) = contour4
+  ;plot(1) = dum1
 
-;; row 3
-;  ;res@tiMainString       = l_title3 
-;  res@tiMainString      = "AM2 Tsfc 1925-1955 (K per 30 yr)"
-;  res@cnLevels          = my_levels_tsfc
-;  res@cnFillColors      = my_colors_posneg
-;  contour7 = gsn_csm_contour_map(wks,tsfc_f3,res)  ; create the plot
-;  plot(2) = contour7
+;;;;------------------------------------------------------------------------------
 ;
-;; row 4
-;  ;res@tiMainString       = l_title4 
-;  res@tiMainString       = "AM2 Tsfc 1980-2005 (K per 30 yr)"
-;  res@cnLevels          = my_levels_tsfc
-;  res@cnFillColors      = my_colors_posneg
-;  contour10 = gsn_csm_contour_map(wks,tsfc_f4,res)  ; create the plot
-;  plot(3) = contour10
+;;;;------------------------------------------------------------------------------
 
-;;;------------------------------------------------------------------------------
+;---Resources for paneling
+    pres                   = True              ; modify the panel plot
+    pres@gsnPanelMainString= "fyrname"
+    pres@gsnPaperOrientation = "portrait" 
+    pres@gsnFrame          = False             ; don't advance frame yet
+    pres@gsnDraw           = False             ; draw later, in maximize mode
+    ;pres@gsnPanelBottom    = 0.33              ; top 2/3 of frame
+    ;pres@gsnPanelBottom    = 0.66              ; top 2/3 of frame
+    pres@gsnPanelTop        = 0.9
+    pres@gsnPanelBottom     = 0.6
+
+    pres@gsnPanelLabelBar  = True              ; add common colorbar
+    pres@lbOrientation     = "vertical"
+    pres@pmLabelBarWidthF  = 0.075             ; make thinner
+    pres@pmLabelBarHeightF = 0.25
+    ;pres@pmLabelBarHeightF = 0.20
+
+  panelid1 = gsn_panel_return(wks,plot,(/1,2/),pres)
 
 
-  resP                  = True                   ; modify the panel plot
-  resP@gsnFrame         = False                  ; don't advance panel plot
+  maximize_output(wks,True)
 
-  gsn_panel(wks,plot,(/1,2/),resP)
 
 end
 

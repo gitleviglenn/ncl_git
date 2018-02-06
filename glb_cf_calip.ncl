@@ -30,7 +30,8 @@ begin
 ; variable to read: 
 ;varname1="tclmodis" ; MODIS total cloud fraction
 ;varname1="cltlidarradar"
-varname1="tot_cld_amt" 
+;varname1="tot_cld_amt" 
+varname1="clt"
 ; "lclmodis" ; MODIS total Liquid Cloud Fraction
 ; "iclmodis" ; MODIS total Ice Cloud Fraction
 ; "hicldmodis"
@@ -50,12 +51,18 @@ varname1="tot_cld_amt"
 infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
 
-; input file for c96L33_am4p0_cosp
-infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.200501-200912.tot_cld_amt.nc"
-infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.198001-200912.tot_cld_amt.timmean.nc"
+;; input file for c96L33_am4p0_cosp
+;infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.200501-200912.tot_cld_amt.nc"
+;infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.198001-200912.tot_cld_amt.timmean.nc"
+;
+;;modelv="am4g12r17"
+;modelv="am4p0_cosp"
+; below are paths for macbook
+infile="/Users/silvers/data/am4p0/atmos_cmip.200401-200812.clt.monthtmn.nc"
 
-;modelv="am4g12r17"
-modelv="am4p0_cosp"
+infile="/Users/silvers/data/am4p0/atmos_cmip.2004010100-2008123123.clt.8xdailytmn.nc"
+
+modelv="am4p0 8xdaily"
 
   data = addfile(infile,"r")
 print("infile is: "+infile)
@@ -85,7 +92,7 @@ field1_weighted_ave_test     = wgt_areaave(t,clat,1.0,0)
 print("global mean of non missing data "+varname1+" is: "+field1_weighted_ave_test)
 ;
 posh=flt2string(decimalPlaces(field1_weighted_ave,2,True))
-maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh
+maintitle=modelv+" "+varname1+" = "+posh
 ;***********************************************************************************
 ; create plot
 ;***********************************************************************************
@@ -93,13 +100,16 @@ maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh
 ; contour levels
 ;my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/) ; 15
 my_levels1 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
+my_levels2 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15 for use with NCV_blu_red
 my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
+my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors, for use with NCV_blu_red
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
-  gsn_define_colormap(wks,"matlab_jet")
+  ;gsn_define_colormap(wks,"matlab_jet")
+  gsn_define_colormap(wks,"NCV_blu_red")
 
 
   res                   = True
@@ -121,8 +131,8 @@ my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
 ;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
-  res@cnLevels          = my_levels1
-  res@cnFillColors      = my_colors
+  res@cnLevels          = my_levels2
+  res@cnFillColors      = my_colors_blue
   res@txFontHeightF     = 0.015 
 
   res@vpXF            = 0.1                 ; make plot bigger

@@ -1,10 +1,11 @@
 ;***********************************************************************************
-; glb_trends_2per_12pan.ncl
+; glb_eiscld_trend_lccts.ncl
 ;***********************************************************************************
 ;
-; branched off from glb_feedback.ncl to include a 3rd column of figures
+; create 3 groups of panels, first the time series, then lcc, then eis, 
+; the lcc and eis must have separate colorbars
 ;
-; levi silvers                         may 2017 
+; levi silvers                         aug 2017 
 ;***********************************************************************************
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
@@ -40,18 +41,21 @@ period="late"
 ;period="early" 
 ;
 
-;infile1=datapath+"am2_trends_tref_late_pdown.nc"
-;infile2=datapath+"am2_trends_tref_early_pdown.nc"
-;infile3=datapath+"am3_trends_tref_late_pdown.nc"
-;infile4=datapath+"am3_trends_tref_early_pdown.nc"
+infile1=datapath+"am2_trends_tref_late_pdown.nc"
+infile2=datapath+"am2_trends_tref_early_pdown.nc"
+infile3=datapath+"am3_trends_tref_late_pdown.nc"
+infile4=datapath+"am3_trends_tref_early_pdown.nc"
+infile5=datapath+"am4_trends_tref_late_pdown.nc"
+infile6=datapath+"am4_trends_tref_early_pdown.nc"
 
-infile1=datapath+"am4_trends_tsfc_late_pdown.nc"
-infile2=datapath+"am4_trends_tsfc_early_pdown.nc"
-infile3=datapath+"am4_trends_tsfc_late_pdown.nc"
-infile4=datapath+"am4_trends_tsfc_early_pdown.nc"
-infile5=datapath+"am4_trends_tsfc_late_pdown.nc"
-infile6=datapath+"am4_trends_tsfc_early_pdown.nc"
+;infile1=datapath+"am4_trends_tsfc_late_pdown.nc"
+;infile2=datapath+"am4_trends_tsfc_early_pdown.nc"
+;infile3=datapath+"am4_trends_tsfc_late_pdown.nc"
+;infile4=datapath+"am4_trends_tsfc_early_pdown.nc"
+;infile5=datapath+"am4_trends_tsfc_late_pdown.nc"
+;infile6=datapath+"am4_trends_tsfc_early_pdown.nc"
 
+infile_eis=datapath+"lcc_mlr_eis_pm60.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
@@ -65,6 +69,9 @@ f5=addfile(infile5,"r")
 print("incoming file is: "+infile5)
 f6=addfile(infile6,"r")
 print("incoming file is: "+infile6)
+
+feis=addfile(infile_eis,"r")
+print("incoming file is: "+infile_eis)
 
 ; from file 1
   lcloud_f1         = f1->lcloud_trend(:,:)    
@@ -80,7 +87,7 @@ print("incoming file is: "+infile6)
   cre_f2            = f2->hcloud_trend(:,:)  
   omega_f2          = f2->omega500_trend(:,:)     
   ;eis_f2            = f2->eis_trend(:,:)    
-  eis_f2            = f2->lts_trend(:,:)    
+  eis_f2            = f2->eis_trend(:,:)    
   tsfc_f2           = f2->tsurf_trend(:,:) 
   temp700_f2        = f2->temp700_trend(:,:) 
 ; from file 3
@@ -123,6 +130,16 @@ print("incoming file is: "+infile6)
 ;  eis_f4            = f4->lts_trend(:,:)    
 ;  eis_f5            = f5->lts_trend(:,:)    
 ;  eis_f6            = f6->lts_trend(:,:)    
+am2_lcc            = feis->am2_lcc_smooth(:)
+am3_lcc            = feis->am3_lcc_smooth(:)
+am4_lcc            = feis->am4_lcc_smooth(:)
+am2_app_lcc            = feis->am2_applcc_smooth(:)
+am3_app_lcc            = feis->am3_applcc_smooth(:)
+am4_app_lcc            = feis->am4_applcc_smooth(:)
+am2_sst_scaled            = feis->am2_sst_scaled(:)
+am3_sst_scaled            = feis->am3_sst_scaled(:)
+am4_sst_scaled            = feis->am4_sst_scaled(:)
+time               = feis->TIME(:) 
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -165,31 +182,9 @@ cre_wmn        =wgt_areaave(cre,clat,1.0,1)
 omega_wmn    =wgt_areaave(omega,clat,1.0,1)
 eis_wmn     =wgt_areaave(eis,clat,1.0,1)
 tsfc_wmn    =wgt_areaave(tsfc,clat,1.0,1)
-;lwp_wmn     =wgt_areaave(lwp,clat,1.0,1)
 temp700_wmn     =wgt_areaave(temp700,clat,1.0,1)
-;ctl_tsurf_exp1 =wgt_areaave(ctl_t_surf,clat,1.0,1)
-;wrm_tsurf_exp1 =wgt_areaave(wrm_t_surf,clat,1.0,1)
 ;***********************************************************************************
 ;***********************************************************************************
-;
-posh=flt2string(decimalPlaces(lcloud_wmn,2,True))
-;l_title1=title1+" "+posh
-l_title1=title1+" (% per 30 yr)"
-posh=flt2string(decimalPlaces(cre_wmn,2,True))
-;l_title2=title2+" "+posh
-l_title2=title2+" (% per 30 yr)"
-posh=flt2string(decimalPlaces(omega_wmn,2,True))
-;l_title3=title3+" "+posh
-l_title3=title3+" (K per 30 yr)"
-posh=flt2string(decimalPlaces(eis_wmn,2,True))
-;l_title4=title4+" "+posh
-l_title4=title4+" (K per 30 yr)"
-posh=flt2string(decimalPlaces(tsfc_wmn,2,True))
-;l_title5=title5+" "+posh
-l_title5=title5+" (K per 30 yr)"
-;posh=flt2string(decimalPlaces(lwp_wmn,2,True))
-;l_title6=title6+" "+posh
-l_title6=title6+" (K per 30 yr)"
 ;
 print("************************************************")
 print("global mean of first net lcloud rad is: "+lcloud_wmn)
@@ -277,12 +272,14 @@ my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
 my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 
 ;************************************************
-  wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
-  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  ;wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
   ;wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
-  plot = new(12,graphic)
+  plot1 = new(6,graphic)
+  plot2 = new(6,graphic)
+  plot3 = new(1,graphic)
 
   res                   = True
   res@cnLinesOn         = False
@@ -290,7 +287,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 180.
+  res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -327,24 +324,134 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 ;;;; row 1  
   res@gsnTickMarksOn     = False
 
+;;;;;------------------------------------------------------------------------------
+; next lines are a test for time series plot to add...
+am2line="deepskyblue3"
+am3line="darkgreen"
+am4line="black"
+;
+length=0.50
+;length=0.40
+height=0.25
+;height=0.15
+
+res4                   = True
+res4@trXMinF           = 1875
+res4@trXMaxF           = 2000
+res4@tiYAxisFontHeightF = 0.012
+res4@tiYAxisString    = "Anomalous LCC (%)"
+;res4@tiXAxisString    = "Year"
+res4@tiXAxisString    = ""
+res4@tmYROn            = False
+res4@tmXTOn            = False
+res4@tmXTBorderOn      = False
+res4@tmYRBorderOn      = False
+res4@gsnDraw           = False ; default: T
+res4@gsnFrame          = False ; default: T
+
+res4@xyLineThicknessF   = 2.0
+res4@trYMinF           = -0.4
+res4@trYMaxF           = 0.4
+
+res4@vpWidthF          = length
+res4@vpHeightF         = height
+
+;res4@vpWidthF          = .81
+;res4@vpHeightF         = .5
+;res4@vpWidthF          = .95
+;res4@vpHeightF         = .3
+
+res4@xyLineColors  = am2line
+res4@xyLineThicknessF   = 3.0
+am2_lcc_cloud   = gsn_csm_xy(wks,time,am2_lcc(:),res4) ; create filled xy plot
+res4@xyLineThicknessF   = 1.5
+am2_alcc_cloud  = gsn_csm_xy(wks,time,am2_app_lcc(:),res4) ; create filled xy plot
+res4@xyDashPattern = 16
+am2_sst         = gsn_csm_xy(wks,time,am2_sst_scaled(:),res4) ; create filled xy plot
+res4@xyLineColors  = am3line
+res4@xyLineThicknessF   = 3.0
+res4@xyDashPattern = 0
+am3_lcc_cloud   = gsn_csm_xy(wks,time,am3_lcc(:),res4) ; create filled xy plot
+res4@xyLineThicknessF   = 1.5
+am3_alcc_cloud  = gsn_csm_xy(wks,time,am3_app_lcc(:),res4) ; create filled xy plot
+res4@xyDashPattern = 16
+am3_sst         = gsn_csm_xy(wks,time,am3_sst_scaled(:),res4) ; create filled xy plot
+res4@xyLineColors  = am4line
+res4@xyLineThicknessF   = 3.0
+res4@xyDashPattern = 0
+am4_lcc_cloud   = gsn_csm_xy(wks,time,am4_lcc(:),res4) ; create filled xy plot
+res4@xyLineThicknessF   = 1.5
+am4_alcc_cloud  = gsn_csm_xy(wks,time,am4_app_lcc(:),res4) ; create filled xy plot
+res4@xyDashPattern = 16
+am4_sst         = gsn_csm_xy(wks,time,am4_sst_scaled(:),res4) ; create filled xy plot
+
+overlay(am2_lcc_cloud,am2_alcc_cloud)
+overlay(am2_lcc_cloud,am2_sst)
+overlay(am2_lcc_cloud,am3_lcc_cloud)
+overlay(am2_lcc_cloud,am3_alcc_cloud)
+overlay(am2_lcc_cloud,am3_sst)
+overlay(am2_lcc_cloud,am4_lcc_cloud)
+overlay(am2_lcc_cloud,am4_alcc_cloud)
+overlay(am2_lcc_cloud,am4_sst)
+
+ltitle3="  GFDL AM4.0"
+ltitle2="  GFDL AM3"
+ltitle1="  GFDL AM2.1"
+lthick=3.0
+
+colors1 = (/am2line,am3line,am4line/) 
+
+; crap for the legend
+lgres                      = True
+lgres@xyLabelMode            = "Custom"
+lgres@xyLineLabelFontHeightF = 0.015                ; font height
+lgres@lgLineColors         = (/colors1(0),colors1(1),colors1(2)/)
+lgres@lgItemType           = "Lines"
+;lgres@lgLabelFontHeightF   = .10
+lgres@lgLabelFontHeightF   = .08
+lgres@vpWidthF             = 0.12        ; width of legend
+;lgres@vpHeightF            = 0.18        ; height of legend
+lgres@vpHeightF            = 0.1        ; height of legend
+lgres@lgLineThicknessF     = lthick
+lgres@lgPerimThicknessF    = 2.0
+lgres@lgMonoDashIndex      = False
+lgres@lgDashIndexes          = (/"0","0","0"/)
+lgres@lgPerimOn            = False
+
+
+labels = (/ltitle1,ltitle2,ltitle3/)
+legend  = gsn_create_legend (wks, 3, labels, lgres)
+amres = True
+amres@amJust = "BottomRight"
+;amres@amJust = "TopRight"
+amres@amParallelPosF   = 0.44    ; Move legend to right
+;amres@amOrthogonalPosF = 0.47     ; Move legend down
+amres@amOrthogonalPosF = -0.05     ; Move legend down
+
+annoid = gsn_add_annotation(am2_lcc_cloud,legend,amres) ; add legend to plot
+
+plot3(0) = am2_lcc_cloud
+
+;;;;;------------------------------------------------------------------------------
+
   res@tiMainString      = "AM2 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour0 = gsn_csm_contour_map(wks,lcloud_f2,res)  ; create the plot
-  plot(0) = contour0
+  plot1(0) = contour0
 
   res@tiMainString      = "AM3 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour1 = gsn_csm_contour_map(wks,lcloud_f4,res)  ; create the plot
-  plot(1) = contour1
+  plot1(1) = contour1
 
   res@tiMainString      = "AM4 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   ;res@mpMajorLatSpacingF  = 45
   contour2 = gsn_csm_contour_map(wks,lcloud_f6,res)  ; create the plot
-  plot(2) = contour2
+  plot1(2) = contour2
 
 ; row 2
   res@tiMainString      = "AM2 LCC (% per 30 yr)"
@@ -352,19 +459,19 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@cnFillColors      = my_colors_posneg
 ;  res@lbLabelBarOn       = True
   contour6 = gsn_csm_contour_map(wks,lcloud_f1,res)  ; create the plot
-  plot(3) = contour6
+  plot1(3) = contour6
 
   res@tiMainString      = "AM3 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour7 = gsn_csm_contour_map(wks,lcloud_f3,res)  ; create the plot
-  plot(4) = contour7
+  plot1(4) = contour7
 
   res@tiMainString      = "AM4 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour8 = gsn_csm_contour_map(wks,lcloud_f5,res)  ; create the plot
-  plot(5) = contour8
+  plot1(5) = contour8
 
 ; row 3
 
@@ -372,41 +479,19 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour3 = gsn_csm_contour_map(wks,eis_f2,res)  ; create the plot
-  plot(6) = contour3
+  plot2(0) = contour3
 
   res@tiMainString       = "AM3 EIS (K per 30 yr)"
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour4 = gsn_csm_contour_map(wks,eis_f4,res)  ; create the plot
-  plot(7) = contour4
+  plot2(1) = contour4
 
   res@tiMainString       = "AM4 EIS (K per 30 yr)"
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour5 = gsn_csm_contour_map(wks,eis_f6,res)  ; create the plot
-  plot(8) = contour5
-
-;; row 3
-;
-;  res@tiMainString      = "AM2 LCC (% per 30 yr)"
-;  res@cnLevels          = my_levels_simple
-;  res@cnFillColors      = my_colors_posneg
-;;  res@lbLabelBarOn       = True
-;  contour6 = gsn_csm_contour_map(wks,lcloud_f1,res)  ; create the plot
-;  plot(6) = contour6
-;
-;  res@tiMainString      = "AM3 LCC (% per 30 yr)"
-;  res@cnLevels          = my_levels_simple
-;  res@cnFillColors      = my_colors_posneg
-;  contour7 = gsn_csm_contour_map(wks,lcloud_f3,res)  ; create the plot
-;  plot(7) = contour7
-;
-;  res@tiMainString      = "AM4 LCC (% per 30 yr)"
-;  res@cnLevels          = my_levels_simple
-;  res@cnFillColors      = my_colors_posneg
-;  contour8 = gsn_csm_contour_map(wks,lcloud_f5,res)  ; create the plot
-;  plot(8) = contour8
-;
+  plot2(2) = contour5
 
 ; row 4
 
@@ -414,28 +499,76 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour9 = gsn_csm_contour_map(wks,eis_f1,res)  ; create the plot
-  plot(9) = contour9
+  plot2(3) = contour9
 
   res@tiMainString       = "AM3 EIS (K per 30 yr)"
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour10 = gsn_csm_contour_map(wks,eis_f3,res)  ; create the plot
-  plot(10) = contour10
+  plot2(4) = contour10
 
   res@tiMainString      = "AM4 EIS (% per 30 yr)"
   res@cnLevels          = my_levels_eis
   res@cnFillColors      = my_colors_posneg
   contour11 = gsn_csm_contour_map(wks,eis_f5,res)  ; create the plot
-  plot(11) = contour11
+  plot2(5) = contour11
 
 
 ;;;------------------------------------------------------------------------------
 
+;---Resources for paneling
+    pres                   = True              ; modify the panel plot
+    pres@gsnPanelMainString= "fyrname"
+    pres@gsnPaperOrientation = "portrait" 
+    pres@gsnFrame          = False             ; don't advance frame yet
+    pres@gsnDraw           = False             ; draw later, in maximize mode
+    pres@gsnPanelTop        = 0.95
+    ;pres@gsnPanelBottom     = 0.70
+    pres@gsnPanelBottom     = 0.65
 
-  resP                  = True                   ; modify the panel plot
-  resP@gsnFrame         = False                  ; don't advance panel plot
+    pres@gsnPanelLabelBar  = True              ; add common colorbar
+    pres@lbOrientation     = "vertical"
+    pres@pmLabelBarWidthF  = 0.075             ; make thinner
+    pres@pmLabelBarHeightF = 0.25
 
-  gsn_panel(wks,plot,(/4,3/),resP)
+    pres@gsnPanelFigureStrings=(/"a)"/)
+    pres@amJust="TopLeft"
+
+  ;panelid0 = gsn_panel_return(wks,plot3,(/1,1/),pres)
+  panelid1 = gsn_panel_return(wks,plot1,(/2,3/),pres)
+
+    ;pres@gsnPanelTop        = 0.77
+    ;pres@gsnPanelBottom     = 0.41
+    pres@gsnPanelTop        = 0.65
+    pres@gsnPanelBottom     = 0.35
+
+    pres@gsnPanelFigureStrings=(/""/)
+
+  ;panelid1 = gsn_panel_return(wks,plot1,(/2,3/),pres)
+  panelid2 = gsn_panel_return(wks,plot2,(/2,3/),pres)
+
+;---Calculate location for top of difference plots
+    bb     = NhlGetBB(panelid1)
+    bottom = min(bb(:,1))
+    top    = max(bb(:,0))
+    height = (top-bottom)/2.     ; Height of one row
+
+;---Panel the diff plots at the bottom
+    delete(pres@gsnPanelMainString)
+    ;pres@gsnPanelTop        = 0.41
+    pres@gsnPanelTop        = 0.30
+    pres@gsnPanelBottom     = 0.05
+
+    pres@pmLabelBarHeightF = 0.25  
+;    pres@gsnPanelFigureStrings=(/"a)","b)"/)
+;    pres@amJust="TopLeft"
+    pres@gsnPanelFigureStrings=(/"b)"/)
+    pres@amJust="TopLeft"
+
+  ;panelid2 = gsn_panel_return(wks,plot2,(/2,3/),pres)
+  panelid0 = gsn_panel_return(wks,plot3,(/1,1/),pres)
+
+  maximize_output(wks,True)
 
 end
 

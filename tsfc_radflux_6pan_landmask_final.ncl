@@ -1,5 +1,5 @@
 ;***********************************************************************************
-; tsfc_4pan.ncl
+; tsfc_radflux_6pan_landmask_test.ncl
 ;***********************************************************************************
 ;
 ; plot the trend of surface temperature for period between 1925-1955 and 1975-2005
@@ -17,16 +17,16 @@ begin
 ; for incoming files
 ;***********************************************************************************
 ; 
-;; for column on left of figure
-;;
-title1="LCC"
-;  res@tiMainString       = "LCC ~ 3.7*EIS - 0.9*Tsfc"
-title2="LCC ~ 3.7*EIS - 0.9*Tsfc"
-title3="EIS ~ T700 - 1.2*Tsfc"
-;  res@tiMainString       = "EIS ~ T700 - 1.2*Tsfc"
-title4="EIS "
-title5="Tsfc "
-title6="T on 700 hPa "
+;;; for column on left of figure
+;;;
+;title1="LCC"
+;;  res@tiMainString       = "LCC ~ 3.7*EIS - 0.9*Tsfc"
+;title2="LCC ~ 3.7*EIS - 0.9*Tsfc"
+;title3="EIS ~ T700 - 1.2*Tsfc"
+;;  res@tiMainString       = "EIS ~ T700 - 1.2*Tsfc"
+;title4="EIS "
+;title5="Tsfc "
+;title6="T on 700 hPa "
 ;***********************************************************************************
 ;***********************************************************************************
 ;
@@ -36,31 +36,20 @@ title6="T on 700 hPa "
 ;
 datapath="~/data/amip_Long/"
 ;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
-;period="late"
-period="early" 
-;
 
 infile1=datapath+"am4_trends_tsfc_early_pdown.nc"
 ;infile2=datapath+"am4_trends_tsfc_19802005_pdown.nc"
 infile2=datapath+"am4_trends_tsfc_late_pdown.nc"
 
-;infile3=datapath+"am2_trends_tsfc_early_pdown.nc"
-;infile4=datapath+"am2_trends_tsfc_19802005_pdown.nc"
 
 f1=addfile(infile1,"r")
 print("incoming file is: "+infile1)
 f2=addfile(infile2,"r")
 print("incoming file is: "+infile2)
-;f3=addfile(infile3,"r")
-;print("incoming file is: "+infile3)
-;f4=addfile(infile4,"r")
-;print("incoming file is: "+infile4)
 
 ; from file 1
   tsfc_f1           = f1->tsurf_trend(:,:) 
   tsfc_f2           = f2->tsurf_trend(:,:) 
-;  tsfc_f3           = f3->tsurf_trend(:,:) 
-;  tsfc_f4           = f4->tsurf_trend(:,:) 
 ;;
   sw_cre_f1         = f1->sw_cre_trend(:,:)
   lw_cre_f1         = f1->lw_cre_trend(:,:)
@@ -164,18 +153,13 @@ my_levels_olr_fdbk= (/-15,-10,-5,-1,0, 1,5,10,15/)
 my_levels_swclr= (/-15,-10,-5,-1,0, 1,5,10,15/)
 my_levels_swup = (/60,80,100,120,140,160,180,200,220/)
 my_levels_simple= (/-4.,-3.,-2.,-1.,0.,1.,2.,3.,4./)
-;my_levels_eis= (/-2.0,-1.5,-1.0,-0.5,0.,0.5,1.0,1.5,2.0/)
 my_levels_eis= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
-;my_levels_omega= (/-0.02,-0.015,-0.010,-0.005,0,0.005,0.01,0.015,0.02/)
 my_levels_omega= (/-0.015,-0.010,-0.005,-0.0025,0,0.0025,0.005,0.01,0.015/)
-;my_levels_lwp=(/-0.008,-0.006,-0.004,-0.002,0,0.002,0.004,0.006,0.008/)
 my_levels_lwp=(/-8.,-6.,-4.,-2.,0,2.,4.,6.,8./)
-;my_levels_tsfc=(/-2.0,-1.5,-1.,-0.5,0,0.5,1.0,1.5,2.5/)
 my_levels_tsfc= (/-1.0,-0.75,-0.5,-0.25,0.,0.25,0.5,0.75,1.0/)
 ;
 my_colors_olr = (/55, 60,  65, 70, 75, 80, 85, 90, 95,100,105/)
 my_colors_swup = (/35,40, 45, 50, 55, 60, 65, 70, 75,80,85/)
-;my_colors_posneg = (/ 34, 24,19,14,4,76,80,85,90,95,100/)
 my_colors_posneg = (/ 2, 4,6,8,10,11,13,15,17,19,1/)
 my_colors_posneg_lwp = (/ 2, 4,6,8,10,11,13,15,17,19,1/)
 my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
@@ -187,15 +171,16 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   ;wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
-  plot = new(6,graphic)
+  plot = new(2,graphic)
+  plot2 = new(4,graphic)
 
   res                   = True
   res@cnLinesOn         = False
   ;res@lbOrientation     = "Vertical"
-  res@gsnPaperOrientation = "portrait" 
+  ;res@gsnPaperOrientation = "portrait" 
   res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 180.
+  res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -209,7 +194,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@gsnRightString = ""
 
   res@cnFillOn          = True              ; color plot desired
-  res@gsnMaximize       = True
+  ;res@gsnMaximize       = True
 ;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
@@ -220,9 +205,8 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@vpWidthF        = 0.8
   res@vpHeightF       = 0.8
 
-  res@lbLabelFontHeightF  = 0.018           ; label bar font height
-  ;res@lbLabelBarOn       = False
-  res@lbLabelBarOn       = True
+  ;res@lbLabelFontHeightF  = 0.018           ; label bar font height
+  res@lbLabelBarOn       = False  ; turn off individual label bars
 
   ;res@tiMainString       = maintitle  ; add a title
   res@tiMainFontHeightF  = .023                               ; font height
@@ -230,7 +214,7 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 ;;;------------------------------------------------------------------------------
 ; row 1
   ;res@tiMainString       = l_title1 
-  res@tiMainString      = "CMIP6 Tsfc 1925-1955 (K per 30 yr)"
+  res@tiMainString      = "CMIP6 Tsfc trend 1925-1955 (K per 30 yr)"
   res@cnLevels          = my_levels_tsfc
   res@cnFillColors      = my_colors_posneg
   res@cnFillOn          = True
@@ -242,12 +226,42 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   plot(0) = contour1
 
 ; row 2
+  gnres                   = True
+  ;gnres@gsFillColor       = "yellow"
+  gnres@gsFillColor       = "white"
+  gnres@gsLineThicknessF  = 20.0
+  gnres@gsFillOpacityF    = 0.0
+  gnres@gsEdgesOn         = True
+  gnres@gsLineThicknessF  = 4.0
+
+; East Pacific 
+  ;lonbox = (/28.,41.,41.,28.,28./)
+  ;latbox = (/37.,37.,44.,44.,37./)
+  lonbox1 = (/210.,240.,240.,210.,210./)
+  latbox1 = (/10.,10.,30.,30.,10./)
+  lonbox2 = (/250.,280.,280.,250.,250./)
+  latbox2 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox3 = (/60.,90.,90.,60.,60./)
+  latbox3 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox4 = (/330.,360.,360.,330.,330./)
+  latbox4 = (/-10.,-10.,-30.,-30.,-10./)
+
   ;res@tiMainString       = l_title2 
-  res@tiMainString       = "CMIP6 Tsfc 1975-2005 (K per 30 yr)"
+  res@tiMainString       = "CMIP6 Tsfc trend 1975-2005 (K per 30 yr)"
   res@cnLevels          = my_levels_tsfc
   res@cnFillColors      = my_colors_posneg
   contour4 = gsn_csm_contour_map(wks,tsfcmask_f2,res)  ; create the plot
+
+  dum1=gsn_add_polygon(wks, contour4, lonbox1, latbox1, gnres)
+  dum2=gsn_add_polygon(wks, contour4, lonbox2, latbox2, gnres)
+  dum3=gsn_add_polygon(wks, contour4, lonbox3, latbox3, gnres)
+  dum4=gsn_add_polygon(wks, contour4, lonbox4, latbox4, gnres)
+
+  ;draw(contour4)
+  ;frame(wks)
+
   plot(1) = contour4
+  ;plot(1) = dum1
 
 ;;;------------------------------------------------------------------------------
 ; row 1
@@ -257,36 +271,73 @@ my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
   res@cnFillOn          = True
   res@gsnTickMarksOn     = False
   contour1 = gsn_csm_contour_map(wks,lw_cre_mask_f1,res)  ; create the plot
-  plot(2) = contour1
+  plot2(2) = contour1
 
 ; row 2
   res@tiMainString      = "AM4 SW CRE trend 1925-1955 (W/m2 per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour4 = gsn_csm_contour_map(wks,sw_cre_mask_f1,res)  ; create the plot
-  plot(4) = contour4
+  plot2(0) = contour4
 
 ; row 3
   res@tiMainString       = "AM4 LW CRE trend 1975-2005 (W/m2 per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour7 = gsn_csm_contour_map(wks,lw_cre_mask_f2,res)  ; create the plot
-  plot(3) = contour7
+  plot2(3) = contour7
 
 ; row 4
   res@tiMainString       = "AM4 SW CRE trend 1975-2005 (W/m2 per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour10 = gsn_csm_contour_map(wks,sw_cre_mask_f2,res)  ; create the plot
-  plot(5) = contour10
+  plot2(1) = contour10
 
 ;;;------------------------------------------------------------------------------
 
+;---Resources for paneling
+    pres                   = True              ; modify the panel plot
+    pres@gsnPanelMainString= "fyrname"
+    pres@gsnPaperOrientation = "portrait" 
+    pres@gsnFrame          = False             ; don't advance frame yet
+    pres@gsnDraw           = False             ; draw later, in maximize mode
+    ;pres@gsnPanelBottom    = 0.33              ; top 2/3 of frame
+    ;pres@gsnPanelBottom    = 0.66              ; top 2/3 of frame
+    pres@gsnPanelTop        = 0.9
+    pres@gsnPanelBottom     = 0.6
 
-  resP                  = True                   ; modify the panel plot
-  resP@gsnFrame         = False                  ; don't advance panel plot
+    pres@gsnPanelLabelBar  = True              ; add common colorbar
+    pres@lbOrientation     = "vertical"
+    pres@pmLabelBarWidthF  = 0.075             ; make thinner
+    pres@pmLabelBarHeightF = 0.25
+    ;pres@pmLabelBarHeightF = 0.20
 
-  gsn_panel(wks,plot,(/3,2/),resP)
+  panelid1 = gsn_panel_return(wks,plot,(/1,2/),pres)
+
+;---Calculate location for top of difference plots
+    bb     = NhlGetBB(panelid1)
+    bottom = min(bb(:,1))
+    top    = max(bb(:,0))
+    height = (top-bottom)/2.     ; Height of one row
+
+;---Panel the diff plots at the bottom
+    delete(pres@gsnPanelMainString)
+    pres@gsnPanelTop        = 0.6-0.01
+    pres@gsnPanelBottom     = 0.05
+    ;pres@gsnPanelTop       = bottom-0.01    ; lower 1/3 plus some white space
+    ;pres@gsnPanelBottom    = pres@gsnPanelTop - height
+
+    pres@pmLabelBarHeightF = 0.40  
+
+    panelid2 = gsn_panel_return(wks,plot2,(/2,2/),pres)
+
+    maximize_output(wks,True)
+
+  ;resP                  = True                   ; modify the panel plot
+  ;resP@gsnFrame         = False                  ; don't advance panel plot
+
+  ;gsn_panel(wks,plot,(/3,2/),resP)
 
 end
 
