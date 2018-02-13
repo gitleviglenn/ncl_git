@@ -98,16 +98,16 @@ begin
 ;
 ; regions: .nc _perustr.nc, _npac.nc, _wp.nc
 ;
-;region="_gmn"
-;regi="gl"
+region="_gmn"
+regi="gl"
 ;region="_perustr_mn"
 ; regi="peru st"
 ;region="_npac_mn"
 ; regi="npac"
 ;region="_wpmn"
 ; regi="wm pl"
-region="_trop_mn"
- regi="trops"
+;region="_trop_mn"
+; regi="trops"
 ;
 ;
  model="c96L32_am4G12r18_2010climo_A_cosp"
@@ -116,7 +116,7 @@ region="_trop_mn"
 ; mode="r17"
 ;model="c96L32_am4G12r16_2010climo_new_cosp"
 ; mode="r16"
-outputfile="modis2010_obsminus"+mode+" "+regi
+;outputfile="modis2010_obsminus"+mode+" "+regi
 ;
  titlebase="obs - simulator "+mode+" "+regi
 ;
@@ -210,7 +210,7 @@ print("dimensions of fields: "+dimsizes(fields))
 ;
 ; specify paths
 ; specify region of interest
-region="tropmn"
+region="gmn"
 filein_obs1="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.01.C051.V02."+region+".nc"
 filein_obs2="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.02.C051.V02."+region+".nc"
 filein_obs3="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.03.C051.V02."+region+".nc"
@@ -225,6 +225,8 @@ filein_obs11="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.11.C051.V02."+r
 filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+region+".nc"
 ;
 ;
+filein_test="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2004.09.C051.V02.gmn.nc"
+;
   infile_obs1 = addfile(filein_obs1,"r")
   infile_obs2 = addfile(filein_obs2,"r")
   infile_obs3 = addfile(filein_obs3,"r")
@@ -237,6 +239,7 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02."+r
   infile_obs10 = addfile(filein_obs10,"r")
   infile_obs11 = addfile(filein_obs11,"r")
   infile_obs12 = addfile(filein_obs12,"r")
+  infile_obs13 = addfile(filein_test,"r")
 ;
   print("infile_obs1 is: "+filein_obs1)
   print("infile_obs11 is: "+filein_obs11)
@@ -292,6 +295,7 @@ print("dimensions of fieldobss are: "+dimsizes(field_obs))
       oct(i,j)=100.*infile_obs10->$varname$(i,j) ; for single point
       nov(i,j)=100.*infile_obs11->$varname$(i,j) ; for single point
       dec(i,j)=100.*infile_obs12->$varname$(i,j) ; for single point
+      ;dec(i,j)=100.*infile_obs13->$varname$(i,j) ; for single point
       ;field_obs(i,j)=100.*infile_obs1->$varname$(i,j) ; for single point
       field_obs(i,j)=(jan(i,j)+feb(i,j)+mar(i,j)+\
                   apr(i,j)+may(i,j)+jun(i,j)+\
@@ -314,33 +318,34 @@ xtitle="total clfract: "
   field_obs=decimalPlaces(field_obs,1,True)
 ;----------------------------------------------------------------------
 ;----------------------------------------------------------------------
-;----------------------------------------------------------------------
-;----------------------------------------------------------------------
-;----------------------------------------------------------------------
 
-field_moonhooch=field_obs-fields
-;field_moonhooch=fields-field_obs
+; compute the difference field
+;field_moonhooch=field_obs-fields ; default
+field_moonhooch=fields-field_obs
+  print("difference computed as model - observations")
+
+field_model=fields ; to print only model data
+
 field_moonhooch=decimalPlaces(field_moonhooch,1,True)
 tot_diff=sum(field_moonhooch)
 sumdiff=decimalPlaces(tot_diff,2,True)
 
-print("dimensions of moonhooch are: "+dimsizes(field_moonhooch))
-print("fields at point: "+fields(4,4))
-print("field_obs at point: "+field_obs(4,4))
-print("field_moonhooch at point: "+field_moonhooch(4,4))
+  print("dimensions of moonhooch are: "+dimsizes(field_moonhooch))
+  print("fields at point: "+fields(4,4))
+  print("field_obs at point: "+field_obs(4,4))
+  print("field_moonhooch at point: "+field_moonhooch(4,4))
 
 ; processing before the actual figure 
 ;;-----------------------------------------------------------------------------
 ;;-----------------------------------------------------------------------------
-;;-----------------------------------------------------------------------------
-  text_values=""+field_moonhooch
+text_values=""+field_moonhooch
 
-  ncols=7
-  nrows=7
-  col_width  = 1./ncols
-  row_width  = 1./nrows
-  col_width2 = col_width/2.
-  row_width2 = row_width/2.
+ncols=7
+nrows=7
+col_width  = 1./ncols
+row_width  = 1./nrows
+col_width2 = col_width/2.
+row_width2 = row_width/2.
 
 colors = (/"White","Black","Coral","Moccasin","LightYellow","LightCyan","PowderBlue","LightSkyBlue","CornflowerBlue","RoyalBlue","SteelBlue"/)  ; 11
 labels = new(dimsizes(colors)-1,string)    ; for labelbar
@@ -377,9 +382,13 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ;;-----------------------------------------------------------------------------
 ; Start the graphics.
 
-; why doesn't png work?
-;  wks = gsn_open_wks("ps","testplot")
-  wks = gsn_open_wks("newPDF",outputfile)
+choosefig=2
+  
+  outputfile="testplot"
+  ;wks = gsn_open_wks("newPDF",outputfile)
+  wks = gsn_open_wks("eps",outputfile)
+
+if (choosefig .lt. 2) then
   gsn_define_colormap(wks,colors)
 
   ;
@@ -463,6 +472,154 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
   rest@txFontHeightF = 0.015             ; Size of centered text
 
   gsn_table(wks,ncr,x,y,text_values,rest)    ; Draw table
+  print("choosefig is: "+choosefig)
+else
+;;-----------------------------------------------------------------------------
+  ;gsn_define_colormap(wks,colors)
+  
+; process the field to plot...
+text_values=""+field_model
+
+ncols=7
+nrows=7
+col_width  = 1./ncols
+row_width  = 1./nrows
+col_width2 = col_width/2.
+row_width2 = row_width/2.
+
+; define a color map
+;;cmap=(/(/255, 255, 255/),(/236, 240, 252/),(/217, 225, 249/),(/198, 210, 246/),(/179, 195, 243/),(/160, 180, 240/),(/141, 165, 237/),(/122, 150, 234/),(/103, 135, 231/),(/84, 120, 228/),(/65, 105, 225/)/)
+;colors=(/"(/255, 255, 255/)","(/0, 0, 0/)","(/217, 225, 249/)","(/198, 210, 246/)","(/179, 195, 243/)","(/160, 180, 240/)","(/141, 165, 237/)","(/122, 150, 234/)","(/103, 135, 231/)","(/84, 120, 228/)","(/65, 105, 225/)"/)
+
+;colors = (/"White","Black","Coral","Moccasin","LightYellow","LightCyan","PowderBlue","LightSkyBlue","CornflowerBlue","RoyalBlue","SteelBlue"/)  ; 11
+;
+;colors = (/"White","Black","white","floralwhite","lightcyan","darkslategray1","darkslategray2","darkslategray3","deepskyblue1","deepskyblue3","dodgerblue3"/)
+colors = (/"White","Black","white","honeydew2","lightblue1","darkslategray1","darkslategray2","darkslategray3","deepskyblue1","deepskyblue3","dodgerblue3"/)
+;colors = (/"White","Black","whitesmoke","skyblue","skyblue2","skyblue3","steelblue3","coral","coral2","coral3","coral4"/)
+
+gsn_define_colormap(wks,colors)
+
+labels = new(dimsizes(colors)-1,string)    ; for labelbar
+
+cols_for_vals = new(ncr,"string")
+cols_for_txt = new(ncr,"string")
+
+;contours=(/0.0,0.1,0.5,1.0,2.0,3.0,5.0,7.0,10,30/)
+contours=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,3.5,4.0,4.5/)
+;
+cols_for_vals = colors(3)
+do i=2,10
+  do k=0,6
+    do j=0,6
+      rng_beg = contours(i-2)
+      rng_end = contours(i-1)
+      if(rng_beg.le.field_model(j,k) .and. field_model(j,k).lt.rng_end) then 
+        cols_for_vals(j,k) = colors(i)
+      else
+        cols_for_vals = cols_for_vals
+      end if  
+    end do
+  end do 
+end do
+;;---Create formatted labels for the labelbar
+;;---Converts floats or doubles into formatted strings.
+do i=2,10
+  rng_beg = contours(i-2)
+  rng_end = contours(i-1)
+  labels(i-2) = sprintf("%3.1f", rng_beg) + " - " + \
+                sprintf("%3.1f",rng_end)
+end do
+;
+cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","white","black")
+;----------------start the plotting---------------------
+
+  ;gsn_define_colormap(wks,colors)
+
+  ;
+; Create a blank plot so we can get some tickmarks.
+;
+; Do the blank plot before the table, so we can maximize
+; the blank plot. Later we'll make sure the table goes
+; in the same location as the blank plot.
+;
+  resb                         = True
+  resb@gsnDraw                 = False
+  resb@gsnFrame                = False
+
+  resb@vpYF                    = 0.92
+  resb@vpXF                    = 0.10
+  resb@vpHeightF               = 0.85
+  resb@vpWidthF                = 0.75
+
+; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
+  resb@tmXBMode                = "Explicit"
+  ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
+  resb@tmXBValues              = fspan(0.,1.-col_width,ncols)
+;  print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
+  ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23.0,60.0/)
+  nrow_labels=(/1000,800,680,560,440,310,180/)
+  resb@tmXBLabels              = ncol_labels
+  resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
+
+; Explicitly label Y axis.
+  resb@tmYLMode                = "Explicit"
+  resb@tmYLValues              = fspan(0.,1.-row_width,nrows)
+  resb@tmYLLabels              = nrow_labels
+;
+; The Y labels need to be reversed, because the label in the first
+; row in the ASCII file is associated with the top of the plot.
+;
+  ;resb@tmYLLabels              = nrow_labels(::-1)
+  resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
+
+; Rotate the X axis labels 90 degrees.
+  ;resb@tmXBLabelAngleF         = 90.
+;  resb@tmXBLabelJust           = "CenterRight"
+
+; Turn off right and top tickmarks
+  resb@tmYROn                  = False
+  resb@tmXTOn                  = False
+
+; Main title
+  ;resb@tiMainString            = file_base
+  totaltitle = "MODIS SIM Cloud Fraction"
+  resb@tiMainString            = totaltitle
+
+  blank = gsn_csm_blank_plot(wks,resb)
+  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
+  draw(blank)                                 ; Draw tickmarks and labelbar
+;
+; Get position and size of the blank plot so we can
+; be sure to draw the table in same location.
+;
+  getvalues blank
+    "vpXF"      : vpx
+    "vpYF"      : vpy
+    "vpWidthF"  : vpw
+    "vpHeightF" : vph
+  end getvalues
+
+; Start and end coordinates for table.
+  x = (/vpx,vpx+vpw/)
+  y = (/vpy-vph,vpy/)
+
+
+; Set up resources for table
+  rest               = True
+
+  ;rest@tiXAxisString    = "tau"
+  ;rest@tiYAxisString    = ytitle
+  rest@gsLineColor   = -1                ; No border lines
+  rest@gsFillColor   = cols_for_vals     ; Each cell of table
+  rest@txFontColor   = cols_for_txt
+
+  rest@txFontHeightF = 0.015             ; Size of centered text
+
+  gsn_table(wks,ncr,x,y,text_values,rest)    ; Draw table
+;-------------------------------------------------------
+; all done
+  print("choosefig is: "+choosefig)
+end if
 
 end
 ;

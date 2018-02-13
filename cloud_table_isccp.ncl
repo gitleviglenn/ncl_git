@@ -92,7 +92,7 @@ filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path
 filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on macbook
 ;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980th2014.ann.bug.glbtmn.nc" ; path on macbook
 
-;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"
+;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"       ; path on workstation
 filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
 filein_modobs="/Users/silvers/data/SatData/MODIS/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on macbook
 ;
@@ -108,7 +108,7 @@ print("infile for modis observations is: "+filein_modobs) ; (time, tau, plev7)
 ;;;-read data----------------------------------------------------------------
 ;;
   ftime=0
-  flat=45
+  flat=45 ; 90
   flon=0
   fields=new((/7,7/),float)
   fields_mod=new((/7,7/),float)

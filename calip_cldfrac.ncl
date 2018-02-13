@@ -1,5 +1,5 @@
 ;***********************************************************************************
-; glb_cf_tclmodis.ncl
+; calip_cldfrac.ncl
 ;***********************************************************************************
 ;
 ; plot global cloud fraction as computed with the modis cosp tool.
@@ -28,51 +28,28 @@ begin
 ; read in netCDF file
 ;***********************************************************************************
 ; variable to read: 
-;varname1="tclmodis" ; MODIS total cloud fraction
 ;varname1="cltlidarradar"
-;varname1="tot_cld_amt" 
-varname1="clt"
-; "lclmodis" ; MODIS total Liquid Cloud Fraction
-; "iclmodis" ; MODIS total Ice Cloud Fraction
-; "hicldmodis"
-; "mdcldmodis"
-; "locldmodis"
-; "ttaumodis" ; MODIS total optical thickness*cpct
-; "ltaumodis" ; MODIS total liquid optical thickness*cpct
-; "itaumodis" ; MODIS total ice optical thickness*cpct
-;
+varname1="tot_cld_amt" 
+varname1="clmcalipso"
 ;***********************************************************************************
 ;infile="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/monthly_2yr/atmos.0002-0003.timmean.nc"
 ;infile="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/monthly_2yr/atmos.0002-0003.01.nc"
 
-;infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
+;infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
+path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
+infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
+infile=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
 
-;; input file for c96L33_am4p0_cosp
-;infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.200501-200912.tot_cld_amt.nc"
-;infile="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cosp/gfdl.ncrc3-intel-prod-openmp/pp/atmos/ts/monthly/5yr/atmos.198001-200912.tot_cld_amt.timmean.nc"
-;
-;;modelv="am4g12r17"
-;modelv="am4p0_cosp"
-; below are paths for macbook
-infile="/Users/silvers/data/am4p0/atmos_cmip.200401-200812.clt.monthtmn.nc"
-
-infile="/Users/silvers/data/am4p0/atmos_cmip.2004010100-2008123123.clt.8xdailytmn.nc"
-
-modelv="am4p0 8xdaily"
+modelv="am4.0"
 
   data = addfile(infile,"r")
 print("infile is: "+infile)
   ;t = a->tot_cld_amt(0,:,:)                                
   t = data->$varname1$(0,:,:)                                
-  t@_FillValue = 1.e+20
   tot_cld_sum=sum(t)
   t2=where(t.ge.100.,0.0,t)
   tot_cld_sum2=sum(t2)
-  print("dimensions of incoming data are: "+dimsizes(t))
   mean_cld=tot_cld_sum2/51840.
   print("sum of tot_cld_amt: "+tot_cld_sum)
   print("sum2 of tot_cld_amt: "+tot_cld_sum2)
@@ -84,15 +61,14 @@ rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
 field1_weighted_ave     = wgt_areaave(t,clat,1.0,1)
-field1_weighted_ave_b     = wgt_areaave(t,clat,1.0,0)
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ; available non-missing data. 
 print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
-field1_weighted_ave_test     = wgt_areaave(t,clat,1.0,0)
-print("global mean of non missing data "+varname1+" is: "+field1_weighted_ave_test)
+;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
+;print("global mean of non missing data "+varname1+" at time "+time+" is: "+field1_weighted_ave_test)
 ;
 posh=flt2string(decimalPlaces(field1_weighted_ave,2,True))
-maintitle=modelv+" "+varname1+" = "+posh
+maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh
 ;***********************************************************************************
 ; create plot
 ;***********************************************************************************
@@ -100,16 +76,13 @@ maintitle=modelv+" "+varname1+" = "+posh
 ; contour levels
 ;my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/) ; 15
 my_levels1 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
-my_levels2 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15 for use with NCV_blu_red
 my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
-my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors, for use with NCV_blu_red
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
-  ;gsn_define_colormap(wks,"matlab_jet")
-  gsn_define_colormap(wks,"NCV_blu_red")
+  gsn_define_colormap(wks,"matlab_jet")
 
 
   res                   = True
@@ -131,8 +104,8 @@ my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 -
 ;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
-  res@cnLevels          = my_levels2
-  res@cnFillColors      = my_colors_blue
+  res@cnLevels          = my_levels1
+  res@cnFillColors      = my_colors
   res@txFontHeightF     = 0.015 
 
   res@vpXF            = 0.1                 ; make plot bigger
