@@ -24,12 +24,14 @@ varname3="clhcalipso"
 varname4="cltcalipso"
 
 ; path to observations from calipso
-path_obs="/net2/Levi.Silvers/data_calipso/"
+;path_obs="/net2/Levi.Silvers/data_calipso/"
+path_obs="/Users/silvers/data/SatData/CALIPSO/" ; on macbook
+;path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
+path_to8xdaily="/Users/silvers/data/am4p0/" ; on macbook
 ;***********************************************************************************
 ;infile="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/monthly_2yr/atmos.0002-0003.timmean.nc"
 
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
-path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
 infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile1=path_to8xdaily+"atmos_8xdaily.197901-200812_cllcalipso_tmean.nc"
 ;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
@@ -37,10 +39,13 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 
 ;infile6=path_obs+"calip_2x2xL40_avg_clh/clhcalipso_tmn_20060615_20101215.nc"
 
-infile8=path_obs+"calip_2x2xL40_avg_clt/cltcalipso_tmn_20060615_20101215.nc"
-infile8_new=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
+;infile8=path_obs+"calip_2x2xL40_avg_clt/cltcalipso_tmn_20060615_20101215.nc"
+infile8=path_obs+"/cltcalipso_tmn_20060615_20101215.nc"
+;infile8_new=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
+infile8_new=path_obs+"/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
 
-infile_isccp="/net2/Levi.Silvers/data/isccpdata/cltisccp_7yr_tmn.nc"
+;infile_isccp="/net2/Levi.Silvers/data/isccpdata/cltisccp_7yr_tmn.nc"
+infile_isccp="/Users/silvers/data/SatData/ISCCP/cltisccp_7yr_tmn.nc"
 
 modelv="am4.0"
 
