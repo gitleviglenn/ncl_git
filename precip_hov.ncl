@@ -6,14 +6,22 @@
 
 begin
 
+; path to data
+path_to_wc="/Users/silvers/data"
+walkcell="/WalkerCell/gauss_d"
+;file_pre="/c96L33_8x80_nh.19790101"
+file_pre="/19790101"
 
-infile="/Users/silvers/data/WalkerCell/c96L33_8x80_nh.19790101.atmos_daily.nc"
+; name of output file
+fileout="hov_guass_d"
+
+infile=path_to_wc+walkcell+file_pre+".atmos_daily.nc"
   print("incoming file is: "+infile)
-infile2="/Users/silvers/data/WalkerCell/c96L33_100x1000_nh_crm.19790101.atmos_daily.nc"
+infile2=path_to_wc+"/WalkerCell/c96L33_100x1000_nh_crm.19790101.atmos_daily.nc"
   print("incoming file is: "+infile2)
 
 data_25km = addfile(infile,"r")
-data_2km = addfile(infile2,"r")
+data_2km  = addfile(infile2,"r")
 
 var1="precip" ; time, grid_y, grid_x
 
@@ -37,7 +45,7 @@ p_2_xt=86400*p_2_xt
 
 
 plot_type="newPDF"
-wks = gsn_open_wks(plot_type,"testplot")
+wks = gsn_open_wks(plot_type,fileout)
 
 my_levels1 = (/1,5,10,15,20, \
                25,30,35,40,45, \
@@ -97,7 +105,8 @@ if (figurenumber .lt. 2) then
  plot(1) = gsn_csm_contour(wks,p_2_xt,res)
 
 resP                         = True
-resP@txString                = "good grief"
+;resP@txString                = "good grief"
+resP@txString                = fileout
 resP@gsnPanelLabelBar        = True
 ;resP@lbLabelFontHeightF      = 0.012
 resP@lbLabelFontHeightF      = 0.022
@@ -143,7 +152,8 @@ else ;--------------------------------------------------------------------------
  plot(0) = gsn_csm_contour(wks,p_25full_xt,res)
 
 resP                         = True
-resP@txString                = "good grief"
+;resP@txString                = "good grief"
+resP@txString                = fileout
 resP@gsnPanelLabelBar        = True
 resP@lbLabelFontHeightF      = 0.012
 
