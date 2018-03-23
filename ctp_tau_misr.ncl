@@ -75,20 +75,18 @@ end
 begin
 
 ; open/reference desired file (use addfiles to reference multiple data file)
-modv="am4g12r18"
-toptitle="MISR "+modv+" 10 yrglmn"
+modv="am4"
+toptitle="MISR "+modv+" 1yr glmn"
 xtitle="hieght (km)"
 ytitle="optical depth"
 
-filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
+;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
 
-filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/test3.nc"
+filein="/net2/Levi.Silvers/data/cfamip_testdiag/test3.nc"
 
  infile = addfile(filein,"r")
- infile_new = addfile(filein_new,"r")
 
 print("infile is: "+filein)
-print("infile new is: "+filein_new)
 
 ;
 ;;-Reading and processing of data-------------------------------------------
@@ -101,7 +99,7 @@ fields_new=-999
 
 do i=0,6,1
   do j=0,15,1
-    fields_new(j,i)=infile_new->$varname_misr$(0,i,j)
+    fields_new(j,i)=infile->$varname_misr$(0,i,j)
   end do
 end do
 
