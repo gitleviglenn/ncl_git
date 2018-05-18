@@ -1,4 +1,4 @@
-;***********************************************************************************
+2***********************************************************************************
 ; calip25_isccp_am4_totcld.ncl
 ;***********************************************************************************
 ;
@@ -10,6 +10,8 @@
 ; simulators are plotted
 ;
 ; cosine weighted global mean values are computed.
+;
+; three different figures can be plotted: change 'figurenumber' between 1,2, or 3
 ;
 ; alternate figure: plot the total cloud fraction from am4p0 compared to that from 
 ; the am4p0 simulators.   
@@ -396,7 +398,7 @@ my_colors_red = (/129,139,149,159,169,179,189,199,209,219,229,234,239,244,249,25
   ;gsn_define_colormap(wks,"matlab_jet")
   ;gsn_define_colormap(wks,"MPL_BrBG")
 
-figurenumber = 3 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
+figurenumber = 1 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
 ; 2 prints 3 panel figure with isccp, calipso, and am4 output
 ; 3 prints 3 panel figure with calipso, calipso simulator and am4 output
 
