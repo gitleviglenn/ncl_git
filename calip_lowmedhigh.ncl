@@ -4,6 +4,9 @@
 ;
 ; plot global cloud fraction for low, med, and high clouds from CALIPSO simulator
 ;
+; the calipso observations are on a 2x2 degree grid so the model output is 
+; interpolated to a 2x2 degree grid before being plotted
+;
 ; levi silvers							nov 2017
 ;***********************************************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
@@ -25,14 +28,20 @@ varname3="clhcalipso"
 ; path to observations from calipso
 path_obs="/net2/Levi.Silvers/data_calipso/"
 ;***********************************************************************************
-;infile="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_cfmon/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/monthly_2yr/atmos.0002-0003.timmean.nc"
 
-;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
+; for 8xdaily data
 path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
 infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
-infile1=path_to8xdaily+"atmos_8xdaily.197901-200812_cllcalipso_tmean.nc"
-infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
-infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
+;infile1=path_to8xdaily+"atmos_8xdaily.197901-200812_cllcalipso_tmean.nc"
+;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
+;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
+
+; for monthly data
+path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
+;infile=path_tomonth+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
+infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
+infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
+infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
@@ -49,36 +58,37 @@ data4 = addfile(infile4,"r")
 data5 = addfile(infile5,"r")
 data6 = addfile(infile6,"r")
 
+print("infile for cltcalipso is: "+infile)
 print("infile is: "+infile1)
 print("infile is: "+infile2)
 print("infile is: "+infile3)
 print("infile is: "+infile4)
 print("infile is: "+infile5)
 print("infile is: "+infile6)
-  ;t = a->tot_cld_amt(0,:,:)                                
+
 var1 = data->$varname1$(0,:,:)                                
 var2 = data2->$varname2$(0,:,:)                                
 var3 = data3->$varname3$(0,:,:)                                
-  print("dimensions of model data: "+dimsizes(var1))
+
+var1@_FillValue = -1.e+30
 
 var1cal = data4->$varname1$(:,:)                                
-print("max of var1cal: "+max(var1cal))
-print("min of var1cal: "+min(var1cal))
 var1calscale=100*var1cal
 var2cal = data5->$varname2$(:,:)                                
 var2calscale=100*var2cal
 var3cal = data6->$varname3$(:,:)                                
 var3calscale=100*var3cal
 
-var1cal@_FillValue = 1.e+20
-;clat_cobs@_FillValue = 1.e+20
+var1cal@_FillValue = -1.e+30
 var2cal@_FillValue = 1.e+20
 var3cal@_FillValue = 1.e+20
 
-print("max of var2cal: "+max(var2cal))
-print("min of var2cal: "+min(var2cal))
-print("max of var3cal: "+max(var3cal))
-print("min of var3cal: "+min(var3cal))
+;print("max of var1cal: "+max(var1cal))
+;print("min of var1cal: "+min(var1cal))
+;print("max of var2cal: "+max(var2cal))
+;print("min of var2cal: "+min(var2cal))
+;print("max of var3cal: "+max(var3cal))
+;print("min of var3cal: "+min(var3cal))
 
 var1calscale!0="lat"
 var1calscale&lat=var1cal&lat
@@ -107,13 +117,24 @@ var3calscale&lat=var1cal&lat
 var3calscale!1="lon"
 var3calscale&lon=var1cal&lon
 
+print("======================================")
+print("max of var1calscale: "+max(var1calscale))
+print("min of var1calscale: "+min(var1calscale))
 print("max of var2calscale: "+max(var2calscale))
 print("min of var2calscale: "+min(var2calscale))
 print("max of var3calscale: "+max(var3calscale))
 print("min of var3calscale: "+min(var3calscale))
+print("-------------------")
 
-  print("dimensions of calipso data: "+dimsizes(var1calscale))
-  print("maximum minimum of calipso data are: "+max(var1calscale)+"  "+min(var1calscale))
+print("maximum minimum of calipso data are: "+max(var1calscale)+"  "+min(var1calscale))
+
+print("======================================")
+print("dimensions of model data: "+dimsizes(var1))
+print("-------------------")
+
+print("dimensions of calipso data: "+dimsizes(var1calscale))
+print("======================================")
+
 ;  tot_cld_sum=sum(t)
 ;  t2=where(t.ge.100.,0.0,t)
 ;  tot_cld_sum2=sum(t2)
@@ -137,6 +158,7 @@ var_to_interpolate&lat=var1&lat
 var_to_interpolate!1="lon"
 var_to_interpolate&lon=var1&lon
 
+; first set up the grid info
 dimceres=dimsizes(var_to_interpolate)
 print("dims of incoming variable: "+dimceres)
 ;ntim=dimceres(0)
@@ -162,7 +184,8 @@ print(latS+"  "+latN+"   "+var1cal&lat(1)+"  "+var1cal&lat(89))
    opt@NLATi       = nlati 
    opt@NLATo       = NLAT2x2
    LAT_REG_2x2     = LAT_2x2({latS:latN})
-   interpolated_var = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
+; now actually do the interpolations
+   interpolated_var  = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
    interpolated_var2 = area_conserve_remap_Wrap (var2_to_interpolate&lon, var2_to_interpolate&lat, var2_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
    interpolated_var3 = area_conserve_remap_Wrap (var3_to_interpolate&lon, var3_to_interpolate&lat, var3_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
 ;*************************************************************
@@ -170,7 +193,9 @@ print(latS+"  "+latN+"   "+var1cal&lat(1)+"  "+var1cal&lat(89))
 var1_90x180=interpolated_var
 var2_90x180=interpolated_var2
 var3_90x180=interpolated_var3
-  print("dimensions of interpolated model data: "+dimsizes(var1_90x180))
+
+print("dimensions of interpolated model data: "+dimsizes(var1_90x180))
+print("======================================")
 
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
@@ -179,15 +204,15 @@ rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
 
-field1_weighted_ave     = wgt_areaave(var1,clat,1.0,1)
-field2_weighted_ave     = wgt_areaave(var2,clat,1.0,1)
-field3_weighted_ave     = wgt_areaave(var3,clat,1.0,1)
+field1_weighted_ave     = wgt_areaave(var1,clat,1.0,0)
+field2_weighted_ave     = wgt_areaave(var2,clat,1.0,0)
+field3_weighted_ave     = wgt_areaave(var3,clat,1.0,0)
 
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ; available non-missing data. 
-print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
-print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
-print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
+;print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
+;print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
+;print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
 ;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
 ;print("global mean of non missing data "+varname1+" at time "+time+" is: "+field1_weighted_ave_test)
 ;
@@ -199,9 +224,15 @@ print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
 ;print("clat_2x2: "+LAT_REG_2x2)
 ;print("And the values of lat are: "+lat)
 
-field1_2x2_weighted_ave  = wgt_areaave(var1_90x180,clat_2x2,1.0,1)
+print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
+var1_90x180@_FillValue = -9.39863e+29
+;var1_90x180@_FillValue = -1.e+30
 
-print("raw global mean of 2x2 "+varname1+" is: "+field1_2x2_weighted_ave)
+var1_90x180 = where(var1_90x180.lt.0.0,var1@_FillValue,var1_90x180)
+print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
+field1_2x2_weighted_ave  = wgt_areaave(var1_90x180,clat_2x2,1.0,0)
+;field1_2x2_weighted_ave  = wgt_areaave(var1_test,clat_2x2,1.0,0)
+
 ;---------------------------------------------------------------------
 ; compute latitude weighted mean values for the 2x2 data both calipso and am4
 
@@ -214,30 +245,46 @@ clat_cobs=cos(lat_cobs*rad_cobs)
 var1_90x180_weighted_ave  = wgt_areaave(var1_90x180,clat_cobs,1.0,0)
 var1_mask = where(var1calscale.eq.var1calscale@_FillValue,var1calscale@_FillValue,var1_90x180)
 var1_masked_weighted_ave  = wgt_areaave(var1_mask,clat_cobs,1.0,0)
-print("weighted low level am4 cal sim: "+var1_90x180_weighted_ave)
-print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
 
 ; mid level clouds
 var2_90x180_weighted_ave  = wgt_areaave(var2_90x180,clat_cobs,1.0,0)
 var2_mask = where(var2calscale.eq.var2calscale@_FillValue,var2calscale@_FillValue,var2_90x180)
 var2_masked_weighted_ave  = wgt_areaave(var2_mask,clat_cobs,1.0,0)
-print("weighted mid level am4 cal sim: "+var2_90x180_weighted_ave)
-print("weighted and masked mid level am4 cal sim: "+var2_masked_weighted_ave)
 
 ; high level clouds
 var3_90x180_weighted_ave  = wgt_areaave(var3_90x180,clat_cobs,1.0,0)
 var3_mask = where(var3calscale.eq.var3calscale@_FillValue,var3calscale@_FillValue,var3_90x180)
 var3_masked_weighted_ave  = wgt_areaave(var3_mask,clat_cobs,1.0,0)
-print("weighted high level am4 cal sim: "+var3_90x180_weighted_ave)
-print("weighted and masked high level am4 cal sim: "+var3_masked_weighted_ave)
+
 
 ; calipso
 field4_weighted_ave     = wgt_areaave(var1calscale,clat_cobs,1.0,0)
 field5_weighted_ave     = wgt_areaave(var2calscale,clat_cobs,1.0,0)
 field6_weighted_ave     = wgt_areaave(var3calscale,clat_cobs,1.0,0)
+
+print("======================================")
+print("low level clouds")
+print("raw global mean of 2x2 "+varname1+" is: "+field1_2x2_weighted_ave)
+print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
+
+print("weighted low level am4 cal sim: "+var1_90x180_weighted_ave)
+print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
+
+print("mid level clouds")
+print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
+print("weighted mid level am4 cal sim: "+var2_90x180_weighted_ave)
+print("weighted and masked mid level am4 cal sim: "+var2_masked_weighted_ave)
+
+print("high level clouds")
+print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
+print("weighted high level am4 cal sim: "+var3_90x180_weighted_ave)
+print("weighted and masked high level am4 cal sim: "+var3_masked_weighted_ave)
+
+print("-------------------")
 print("weighted low level calipso: "+field4_weighted_ave)
 print("weighted mid level calipso: "+field5_weighted_ave)
 print("weighted upper level calipso: "+field6_weighted_ave)
+print("======================================")
 ;---------------------------------------------------------------------
 ;
 posh1=flt2string(decimalPlaces(field1_weighted_ave,2,True))
@@ -282,9 +329,11 @@ blah3&lon=var1cal&lon
 my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/) ; 15
 my_levels_15posneg = (/-35,-30,-25,-20,-15,-10,-5,0,5,10,15,20,25,30,35/) ; plots 20 colors (19 nums) 1 less than thought
 ;my_levels1 = (/25,30,35,40,45,50,55,60,65,70,75,80,85,90,95/) ; 15
+
+my_colors_gr = (/65,70,76,80,84,88,92,96,100,104,108,112,116,120,124,128/) ; 16
 my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
-;my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low numbers are dark colors
-my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
+my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low numbers are dark colors
+;my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
@@ -318,7 +367,7 @@ my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
   res@cnLevels          = my_levels1
-  res@cnFillColors      = my_colors_rev
+  res@cnFillColors      = my_colors_gr
   res@txFontHeightF     = 0.015 
 
   res@vpXF            = 0.1                 ; make plot bigger
