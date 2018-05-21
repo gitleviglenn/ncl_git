@@ -9,7 +9,7 @@
 ;
 ; the output file may have extra dimensions which should be averaged over such as
 ; longitude, latitude, or time.  
-;ncwa -O -a lat,lon atmos_cosp_cfmip.187001-187012.clmisr.nc atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc
+; ncwa -O -a lat,lon atmos_cosp_cfmip.187001-187012.clmisr.nc atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc
 ; cdo timmean atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc test3.nc
 ;
 ; levi silvers  		march 2018
@@ -80,7 +80,14 @@ toptitle="MODIS reice "+modv+" 1 yrglmn"
 ytitle="reff (microns)"
 xtitle="optical depth"
 
-filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureicemodis.ncwa.tmn.nc"
+;varname="jpdftaureliqmodis"
+;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureliqmodis.ncwa.tmn.nc"
+;filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureliqmodis.ncwa.tmn.nc"
+
+varname="jpdftaureicemodis"
+;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureicemodis.ncwa.tmn.nc"
+filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureicemodis.ncwa.tmn.nc"
+
 
  infile_new = addfile(filein_new,"r")
 print("infile new is: "+filein_new)
@@ -89,8 +96,6 @@ print("infile new is: "+filein_new)
 ;;-Reading and processing of data-------------------------------------------
 ;
 
-;varname="jpdftaureliqmodis"
-varname="jpdftaureicemodis"
 
 fields_new=new((/6,7/),float)
 fields_new=-999
