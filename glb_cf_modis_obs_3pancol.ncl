@@ -24,10 +24,11 @@ begin
 ;maintit="Cloud Fraction Retrieval 2010"
 ;varname1="Cloud_Fraction_Mask_Total_Mean"
 ;scale=100.
-varname1="Liquid_Path_Mean"
+;varname1="Liquid_Path_Mean"
 ;maintit="Liquid_Path_Mean 2010"
 varname1="Ice_Path_Mean"
 maintit="Ice_Path_Mean 2010"
+plotvar="IWP"
 scale=1.
 ;
 
@@ -62,16 +63,16 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02.nc"
 ; load model data modis simulator
 
 model1="c96L32_am4G12r18_2010climo_A_cosp"
-model2="c96L32_am4G12r17_2010climo_A_cosp"
+;model2="c96L32_am4G12r17_2010climo_A_cosp"
 ;model3="c96L32_am4G12r16_2010climo_new_cosp"
-model3="c96L32_am4G12r18_2010climo_A_cosp"
+;model3="c96L32_am4G12r18_2010climo_A_cosp"
 ;
 infile1="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-infile2="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-infile3="/archive/Levi.Silvers/data/"+model2+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-infile4="/archive/Levi.Silvers/data/"+model3+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;infile2="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;infile3="/archive/Levi.Silvers/data/"+model2+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
+;infile4="/archive/Levi.Silvers/data/"+model3+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 
-infile_atm="/archive/Levi.Silvers/data/"+model3+"/atmos/atmos.0002-0011.alltmn.nc"
+infile_atm="/archive/Levi.Silvers/data/"+model1+"/atmos/atmos.0002-0011.alltmn.nc"
 
 
   data1 = addfile(filein_obs1,"r")
@@ -95,35 +96,35 @@ print("infile_atm is: "+infile_atm)
   ;var_lwp = fileatm->LWP(0,:,:)
   var_lwp = fileatm->IWP(0,:,:)
   var_lwp=var_lwp*1000. ; convert to grams /m2
+;print("infile is: "+infile1)
+;  file1     = addfile(infile1,"r")
+;  var_f1 = file1->$varname$(0,:,:)
+;  var_tcl= file1->$varnorm$(0,:,:)
+;  var_f1 = modscale*var_f1 
+;  var_ref_norm = var_f1/var_tcl
+;  ;var_ref_norm = 1
 print("infile is: "+infile1)
-  file1     = addfile(infile4,"r")
-  var_f1 = file1->$varname$(0,:,:)
-  var_tcl= file1->$varnorm$(0,:,:)
-  var_f1 = modscale*var_f1 
-  var_ref_norm = var_f1/var_tcl
-  ;var_ref_norm = 1
-print("infile is: "+infile2)
-  file2= addfile(infile2,"r")
+  file2= addfile(infile1,"r")
   var_r18 = file2->$varname$(0,:,:) 
   var_tclr18 = file2->$varnorm$(0,:,:)
   var_r18 = modscale*var_r18 
   var_r18_norm = var_r18/var_tclr18 
-  var_r18_norm = var_r18_norm-var_ref_norm
-print("infile is: "+infile2)
-print("infile is: "+infile3)
-  file3= addfile(infile3,"r")
-  var_r17 = file3->$varname$(0,:,:) 
-  var_tclr17 = file3->$varnorm$(0,:,:)
-  var_r17 = modscale*var_r17
-  var_r17_norm = var_r17/var_tclr17 
-  var_r17_norm = var_r17_norm-var_ref_norm 
-print("infile is: "+infile4)
-  file4= addfile(infile4,"r")
-  var_r16 = file4->$varname$(0,:,:) 
-  var_tclr16 = file4->$varnorm$(0,:,:)
-  var_r16 = modscale*var_r16
-  var_r16_norm = var_r16/var_tclr16
-  ;var_r16_norm = var_r16_norm-var_ref_norm 
+;  var_r18_norm = var_r18_norm-var_ref_norm
+;print("infile is: "+infile2)
+;print("infile is: "+infile3)
+;  file3= addfile(infile3,"r")
+;  var_r17 = file3->$varname$(0,:,:) 
+;  var_tclr17 = file3->$varnorm$(0,:,:)
+;  var_r17 = modscale*var_r17
+;  var_r17_norm = var_r17/var_tclr17 
+;  var_r17_norm = var_r17_norm-var_ref_norm 
+;print("infile is: "+infile4)
+;  file4= addfile(infile4,"r")
+;  var_r16 = file4->$varname$(0,:,:) 
+;  var_tclr16 = file4->$varnorm$(0,:,:)
+;  var_r16 = modscale*var_r16
+;  var_r16_norm = var_r16/var_tclr16
+;  ;var_r16_norm = var_r16_norm-var_ref_norm 
 
 print("filein_obs1 is: "+filein_obs1)
   t1 = data1->$varname1$(::-1,:)                       
@@ -154,21 +155,21 @@ print("filein_obs1 is: "+filein_obs1)
   ;print("sum2 of tot_cld_amt: "+tot_cld_sum2)
   ;print("mean of tot_cld_amt: "+mean_cld)
 
-; assign grid information to model data
-  var_r16_norm!0="lat"
-  var_r16_norm&lat=var_r16&lat
-  var_r16_norm!1="lon"
-  var_r16_norm&lon=var_r16&lon
+;; assign grid information to model data
+;  var_r16_norm!0="lat"
+;  var_r16_norm&lat=var_r16&lat
+;  var_r16_norm!1="lon"
+;  var_r16_norm&lon=var_r16&lon
 ;
-  var_r17_norm!0="lat"
-  var_r17_norm&lat=var_r16&lat
-  var_r17_norm!1="lon"
-  var_r17_norm&lon=var_r16&lon
+;  var_r17_norm!0="lat"
+;  var_r17_norm&lat=var_r16&lat
+;  var_r17_norm!1="lon"
+;  var_r17_norm&lon=var_r16&lon
 ;
   var_r18_norm!0="lat"
-  var_r18_norm&lat=var_r16&lat
+  var_r18_norm&lat=var_r18&lat
   var_r18_norm!1="lon"
-  var_r18_norm&lon=var_r16&lon
+  var_r18_norm&lon=var_r18&lon
 
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
@@ -282,7 +283,7 @@ plot_colors_diff=my_colors_diff_lwp
 ;  plot(1) = contour2
 
   res@gsnFrame         = False
-  res@tiMainString       = "model output LWP"
+  res@tiMainString     = "model output "+plotvar
   res@cnLevels          = plot_levs
   res@cnFillColors      = plot_colors
   ;res@cnLevels          = plot_levs_diff
@@ -292,7 +293,6 @@ plot_colors_diff=my_colors_diff_lwp
   plot(1) = contour3
 
   res@gsnFrame         = False
-  res@tiMainString       = "r16"
   tittittit=maintit_mod+" r18"
   res@tiMainString       = tittittit
   res@cnLevels          = plot_levs
@@ -300,8 +300,8 @@ plot_colors_diff=my_colors_diff_lwp
   ;res@cnLevels          = plot_levs_diff
   ;res@cnFillColors      = plot_colors_diff
   ;contour4 = gsn_csm_contour_map(wks,tdiff4co2,res)  ; create the plot
-  print("max and min of var_16_norm: "+max(var_r16_norm)+" "+min(var_r16_norm))
-  contour4 = gsn_csm_contour_map(wks,var_r16_norm,res)  ; create the plot
+  print("max and min of var_16_norm: "+max(var_r18_norm)+" "+min(var_r18_norm))
+  contour4 = gsn_csm_contour_map(wks,var_r18_norm,res)  ; create the plot
   plot(2) = contour4
 
   txres               = True
