@@ -16,23 +16,44 @@ begin
 ; read in netCDF file
 ;***********************************************************************************
 ; variable to read: 
-;varname1="tclmodis" ; MODIS total cloud fraction
-;varname1="Cloud_Fraction_Retrieval_Total_Mean"
-;maintit="Cloud Fraction Retrieval 2010"
-;varname1="Cloud_Fraction_Mask_Total_Mean"
 ;scale=100.
-;varname1="Liquid_Path_Mean"
-;maintit="Liquid_Path_Mean 2010"
-varname1="Ice_Path_Mean"
-maintit="Ice_Path_Mean 2010"
-plotvar="IWP"
 scale=1.
 ;
+switchnum=2 ; 1 plots IWP, 2 plots LWP
 
-;varname="lwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
-;maintit_mod="Liq Wat Path lwpmodis"
-varname="iwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
-maintit_mod="Ice Wat Path iwpmodis"
+if (switchnum .eq. 1) then 
+plotvar="IWP"
+else if (switchnum .eq. 2) then
+plotvar="LWP"
+end if
+end if 
+
+if (switchnum .eq. 1) then
+  print("plotting IWP")
+  varname="iwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
+  ; varname1 is for the observations
+  varname1="Ice_Path_Mean"
+  maintit_mod="Ice Wat Path iwpmodis"
+  maintit="Ice_Path_Mean 2010"
+  ;plot_levs = (/35.,50.,55.,70.,95.,120.,150.,190.,220.,250.,280./)  ; 11
+  plot_levs = (/5.,10.,20.,35.,50.,55.,70.,95.,190.,250.,350./)  ; 11
+  plot_colors =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
+else if (switchnum .eq. 2) then
+print("plotting LWP")
+  varname="lwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
+  ; varname1 is for the observations
+  varname1="Liquid_Path_Mean"
+  maintit_mod="Liq Wat Path lwpmodis"
+  maintit="Liquid_Path_Mean 2010"
+  ; values for lwp 
+  plot_levs = (/5.,10.,20.,35.,50.,55.,70.,95.,120.,150.,190./)  ; 11
+  ;my_colors_lwp =   (/2, 5,10,15,20,25,30,35,40,45,50,55/) ;12
+  plot_colors =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
+  my_levels_diff_lwp = (/-25.,-20,-15.,-10.,-5., 0., 5., 10.,15., 20.,25./) ;11
+  my_colors_diff_lwp = (/2,5,8,11,14,17,31,34,37,40,43,46/) ; 12
+end if
+end if
+;
 
 modscale=1.e3
 ;varname="tclmodis" ;%
@@ -84,9 +105,8 @@ maintitle="what are you doing?"
 ; after norm the difference is taken from r18
 print("infile_atm is: "+infile_atm)
   fileatm     = addfile(infile_atm,"r")
-  ;var_lwp = fileatm->LWP(0,:,:)
-  var_lwp = fileatm->IWP(0,:,:)
-  var_lwp=var_lwp*1000. ; convert to grams /m2
+  var_toplot = fileatm->$plotvar$(0,:,:)
+  var_toplot=var_toplot*1000. ; convert to grams /m2
 print("infile is: "+infile1)
   file2= addfile(infile1,"r")
   var_r18 = file2->$varname$(0,:,:) 
@@ -151,22 +171,11 @@ my_colors = (/25,35,41,46,59,65,69,75,79,85,95,101/) ; 12
 my_levels_diff = (/-2.5,-2,-1.5,-1,-0.5, 0, 0.5, 1,1.5, 2,2.5/) ;11
 my_colors_diff = (/30,25,20,15,10,5,76,81,86,91,96,100/) ; 12
 
-; values for lwp 
-my_levels_lwp = (/5.,10.,20.,35.,50.,55.,70.,95.,120.,150.,190./)  ; 11
-;my_colors_lwp =   (/2, 5,10,15,20,25,30,35,40,45,50,55/) ;12
-my_colors_lwp =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
-my_levels_diff_lwp = (/-25.,-20,-15.,-10.,-5., 0., 5., 10.,15., 20.,25./) ;11
-my_colors_diff_lwp = (/2,5,8,11,14,17,31,34,37,40,43,46/) ; 12
-
-my_levels_iwp = (/35.,50.,55.,70.,95.,120.,150.,190.,220.,250.,280./)  ; 11
-my_levels_iwp = (/5.,10.,20.,35.,50.,55.,70.,95.,190.,250.,350./)  ; 11
-my_colors_iwp =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
-
 ;set plot cont/colors to local values
-plot_levs=my_levels_iwp
-plot_colors=my_colors_iwp
-plot_levs_diff=my_levels_diff_lwp
-plot_colors_diff=my_colors_diff_lwp
+;plot_levs=my_levels_iwp
+;plot_colors=my_colors_iwp
+;plot_levs_diff=my_levels_diff_lwp
+;plot_colors_diff=my_colors_diff_lwp
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
@@ -230,7 +239,7 @@ plot_colors_diff=my_colors_diff_lwp
   ;res@cnLevels          = plot_levs_diff
   ;res@cnFillColors      = plot_colors_diff
   ;contour3 = gsn_csm_contour_map(wks,var_r17_norm,res)  ; create the plot
-  contour3 = gsn_csm_contour_map(wks,var_lwp,res)  ; create the plot
+  contour3 = gsn_csm_contour_map(wks,var_toplot,res)  ; create the plot
   plot(1) = contour3
 
   res@gsnFrame         = False
