@@ -19,7 +19,7 @@ begin
 ;scale=100.
 scale=1.
 ;
-switchnum=2 ; 1 plots IWP, 2 plots LWP
+switchnum=1 ; 1 plots IWP, 2 plots LWP
 
 if (switchnum .eq. 1) then 
 plotvar="IWP"
@@ -82,10 +82,15 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02.nc"
 
 model1="c96L32_am4G12r18_2010climo_A_cosp"
 ;
+; path to deck amip data:
+path_amip="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp"
+;
+; from model output through cosp
 infile1="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 
-infile_atm="/archive/Levi.Silvers/data/"+model1+"/atmos/atmos.0002-0011.alltmn.nc"
-
+; from model output
+;infile_atm="/archive/Levi.Silvers/data/"+model1+"/atmos/atmos.0002-0011.alltmn.nc"
+infile_atm=path_amip+"/atmos/av/annual_36yr/atmos.1979-2014.ann.nc"
 
   data1 = addfile(filein_obs1,"r")
   data2 = addfile(filein_obs2,"r")
