@@ -96,29 +96,10 @@ var1cal@_FillValue = 1.e+20
 var2cal@_FillValue = 1.e+20
 var3cal@_FillValue = 1.e+20
 
-;print("max of var1cal: "+max(var1cal))
-;print("min of var1cal: "+min(var1cal))
-;print("max of var2cal: "+max(var2cal))
-;print("min of var2cal: "+min(var2cal))
-;print("max of var3cal: "+max(var3cal))
-;print("min of var3cal: "+min(var3cal))
-
 var1calscale!0="lat"
 var1calscale&lat=var1cal&latitude
 var1calscale!1="lon"
 var1calscale&lon=var1cal&longitude
-
-;;======================================
-;lat_test  = data4->lat
-;;print("wah wah: "+var1calscale&lat)
-;rad_test  = 4.0*atan(1.0)/180.0
-;;clat_test=cos(var1calscale&lat*rad_test)
-;clat_test=cos(lat_test*rad_test)
-;print("latitudes: "+lat_test+" and weights: "+clat_test)
-;;print("latitudes: "+car1calscale&lat+" and weights: "+clat_test)
-;field_weighted_ave_test     = wgt_areaave(var1calscale,clat_test,1.0,0)
-;print("3 wgt mean of field_test ="+field_weighted_ave_test)
-;;======================================
 
 var2calscale!0="lat"
 var2calscale&lat=var1cal&latitude
@@ -151,13 +132,6 @@ print("======================================")
 printVarSummary(var1cal)
 print("======================================")
 
-;  tot_cld_sum=sum(t)
-;  t2=where(t.ge.100.,0.0,t)
-;  tot_cld_sum2=sum(t2)
-;  mean_cld=tot_cld_sum2/51840.
-;  print("sum of tot_cld_amt: "+tot_cld_sum)
-;  print("sum2 of tot_cld_amt: "+tot_cld_sum2)
-;  print("mean of tot_cld_amt: "+mean_cld)
 ;------------------------------------------------------------
 ; the calipso data and am4 data are not on the same grid...
 
@@ -166,7 +140,7 @@ var2_to_interpolate=var2
 var3_to_interpolate=var3
 
 ;*************************************************************
-; perform conservative remapping of am4 data to 2x2 grid
+; perform conservative remapping of am4 data to 2.5x2.5 grid
 ;*************************************************************
 
 var_to_interpolate!0="lat"
@@ -177,38 +151,60 @@ var_to_interpolate&lon=var1&lon
 ; first set up the grid info
 dimceres=dimsizes(var_to_interpolate)
 print("dims of incoming variable: "+dimceres)
-;ntim=dimceres(0)
 nlat=dimceres(0)
 nlon=dimceres(1)
 
 nlati=180 ; number of input latitude points(it is the lon points which differ
-;nlati=90 ; number of input latitude points(it is the lon points which differ
+nloni=288
+
+print("lon at 0="+var_to_interpolate&lon(0))
+print("lon at "+nlon+"-1="+var_to_interpolate&lon(nlon-1))
 
 
 latS=tofloat(var_to_interpolate&lat(0))                      ; southern extent of input grid
 latN=tofloat(var_to_interpolate&lat(nlat-1))                 ; northern extent of input grid
+lonE=tofloat(var_to_interpolate&lon(0))                      ; southern extent of input grid
+lonW=tofloat(var_to_interpolate&lon(nlon-1))                 ; northern extent of input grid
 
-print(latS+"  "+latN+"   "+var1cal&latitude(1)+"  "+var1cal&latitude(89))
+print(latS+"  "+latN+"   "+var1cal&latitude(1)+"  "+var1cal&latitude(71))
 
    opt = True 
 
-   NLAT2x2    = 90                               ; RES   = "180x288"    
-   MLON2x2    = 180                              
-   LAT_2x2   = latGlobeFo(NLAT2x2, "LAT_2x2", "latitude" , "degrees_north")  
-   LON_2x2     = lonGlobeFo(MLON2x2, "LON_2x2", "longitude", "degrees_east" ) 
+   NLAT2p5x2p5    = 72                               ; RES   = "180x288"    
+   MLON2p5x2p5    = 144                             
+   LAT_2p5x2p5   = latGlobeFo(NLAT2p5x2p5, "LAT_2p5x2p5", "latitude" , "degrees_north")  
+   LON_2p5x2p5     = lonGlobeFo(MLON2p5x2p5, "LON_2p5x2p5", "longitude", "degrees_east" ) 
 
    opt@NLATi       = nlati 
-   opt@NLATo       = NLAT2x2
-   LAT_REG_2x2     = LAT_2x2({latS:latN})
+   opt@NLONi       = nloni 
+   opt@NLATo       = NLAT2p5x2p5
+   opt@NLONo       = MLON2p5x2p5
+   LAT_REG_2p5x2p5     = LAT_2p5x2p5({latS:latN})
+   LON_REG_2p5x2p5     = LON_2p5x2p5({lonE:lonW})
 ; now actually do the interpolations
-   interpolated_var  = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
-   interpolated_var2 = area_conserve_remap_Wrap (var2_to_interpolate&lon, var2_to_interpolate&lat, var2_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
-   interpolated_var3 = area_conserve_remap_Wrap (var3_to_interpolate&lon, var3_to_interpolate&lat, var3_to_interpolate,LON_2x2, LAT_REG_2x2, opt)
+   interpolated_var  = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var2 = area_conserve_remap_Wrap (var2_to_interpolate&lon, var2_to_interpolate&lat, var2_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var3 = area_conserve_remap_Wrap (var3_to_interpolate&lon, var3_to_interpolate&lat, var3_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
 ;*************************************************************
 
 var1_90x180=interpolated_var
 var2_90x180=interpolated_var2
 var3_90x180=interpolated_var3
+
+var1_90x180!0="lat"
+var1_90x180&lat=var1cal&latitude
+var1_90x180!1="lon"
+var1_90x180&lon=var1cal&longitude
+
+var2_90x180!0="lat"
+var2_90x180&lat=var1cal&latitude
+var2_90x180!1="lon"
+var2_90x180&lon=var1cal&longitude
+
+var3_90x180!0="lat"
+var3_90x180&lat=var1cal&latitude
+var3_90x180!1="lon"
+var3_90x180&lon=var1cal&longitude
 
 print("dimensions of interpolated model data: "+dimsizes(var1_90x180))
 print("======================================")
@@ -225,34 +221,29 @@ field2_weighted_ave     = wgt_areaave(var2,clat,1.0,0)
 field3_weighted_ave     = wgt_areaave(var3,clat,1.0,0)
 
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
-; available non-missing data. 
-;print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
-;print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
-;print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
-;field1_weighted_ave_test     = wgt_areaave(field1_test,clat,1.0,0)
-;print("global mean of non missing data "+varname1+" at time "+time+" is: "+field1_weighted_ave_test)
 ;
-rad2x2 = 4.0*atan(1.0)/90.0
-clat_2x2 = cos(LAT_REG_2x2*rad2x2)
-print("dims of NLAT2x2: "+dimsizes(NLAT2x2))
-print("dims of LAT_REG_2x2: "+dimsizes(LAT_REG_2x2)+" dims of var1_90x180 are: "+dimsizes(var1_90x180))
+rad2p5x2p5 = 4.0*atan(1.0)/180.0
+clat_2p5x2p5 = cos(LAT_REG_2p5x2p5*rad2p5x2p5)
+print("dims of NLAT2p5x2p5: "+dimsizes(NLAT2p5x2p5))
+print("dims of LAT_REG_2p5x2p5: "+dimsizes(LAT_REG_2p5x2p5)+" dims of var1_90x180 are: "+dimsizes(var1_90x180))
 print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
-;print("clat_2x2: "+LAT_REG_2x2)
+;print("clat_2p5x2p5: "+LAT_REG_2p5x2p5)
 ;print("And the values of lat are: "+lat)
 
 print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
 var1_90x180@_FillValue = -9.39863e+29
-;var1_90x180@_FillValue = -1.e+30
 
 var1_90x180 = where(var1_90x180.lt.0.0,var1@_FillValue,var1_90x180)
 print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
-field1_2x2_weighted_ave  = wgt_areaave(var1_90x180,clat_2x2,1.0,0)
-;field1_2x2_weighted_ave  = wgt_areaave(var1_test,clat_2x2,1.0,0)
+field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_90x180,clat_2p5x2p5,1.0,0)
+field2_2p5x2p5_weighted_ave  = wgt_areaave(var2_90x180,clat_2p5x2p5,1.0,0)
+field3_2p5x2p5_weighted_ave  = wgt_areaave(var3_90x180,clat_2p5x2p5,1.0,0)
+;field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_test,clat_2p5x2p5,1.0,0)
 
 ;---------------------------------------------------------------------
-; compute latitude weighted mean values for the 2x2 data both calipso and am4
+; compute latitude weighted mean values for the 2p5x2p5 data both calipso and am4
 
-lat_cobs  = data4->lat
+lat_cobs  = data_calobs->latitude
 rad_cobs  = 4.0*atan(1.0)/180.0
 clat_cobs=cos(lat_cobs*rad_cobs)
 
@@ -273,21 +264,21 @@ var3_mask = where(var3calscale.eq.var3calscale@_FillValue,var3calscale@_FillValu
 var3_masked_weighted_ave  = wgt_areaave(var3_mask,clat_cobs,1.0,0)
 
 
-; calipso
+; calipso observations
 field4_weighted_ave     = wgt_areaave(var1calscale,clat_cobs,1.0,0)
 field5_weighted_ave     = wgt_areaave(var2calscale,clat_cobs,1.0,0)
 field6_weighted_ave     = wgt_areaave(var3calscale,clat_cobs,1.0,0)
 
 print("======================================")
 print("low level clouds")
-print("raw global mean of 2x2 "+varname1+" is: "+field1_2x2_weighted_ave)
-print("raw global mean of "+varname1+" is: "+field1_weighted_ave)
-
+print("raw(bef interp) global mean from simulator "+varname1+" is: "+field1_weighted_ave)
+print("raw(aft interp) global mean from simulator "+varname1+" is: "+field1_2p5x2p5_weighted_ave)
 print("weighted low level am4 cal sim: "+var1_90x180_weighted_ave)
 print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
 
 print("mid level clouds")
-print("raw global mean of "+varname2+" is: "+field2_weighted_ave)
+print("raw(bef interp) global mean from simulator "+varname2+" is: "+field2_weighted_ave)
+print("raw(aft interp) global mean from simulator "+varname2+" is: "+field2_2p5x2p5_weighted_ave)
 print("weighted mid level am4 cal sim: "+var2_90x180_weighted_ave)
 print("weighted and masked mid level am4 cal sim: "+var2_masked_weighted_ave)
 
@@ -297,9 +288,9 @@ print("weighted high level am4 cal sim: "+var3_90x180_weighted_ave)
 print("weighted and masked high level am4 cal sim: "+var3_masked_weighted_ave)
 
 print("-------------------")
-print("weighted low level calipso: "+field4_weighted_ave)
-print("weighted mid level calipso: "+field5_weighted_ave)
-print("weighted upper level calipso: "+field6_weighted_ave)
+print("weighted low level calipso obs:   "+field4_weighted_ave)
+print("weighted mid level calipso obs:   "+field5_weighted_ave)
+print("weighted upper level calipso obs: "+field6_weighted_ave)
 print("======================================")
 ;---------------------------------------------------------------------
 ;
@@ -317,24 +308,40 @@ titlelow_bias="cal - "+modelv+" "+varname1
 
 ; compute the bias between simulator and observations
 ; observations - simulator (model)
+print("dimsizes of var3calscale ="+dimsizes(var3calscale)+"  dimsizes of var3_90x180 ="+dimsizes(var3_90x180))
 blah3=var3calscale-var3_90x180
 blah2=var2calscale-var2_90x180
 blah1=var1calscale-var1_90x180
 
+; for some reason the longitudes for one of the data sets was shifted by half, this corrects it.
+do n=0,71
+  do m=0,143
+      if (m .lt. 72) then ; should 0:71
+        blah3(n,m+72)=var3calscale(n,m+72)-var3_90x180(n,m)
+        blah2(n,m+72)=var2calscale(n,m+72)-var2_90x180(n,m)
+        blah1(n,m+72)=var1calscale(n,m+72)-var1_90x180(n,m)
+    else ; should begin at 72 and end at 143
+        blah3(n,m-72)=var3calscale(n,m-72)-var3_90x180(n,m)
+        blah2(n,m-72)=var2calscale(n,m-72)-var2_90x180(n,m)
+        blah1(n,m-72)=var1calscale(n,m-72)-var1_90x180(n,m)
+    end if
+  end do
+end do
+
 blah1!0="lat"
-blah1&lat=var1cal&lat
+blah1&lat=var1cal&latitude
 blah1!1="lon"
-blah1&lon=var1cal&lon
+blah1&lon=var1cal&longitude
 
 blah2!0="lat"
-blah2&lat=var1cal&lat
+blah2&lat=var1cal&latitude
 blah2!1="lon"
-blah2&lon=var1cal&lon
+blah2&lon=var1cal&longitude
 
 blah3!0="lat"
-blah3&lat=var1cal&lat
+blah3&lat=var1cal&latitude
 blah3!1="lon"
-blah3&lon=var1cal&lon
+blah3&lon=var1cal&longitude
 
 bias_ave_blah1     = wgt_areaave(blah1,clat_cobs,1.0,0)
 kmsg_a=num(ismissing(blah1))
@@ -349,8 +356,8 @@ print("fill values?"+blah1@_FillValue)
 bias_ave_blah1     = wgt_areaave(blah1,clat_cobs,1.0,0)
 print("bias_ave_blah1="+bias_ave_blah1+"    kmsg_a="+kmsg_a)
 print("dimsizes of blah1: "+dimsizes(blah1))
-mx=180
-ny=90
+mx=144
+ny=72
 dummy=new((/ny,mx/),float)
 ;dum_lat=new((/ny/),float)
 dummy=blah1
@@ -418,7 +425,7 @@ my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
-  wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
+  wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   ;gsn_define_colormap(wks,"matlab_jet")
