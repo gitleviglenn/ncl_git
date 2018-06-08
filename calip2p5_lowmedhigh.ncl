@@ -51,6 +51,9 @@ infile_calobs=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CF
 
 modelv="am4.0"
 
+; compute pi
+PI=acos(-1.)
+
 ; from model
 data = addfile(infile1,"r")
 data2 = addfile(infile2,"r")
@@ -73,6 +76,7 @@ print("infile calipso obs is: "+infile_calobs)
 var1 = data->$varname1$(0,:,:)                                
 var2 = data2->$varname2$(0,:,:)                                
 var3 = data3->$varname3$(0,:,:)                                
+latitude_model=data->lat(:)
 
 var1@_FillValue = -1.e+30
 
@@ -91,6 +95,8 @@ var2cal = data_calobs->$varname2$(0,:,:)
 var2calscale=100*var2cal
 var3cal = data_calobs->$varname3$(0,:,:)                                
 var3calscale=100*var3cal
+latitude=data_calobs->latitude(:)
+printVarSummary(latitude)
 
 var1cal@_FillValue = 1.e+20
 var2cal@_FillValue = 1.e+20
@@ -305,6 +311,17 @@ titlemid_bias="cal - "+modelv+" "+varname2
 titlelow=modelv+" "+varname1+" = "+posh1
 titlelow_bias="cal - "+modelv+" "+varname1
 
+; compute zonal mean 
+var3calscale_zmn=dim_avg_n(var3calscale,1)
+var2calscale_zmn=dim_avg_n(var2calscale,1)
+var1calscale_zmn=dim_avg_n(var1calscale,1)
+;printVarSummary(var3calscale_zmn)
+
+var3_90x180_zmn=dim_avg_n(var3_90x180,1)
+var2_90x180_zmn=dim_avg_n(var2_90x180,1)
+var1_90x180_zmn=dim_avg_n(var1_90x180,1)
+
+var1_zmn=dim_avg_n(var1,1)
 
 ; compute the bias between simulator and observations
 ; observations - simulator (model)
@@ -424,6 +441,10 @@ my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low
 ;my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
+
+figurenumber = 2 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
+if (figurenumber .lt. 2) then
+
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
@@ -494,6 +515,106 @@ my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
   resP@gsnFrame         = False                  ; don't advance panel plot
 
   gsn_panel(wks,plot,(/3,2/),resP)
+else if (figurenumber .lt. 3) then
+end if 
+ wks   = gsn_open_wks ("newPDF","testplot")
+ plot = new(3,graphic)
+
+  res   = True
+ res@tiMainString = "Upper-Level Cloud Fraction"
+ ;res@tiMainString = "d" 
+ res@tiMainFont = 21
+ res@tiMainFontHeightF = 0.02
+ res@tiYAxisString  = "Cloud Fraction [%]"
+ res@tiYAxisFont    = 21
+ res@tiYAxisFontHeightF = 0.02 
+ res@tiXAxisString  = "Latitude"
+ res@tiXAxisFont    = 21
+ res@tiXAxisFontHeightF = 0.02
+
+ ;res@tiMainOffsetYF = -0.018
+ ;res@tiMainOffsetXF = -0.17
+
+ res@vpWidthF          = 0.5 
+ res@vpHeightF         = 0.5 
+
+ res@tmYLLabelFontHeightF = 0.02 
+ res@tmXBLabelFontHeightF = 0.02 
+
+ res@tmXBMode = "explicit"
+ res@tmXBValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ res@tmXBLabels = (/-60,-30,0,30,60/)
+ res@tmXBMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+
+
+ res@gsnDraw         = False
+ res@gsnFrame         = False
+ 
+
+ res@trYMinF = 15
+ res@trYMaxF = 55
+ ;plot(0)=gsn_csm_xy(wks,sin(lat(:)/180*PI),lat_swdn_toa_clr(:,:)-lat_swdn_sfc_clr(:,:),res)
+ res@xyLineColors="blue"
+ plot0a=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var3calscale_zmn(:),res)
+ res@xyLineColors="black"
+ plot0b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var3_90x180_zmn(:),res)
+ 
+ overlay(plot0a,plot0b)
+ plot(0)=plot0a
+
+ res@trYMinF = 0
+ res@trYMaxF = 40
+ res@tiMainString = "Mid-Level Cloud Fraction"
+ res@xyLineColors="blue"
+ plot1a=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var2calscale_zmn(:),res)
+ res@xyLineColors="black"
+ plot1b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var2_90x180_zmn(:),res)
+
+ overlay(plot1a,plot1b)
+ plot(1)=plot1a
+
+ res@trXMinF = 5
+ res@trXMaxF = 70
+ res@tiYAxisString  = "Latitude"
+ res@tiXAxisString  = "Cloud Fraction [%]"
+ res@tmXBMode = "Automatic"
+ res@tmYLMode = "explicit"
+ res@trYMinF = -1 
+ res@trYMaxF = 1
+ res@tmYLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ res@tmYRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ res@tmYLLabels = (/-60,-30,0,30,60/)
+ res@tmYLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ res@tmYRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ res@xyLineColors="blue"
+ res@tiMainString = "Low-Level Cloud Fraction"
+ ;plot2a=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1calscale_zmn(:),res)
+ plot2a=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),res)
+ res@xyLineColors="black"
+ ;plot2b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1_90x180_zmn(:),res)
+ ;plot2c=gsn_csm_xy(wks,sin(latitude_model(:)/180*PI),var1_zmn(:),res)
+ plot2c=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
+
+ 
+ ;overlay(plot2a,plot2b)
+ overlay(plot2a,plot2c)
+ plot(2)=plot2a
+
+;var3calscale_zmn=dim_avg_n(var3calscale,1)
+
+; draw panel with white space added
+ resP                 = True
+ resP@gsnPanelYWhiteSpacePercent = 5
+ resP@gsnPanelXWhiteSpacePercent = 5
+ gsn_panel(wks,plot,(/2,2/),resP)
+
+
+
+    
+  print("blabichra")
+end if
+
+print("figurenumber is: "+figurenumber)
 
 end
 
