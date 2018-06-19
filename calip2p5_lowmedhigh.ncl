@@ -44,9 +44,14 @@ infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
 ; monthly data from Songmiao
-infile1="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
-infile2="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
-infile3="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
+; originally came from:
+; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
+;expname="c96L33_am4p0r"
+;expname="c96L33_am4p0s"
+expname="c96L33_am4p0u"
+infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
@@ -667,27 +672,29 @@ end if
  overlay(plot1a,plot1b)
  plot(1)=plot1a
 
- res@trXMinF = 5
- res@trXMaxF = 70
- res@tiYAxisString  = "Latitude"
- res@tiXAxisString  = "Cloud Fraction [%]"
- res@tmXBMode = "Automatic"
- res@tmYLMode = "explicit"
- res@trYMinF = -1 
- res@trYMaxF = 1
- res@tmYLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
- res@tmYRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
- res@tmYLLabels = (/-60,-30,0,30,60/)
- res@tmYLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
- res@tmYRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ ;res@trXMinF = 5
+ ;res@trXMaxF = 70
+ ;res@tiYAxisString  = "Latitude"
+ ;res@tiXAxisString  = "Cloud Fraction [%]"
+ ;res@tmXBMode = "Automatic"
+ ;res@tmYLMode = "explicit"
+ ;res@trYMinF = -1 
+ ;res@trYMaxF = 1
+ res@trYMinF = 5 
+ res@trYMaxF = 70 
+ res@tmXLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ res@tmXRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ res@tmXLLabels = (/-60,-30,0,30,60/)
+ res@tmXLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ res@tmXRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
  res@xyLineColors="blue"
  res@tiMainString = "Low-Level Cloud Fraction"
- ;plot2a=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1calscale_zmn(:),res)
- plot2a=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),res)
+ plot2a=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1calscale_zmn(:),res)
+ ;plot2a=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),res)
  res@xyLineColors="black"
  ;plot2b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1_90x180_zmn(:),res)
- ;plot2c=gsn_csm_xy(wks,sin(latitude_model(:)/180*PI),var1_zmn(:),res)
- plot2c=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
+ plot2c=gsn_csm_xy(wks,sin(latitude_model(:)/180*PI),var1_zmn(:),res)
+ ;plot2c=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
 
  
  ;overlay(plot2a,plot2b)
