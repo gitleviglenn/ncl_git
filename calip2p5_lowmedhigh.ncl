@@ -43,6 +43,11 @@ infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
 infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
+; monthly data from Songmiao
+infile1="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
+infile2="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
+infile3="/archive/Levi.Silvers/data/songmiao/c96L33_am4p0s/atmos_cmip.2000-2004.nc"
+
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
 infile6=path_obs+"calip_2x2xL40_avg_clh/clhcalipso_tmn_20060615_20101215.nc"
@@ -442,7 +447,7 @@ my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
 
-figurenumber = 2 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
+figurenumber = 1 ; 2 plots the 3 panel figure of zonal means; 1 is defualt
 if (figurenumber .lt. 2) then
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
@@ -451,10 +456,14 @@ if (figurenumber .lt. 2) then
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   ;gsn_define_colormap(wks,"matlab_jet")
   gsn_define_colormap(wks,"MPL_BrBG")
-  plot = new(6,graphic)
+  plot = new(9,graphic)
 
+; res are the resources for the global plots
+; reszm are the resources for the zonal mean plots 
 
   res                   = True
+  reszm   = True
+
   res@mpProjection      = "Robinson"       ; choose projection
 ;  res@mpProjection      = "Mollweide"       ; choose projection
   res@cnLinesOn         = False
@@ -466,7 +475,29 @@ if (figurenumber .lt. 2) then
   res@mpFillOn          = False
   res@gsnDraw           = False
   res@gsnFrame          = False
- 
+
+ reszm@gsnDraw           = False
+ reszm@gsnFrame          = False
+ reszm@tiXAxisString  = "Cloud Fraction [%]"
+ reszm@tiYAxisFont    = 21
+ reszm@tiYAxisFontHeightF = 0.01 
+ reszm@tiYAxisString  = "Latitude"
+ reszm@tiXAxisFont    = 21
+ reszm@tiXAxisFontHeightF = 0.01
+ reszm@vpWidthF          = 0.2 
+ reszm@vpHeightF         = 0.4 
+ reszm@tmYLLabelFontHeightF = 0.01 
+ reszm@tmXBLabelFontHeightF = 0.01 
+ reszm@tmXBMode = "Automatic"
+ reszm@tmYLMode = "explicit"
+ reszm@trYMinF = -1 
+ reszm@trYMaxF = 1
+ reszm@tmYLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ reszm@tmYRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ reszm@tmYLLabels = (/-60,-30,0,30,60/)
+ reszm@tmYLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ reszm@tmYRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+
 ; these commands turn off/on the varname and units at top of image
  res@gsnLeftString = ""
  res@gsnRightString = ""
@@ -479,42 +510,105 @@ if (figurenumber .lt. 2) then
   res@cnFillColors      = my_colors_gr
   res@txFontHeightF     = 0.015 
 
-  res@vpXF            = 0.1                 ; make plot bigger
-  res@vpYF            = 0.9         
-  res@vpWidthF        = 0.8
-  res@vpHeightF       = 0.8
-
-  res@lbLabelFontHeightF  = 0.015           ; label bar font height
+  res@lbLabelFontHeightF  = 0.01           ; label bar font height
 
   res@tiMainString       = titletop  ; add a title
-  res@tiMainFontHeightF  = .018                               ; font height
+  res@tiMainFontHeightF  = .01                               ; font height
+
+  res@vpXF             = 0.25                  ; position and sizes
+  res@vpYF             = 0.98                  ; for XY plot
+  res@vpWidthF         = 0.32
+  ;res@vpHeightF        = 0.29
+  res@vpHeightF        = 0.32
 
   contour1 = gsn_csm_contour_map(wks,var3calscale,res)  ; create the plot
   res@tiMainString       = titlemid  ; add a title
+  res@vpYF             = 0.68                  ; for XY plot
   contour2 = gsn_csm_contour_map(wks,var2calscale,res)  ; create the plot
   res@tiMainString       = titlelow  ; add a title
+  res@vpYF             = 0.38                  ; for XY plot
   contour3 = gsn_csm_contour_map(wks,var1calscale,res)  ; create the plot
+
+  res@vpXF             = 0.62                  ; position and sizes
+  res@vpYF             = 0.98                  ; for XY plot
+;  res@vpWidthF         = 0.30
+;  res@vpHeightF        = 0.27
 
   res@cnLevels          = my_levels_15posneg
   res@cnFillColors      = my_colors_posneg
   res@tiMainString       = titletop_bias  ; add a title
   contour4 = gsn_csm_contour_map(wks,blah3,res)  ; create the plot
   res@tiMainString       = titlemid_bias  ; add a title
+  res@vpYF             = 0.68                  ; for XY plot
   contour5 = gsn_csm_contour_map(wks,blah2,res)  ; create the plot
   res@tiMainString       = titlelow_bias  ; add a title
+  res@vpYF             = 0.38                  ; for XY plot
   contour6 = gsn_csm_contour_map(wks,blah1,res)  ; create the plot
 
-  plot(0)=contour1
-  plot(1)=contour4
-  plot(2)=contour2
-  plot(3)=contour5
-  plot(4)=contour3
-  plot(5)=contour6
+; top row zonal mean 
+ reszm@vpXF           = 0.05                  ; position and sizes
+ reszm@vpYF           = 0.92                  ; for XY plot
+ reszm@vpWidthF       = 0.13
+ reszm@vpHeightF      = 0.20
 
-  resP                  = True                   ; modify the panel plot
-  resP@gsnFrame         = False                  ; don't advance panel plot
+ reszm@trXMinF = 15
+ reszm@trXMaxF = 55
+ reszm@xyLineColors="blue"
+ plotta=gsn_csm_xy(wks,var3calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
+ reszm@xyLineColors="black"
+ plottb=gsn_csm_xy(wks,var3_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
 
-  gsn_panel(wks,plot,(/3,2/),resP)
+ overlay(plotta,plottb)
+ plot(0)=plotta
+
+; middle row zonal mean 
+ reszm@vpYF           = 0.62                  ; for XY plot
+
+ reszm@trXMinF = 0
+ reszm@trXMaxF = 40
+ reszm@xyLineColors="blue"
+ plotma=gsn_csm_xy(wks,var2calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
+ reszm@xyLineColors="black"
+ plotmb=gsn_csm_xy(wks,var2_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
+; plotmb=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
+
+ overlay(plotma,plotmb)
+ plot(3)=plotma
+
+; bottom row zonal mean 
+; reszm@vpYF           = 0.04                  ; for XY plot
+ reszm@vpYF           = 0.32                  ; for XY plot
+
+ reszm@trXMinF = 5
+ reszm@trXMaxF = 70
+ reszm@xyLineColors="blue"
+ plotba=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
+ reszm@xyLineColors="black"
+; plot0b=gsn_csm_xy(wks,var1_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
+ plotbb=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),reszm)
+ 
+ overlay(plotba,plotbb)
+; plot(6)=plotba
+
+; top row
+  plot(0)=plotta
+  plot(1)=contour1
+  plot(2)=contour4
+; middle row
+  plot(3)=plotma
+  plot(4)=contour2
+  plot(5)=contour5
+; bottom row
+  plot(6)=plotba
+  plot(7)=contour3
+  plot(8)=contour6
+
+psres=True
+maximize_output(wks,psres) ; calls draw and frame
+;  resP                  = True                   ; modify the panel plot
+;  resP@gsnFrame         = False                  ; don't advance panel plot
+;
+;  gsn_panel(wks,plot,(/3,3/),resP)
 else if (figurenumber .lt. 3) then
 end if 
  wks   = gsn_open_wks ("newPDF","testplot")
