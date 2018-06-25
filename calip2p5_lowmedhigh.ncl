@@ -46,9 +46,9 @@ infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 ; monthly data from Songmiao
 ; originally came from:
 ; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
-;expname="c96L33_am4p0r"
+expname="c96L33_am4p0r"
 ;expname="c96L33_am4p0s"
-expname="c96L33_am4p0u"
+;expname="c96L33_am4p0u"
 infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
@@ -452,7 +452,9 @@ my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
 
-figurenumber = 1 ; 2 plots the 3 panel figure of zonal means; 1 is defualt
+figurenumber = 3 ; 1 is default and plots 9 panel figure
+                 ; 2 plots the 3 panel figure of zonal means
+                 ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
 if (figurenumber .lt. 2) then
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
@@ -615,7 +617,7 @@ maximize_output(wks,psres) ; calls draw and frame
 ;
 ;  gsn_panel(wks,plot,(/3,3/),resP)
 else if (figurenumber .lt. 3) then
-end if 
+;end if 
  wks   = gsn_open_wks ("newPDF","testplot")
  plot = new(3,graphic)
 
@@ -709,11 +711,115 @@ end if
  resP@gsnPanelXWhiteSpacePercent = 5
  gsn_panel(wks,plot,(/2,2/),resP)
 
+  print("blabichra")
+else if (figurenumber .lt. 4) then
+;end if 
+ wks   = gsn_open_wks ("newPDF","testplot")
+ plot = new(3,graphic)
+
+  res   = True
+ res@tiMainString = "Upper-Level Cloud Fraction"
+ res@tiMainFont = 21
+ res@tiMainFontHeightF = 0.02
+ res@tiYAxisString  = "Cloud Fraction [%]"
+ res@tiYAxisFont    = 21
+ res@tiYAxisFontHeightF = 0.02 
+ res@tiXAxisString  = "Latitude"
+ res@tiXAxisFont    = 21
+ res@tiXAxisFontHeightF = 0.02
+
+ ;res@tiMainOffsetYF = -0.018
+ ;res@tiMainOffsetXF = -0.17
+
+ res@vpWidthF          = 0.5 
+ res@vpHeightF         = 0.5 
+
+ res@tmYLLabelFontHeightF = 0.02 
+ res@tmXBLabelFontHeightF = 0.02 
+
+ res@tmXBMode = "explicit"
+ res@tmXBValues = (/-60,-30,0,30,60/)
+ res@tmXBLabels = (/-60,-30,0,30,60/)
+ res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
+ ;res@tmXBValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ ;res@tmXBLabels = (/-60,-30,0,30,60/)
+ ;res@tmXBMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+
+
+ res@gsnDraw         = False
+ res@gsnFrame         = False
+ 
+
+ res@trYMinF = 15
+ res@trYMaxF = 55
+ res@xyLineColors="blue"
+ plot0a=gsn_csm_xy(wks,latitude(:),var3calscale_zmn(:),res)
+ res@xyLineColors="black"
+ plot0b=gsn_csm_xy(wks,latitude(:),var3_90x180_zmn(:),res)
+ 
+ overlay(plot0a,plot0b)
+ plot(0)=plot0a
+
+ res@trYMinF = 0
+ res@trYMaxF = 40
+ res@tiMainString = "Mid-Level Cloud Fraction"
+ res@xyLineColors="blue"
+ plot1a=gsn_csm_xy(wks,latitude(:),var2calscale_zmn(:),res)
+ res@xyLineColors="black"
+ plot1b=gsn_csm_xy(wks,latitude(:),var2_90x180_zmn(:),res)
+
+ overlay(plot1a,plot1b)
+ plot(1)=plot1a
+
+ ;res@trXMinF = 5
+ ;res@trXMaxF = 70
+ ;res@tiYAxisString  = "Latitude"
+ ;res@tiXAxisString  = "Cloud Fraction [%]"
+ ;res@tmXBMode = "Automatic"
+ ;res@tmYLMode = "explicit"
+ res@trYMinF = 5 
+ res@trYMaxF = 70 
+ ;res@trXMinF = -90 
+ ;res@trXMaxF = 90 
+; res@tmXLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+; res@tmXRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ ;res@tmXBValues = (/-75,-60,-45,-30,-15,0,15,30,45,60,75/)
+ ;res@tmXBValues = (/-60,-30,0,30,60/)
+; res@tmXRValues = (/-90,-75,-60,-45,-30,-15,0,15,30,45,60,75,90/)
+ ;res@tmXRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
+ ;res@tmXLLabels = (/-60,-30,0,30,60/)
+ ;res@tmXLLabels = (/-75,-60,-45,-30,-15,0,15,30,45,60,75/)
+; res@tmXLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+; res@tmXRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
+ res@xyLineColors="blue"
+ res@tiMainString = "Low-Level Cloud Fraction"
+ plot2a=gsn_csm_xy(wks,latitude(:),var1calscale_zmn(:),res)
+ ;plot2a=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),res)
+ res@xyLineColors="black"
+ ;plot2b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1_90x180_zmn(:),res)
+ plot2c=gsn_csm_xy(wks,latitude_model(:),var1_zmn(:),res)
+ ;plot2c=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
+
+ 
+ ;overlay(plot2a,plot2b)
+ overlay(plot2a,plot2c)
+ plot(2)=plot2a
+
+;var3calscale_zmn=dim_avg_n(var3calscale,1)
+
+; draw panel with white space added
+ resP                 = True
+ resP@gsnPanelYWhiteSpacePercent = 5
+ resP@gsnPanelXWhiteSpacePercent = 5
+ gsn_panel(wks,plot,(/2,2/),resP)
+
 
 
     
-  print("blabichra")
+  print("new figure")
 end if
+end if 
+end if 
 
 print("figurenumber is: "+figurenumber)
 
