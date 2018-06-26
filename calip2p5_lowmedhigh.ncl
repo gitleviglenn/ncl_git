@@ -1,13 +1,22 @@
 ;***********************************************************************************
-; calip_lowmedhigh.ncl
+; calip2p5_lowmedhigh.ncl
 ;***********************************************************************************
 ;
 ; plot global cloud fraction for low, med, and high clouds from CALIPSO simulator
 ;
-; the calipso observations are on a 2x2 degree grid so the model output is 
+; the calipso observations are on a 2.5x2.5 degree grid so the model output is 
 ; interpolated to a 2x2 degree grid before being plotted
 ;
-; levi silvers							nov 2017
+; figurenumber is a switch that deterimines which of 3 figures will be output
+; figurenumber 3 mostly corresponds to tests that I am analyzing with Songmiao Fan
+;
+; data from model output via the calipso simulator is accessed with:
+; infile1, infile2, and infile3
+;
+; data from calipso observations is accessed with:
+; infile4, infile5, and infile6
+;
+; levi silvers							jun 2018
 ;***********************************************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -46,9 +55,9 @@ infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 ; monthly data from Songmiao
 ; originally came from:
 ; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
-expname="c96L33_am4p0r"
-;expname="c96L33_am4p0s"
-;expname="c96L33_am4p0u"
+expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
+;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
+;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
 infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
@@ -713,11 +722,161 @@ else if (figurenumber .lt. 3) then
 
   print("blabichra")
 else if (figurenumber .lt. 4) then
-;end if 
+; ------------------------------------------------------------------------------------
+;
+; mostly related to analysis with Songmiao Fan
+;
+; read in additional dta from other experiments
+
+expname="c96L33_am4p0s"
+title_lg2="am4p0s"
+infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+
+expname="c96L33_am4p0u"
+title_lg3="am4p0u"
+infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+
+title_lg1="am4p0r"
+
+data_1a = addfile(infile1a,"r")
+data_1b = addfile(infile1b,"r")
+
+var1a = data_1a->$varname1$(0,:,:)                                
+var1b = data_1b->$varname1$(0,:,:)                                
+var2a = data_1a->$varname2$(0,:,:)                                
+var2b = data_1b->$varname2$(0,:,:)                                
+var3a = data_1a->$varname3$(0,:,:)                                
+var3b = data_1b->$varname3$(0,:,:)                                
+
+latitude_model=data_1a->lat(:)
+
+; the interpolated low-level cloud amount has problematic values where the surface
+; is encountered, for zonal means, just use the uniterpolated values... 
+var1s_zmn=dim_avg_n(var1a,1)
+var1u_zmn=dim_avg_n(var1b,1)
+;*************************************************************
+;*************************************************************
+var1_to_interpolate=var1a
+var2_to_interpolate=var2a
+var3_to_interpolate=var3a
+var1b_to_interpolate=var1b
+var2b_to_interpolate=var2b
+var3b_to_interpolate=var3b
+
+
+;*************************************************************
+; perform conservative remapping of am4 data to 2.5x2.5 grid
+;*************************************************************
+
+var1_to_interpolate!0="lat"
+var1_to_interpolate&lat=var1&lat
+var1_to_interpolate!1="lon"
+var1_to_interpolate&lon=var1&lon
+
+; first set up the grid info
+dimceres=dimsizes(var1_to_interpolate)
+print("dims of incoming variable: "+dimceres)
+nlat=dimceres(0)
+nlon=dimceres(1)
+
+nlati=180 ; number of input latitude points(it is the lon points which differ
+nloni=288
+
+print("lon at 0="+var1_to_interpolate&lon(0))
+print("lon at "+nlon+"-1="+var1_to_interpolate&lon(nlon-1))
+
+
+latS=tofloat(var1_to_interpolate&lat(0))                      ; southern extent of input grid
+latN=tofloat(var1_to_interpolate&lat(nlat-1))                 ; northern extent of input grid
+lonE=tofloat(var1_to_interpolate&lon(0))                      ; southern extent of input grid
+lonW=tofloat(var1_to_interpolate&lon(nlon-1))                 ; northern extent of input grid
+
+print(latS+"  "+latN+"   "+var1cal&latitude(1)+"  "+var1cal&latitude(71))
+
+   opt = True 
+
+   NLAT2p5x2p5    = 72                               ; RES   = "180x288"    
+   MLON2p5x2p5    = 144                             
+   LAT_2p5x2p5   = latGlobeFo(NLAT2p5x2p5, "LAT_2p5x2p5", "latitude" , "degrees_north")  
+   LON_2p5x2p5     = lonGlobeFo(MLON2p5x2p5, "LON_2p5x2p5", "longitude", "degrees_east" ) 
+
+   opt@NLATi       = nlati 
+   opt@NLONi       = nloni 
+   opt@NLATo       = NLAT2p5x2p5
+   opt@NLONo       = MLON2p5x2p5
+   LAT_REG_2p5x2p5     = LAT_2p5x2p5({latS:latN})
+   LON_REG_2p5x2p5     = LON_2p5x2p5({lonE:lonW})
+; now actually do the interpolations
+   interpolated_var1 = area_conserve_remap_Wrap (var1_to_interpolate&lon, var1_to_interpolate&lat, var1_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var2 = area_conserve_remap_Wrap (var2_to_interpolate&lon, var2_to_interpolate&lat, var2_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var3 = area_conserve_remap_Wrap (var3_to_interpolate&lon, var3_to_interpolate&lat, var3_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+
+   interpolated_var1b = area_conserve_remap_Wrap (var1b_to_interpolate&lon, var1b_to_interpolate&lat, var1b_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var2b = area_conserve_remap_Wrap (var2b_to_interpolate&lon, var2b_to_interpolate&lat, var2b_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+   interpolated_var3b = area_conserve_remap_Wrap (var3b_to_interpolate&lon, var3b_to_interpolate&lat, var3b_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
+;*************************************************************
+
+
+var1s_90x180=interpolated_var1
+var2s_90x180=interpolated_var2
+var3s_90x180=interpolated_var3
+
+var1s_90x180!0="lat"
+var1s_90x180&lat=var1cal&latitude
+var1s_90x180!1="lon"
+var1s_90x180&lon=var1cal&longitude
+
+var2s_90x180!0="lat"
+var2s_90x180&lat=var1cal&latitude
+var2s_90x180!1="lon"
+var2s_90x180&lon=var1cal&longitude
+
+var3s_90x180!0="lat"
+var3s_90x180&lat=var1cal&latitude
+var3s_90x180!1="lon"
+var3s_90x180&lon=var1cal&longitude
+
+var1u_90x180=interpolated_var1b
+var2u_90x180=interpolated_var2b
+var3u_90x180=interpolated_var3b
+
+var1u_90x180!0="lat"
+var1u_90x180&lat=var1cal&latitude
+var1u_90x180!1="lon"
+var1u_90x180&lon=var1cal&longitude
+
+var2u_90x180!0="lat"
+var2u_90x180&lat=var1cal&latitude
+var2u_90x180!1="lon"
+var2u_90x180&lon=var1cal&longitude
+
+var3u_90x180!0="lat"
+var3u_90x180&lat=var1cal&latitude
+var3u_90x180!1="lon"
+var3u_90x180&lon=var1cal&longitude
+
+print("dimensions of interpolated model data: "+dimsizes(var1_90x180))
+print("======================================")
+;*************************************************************
+;*************************************************************
+
+; compute zonal mean 
+var3u_90x180_zmn=dim_avg_n(var3u_90x180,1)
+var2u_90x180_zmn=dim_avg_n(var2u_90x180,1)
+var1u_90x180_zmn=dim_avg_n(var1u_90x180,1)
+var3s_90x180_zmn=dim_avg_n(var3s_90x180,1)
+var2s_90x180_zmn=dim_avg_n(var2s_90x180,1)
+var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
+
+
+;*************************************************************
  wks   = gsn_open_wks ("newPDF","testplot")
  plot = new(3,graphic)
 
-  res   = True
+; resources for the panels, and the legend
+ res                        = True
+ lgres                      = True
+
  res@tiMainString = "Upper-Level Cloud Fraction"
  res@tiMainFont = 21
  res@tiMainFontHeightF = 0.02
@@ -728,94 +887,116 @@ else if (figurenumber .lt. 4) then
  res@tiXAxisFont    = 21
  res@tiXAxisFontHeightF = 0.02
 
- ;res@tiMainOffsetYF = -0.018
- ;res@tiMainOffsetXF = -0.17
-
- res@vpWidthF          = 0.5 
+ res@vpWidthF          = 1.2 
  res@vpHeightF         = 0.5 
 
  res@tmYLLabelFontHeightF = 0.02 
  res@tmXBLabelFontHeightF = 0.02 
 
+ lthick=2.0
+ res@xyLineThicknessF     = lthick
  res@tmXBMode = "explicit"
  res@tmXBValues = (/-60,-30,0,30,60/)
  res@tmXBLabels = (/-60,-30,0,30,60/)
  res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
- ;res@tmXBValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
- ;res@tmXBLabels = (/-60,-30,0,30,60/)
- ;res@tmXBMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
 
+; here is where the colors, line styles, and string names are defined 
+; colors = (/"LawnGreen","SteelBlue","GoldenRod","Black"/);,"OrangeRed"/) 
+ ;colors = (/"black","darkgoldenrod","darkolivegreen3","chocolate"/) 
+ colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue"/) 
+ lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(0)/)
+ lgres@lgDashIndexes = (/"0","0","0","0"/)
+ labels = (/title_lg1,title_lg2,title_lg3,"Observations"/) ; bottom to top
+ ; the plotting order is: observations,r,s,u ; top to bottom
 
  res@gsnDraw         = False
  res@gsnFrame         = False
- 
 
  res@trYMinF = 15
  res@trYMaxF = 55
- res@xyLineColors="blue"
+ res@xyLineColors=colors(0)
  plot0a=gsn_csm_xy(wks,latitude(:),var3calscale_zmn(:),res)
- res@xyLineColors="black"
+ res@xyLineColors=colors(1)
  plot0b=gsn_csm_xy(wks,latitude(:),var3_90x180_zmn(:),res)
+ res@xyLineColors=colors(2)
+ plot0c=gsn_csm_xy(wks,latitude(:),var3s_90x180_zmn(:),res)
+ res@xyLineColors=colors(3)
+ plot0d=gsn_csm_xy(wks,latitude(:),var3u_90x180_zmn(:),res)
  
  overlay(plot0a,plot0b)
+ overlay(plot0a,plot0c)
+ overlay(plot0a,plot0d)
  plot(0)=plot0a
 
  res@trYMinF = 0
  res@trYMaxF = 40
  res@tiMainString = "Mid-Level Cloud Fraction"
- res@xyLineColors="blue"
+ res@xyLineColors=colors(0)
  plot1a=gsn_csm_xy(wks,latitude(:),var2calscale_zmn(:),res)
- res@xyLineColors="black"
+ res@xyLineColors=colors(1)
  plot1b=gsn_csm_xy(wks,latitude(:),var2_90x180_zmn(:),res)
+ res@xyLineColors=colors(2)
+ plot1c=gsn_csm_xy(wks,latitude(:),var2s_90x180_zmn(:),res)
+ res@xyLineColors=colors(3)
+ plot1d=gsn_csm_xy(wks,latitude(:),var2u_90x180_zmn(:),res)
 
  overlay(plot1a,plot1b)
+ overlay(plot1a,plot1c)
+ overlay(plot1a,plot1d)
  plot(1)=plot1a
 
- ;res@trXMinF = 5
- ;res@trXMaxF = 70
- ;res@tiYAxisString  = "Latitude"
- ;res@tiXAxisString  = "Cloud Fraction [%]"
- ;res@tmXBMode = "Automatic"
- ;res@tmYLMode = "explicit"
  res@trYMinF = 5 
  res@trYMaxF = 70 
- ;res@trXMinF = -90 
- ;res@trXMaxF = 90 
-; res@tmXLValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
-; res@tmXRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
- ;res@tmXBValues = (/-75,-60,-45,-30,-15,0,15,30,45,60,75/)
- ;res@tmXBValues = (/-60,-30,0,30,60/)
-; res@tmXRValues = (/-90,-75,-60,-45,-30,-15,0,15,30,45,60,75,90/)
- ;res@tmXRValues = (/sin(-60./180*PI),sin(-30./180*PI),sin(0.),sin(30./180*PI),sin(60./180*PI)/)
- ;res@tmXLLabels = (/-60,-30,0,30,60/)
- ;res@tmXLLabels = (/-75,-60,-45,-30,-15,0,15,30,45,60,75/)
-; res@tmXLMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
-; res@tmXRMinorValues =sin((/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)/180.*PI)
- res@xyLineColors="blue"
+ res@xyLineColors=colors(0)
  res@tiMainString = "Low-Level Cloud Fraction"
  plot2a=gsn_csm_xy(wks,latitude(:),var1calscale_zmn(:),res)
- ;plot2a=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),res)
- res@xyLineColors="black"
- ;plot2b=gsn_csm_xy(wks,sin(latitude(:)/180*PI),var1_90x180_zmn(:),res)
+print("lat: "+latitude(1)+" latitude_model : "+latitude_model(1))
+print("dims of lat "+dimsizes(latitude)+"  dims of lat_model "+dimsizes(latitude_model))
+ ;plot2a=gsn_csm_xy(wks,latitude_model(:),var1u_zmn(:),res)
+ res@xyLineColors=colors(1)
+ res@xyDashPattern="0"
  plot2c=gsn_csm_xy(wks,latitude_model(:),var1_zmn(:),res)
- ;plot2c=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
+ res@xyLineColors=colors(2)
+ res@xyDashPattern="0"
+ plot2d=gsn_csm_xy(wks,latitude_model(:),var1s_zmn(:),res)
+ res@xyLineColors=colors(3)
+ res@xyDashPattern="0"
+ plot2e=gsn_csm_xy(wks,latitude_model(:),var1u_zmn(:),res)
 
- 
- ;overlay(plot2a,plot2b)
  overlay(plot2a,plot2c)
+ overlay(plot2a,plot2d)
+ overlay(plot2a,plot2e)
  plot(2)=plot2a
 
-;var3calscale_zmn=dim_avg_n(var3calscale,1)
+;       add a legend
+
+ lgres                      = True
+ lgres@xyLabelMode            = "Custom"
+ lgres@xyLineLabelFontHeightF = 0.020                ; font height
+ ;lgres@lgLineColors         = (/"black","darkgoldenrod","darkolivegreen3","chocolate"/)
+ lgres@lgItemType           = "Lines"
+ lgres@lgLabelFontHeightF   = .07
+ lgres@vpWidthF             = 0.3        ; width of legend
+ lgres@vpHeightF            = 0.20        ; height of legend
+ lgres@lgLineThicknessF     = lthick
+ lgres@lgPerimThicknessF    = 2.0
+ lgres@lgMonoDashIndex      = False 
+ ;lgres@lgDashIndexes          = (/"0","0","0","0"/)
+ lgres@lgPerimOn            = False
 
 ; draw panel with white space added
+ ;labels = (/"string1","string2","string3","string4"/)
+ legend  = gsn_create_legend (wks, 4, labels, lgres)
  resP                 = True
- resP@gsnPanelYWhiteSpacePercent = 5
- resP@gsnPanelXWhiteSpacePercent = 5
- gsn_panel(wks,plot,(/2,2/),resP)
+ resP@amJust = "BottomRight"
+ ;resP@amParallelPosF   = 0.42    ; Move legend to right
+ resP@amParallelPosF   = -0.12    ; Move legend to right
+ resP@amOrthogonalPosF = -0.12     ; Move legend down
 
+ annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
 
+ gsn_panel(wks,plot,(/3,1/),resP)
 
-    
   print("new figure")
 end if
 end if 
