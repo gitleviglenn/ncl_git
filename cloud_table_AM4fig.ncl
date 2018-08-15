@@ -4,9 +4,8 @@
 ; produces a table of values for cloud types ordered
 ; as tau vs. cloud top height
 ;
-; can process either observational or model output
-;
-; to do: make a two panel figure, with obs and data
+; this is the script that was used to produce the figure
+; 10 in Zhao et al. 2018, Part 1
 ;
 ; levi silvers  		feb 2018
 ;================================================;
@@ -85,15 +84,20 @@ begin
  title_mod_obs=" MODIS OBS"+obsper_mod
 ;
 ; specify paths
-;filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
 
-;filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
+; from model output
+;filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.clisccp.1980-2014.tmn.nc" ; path on archive
 filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
+
+;filein_mod="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP_bugfix2/gfdl.ncrc3-intel-prod-openmp-modisbugfix/pp/atmos_cmip_modis/av/annual_5yr/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on archive
 filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on macbook
 ;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980th2014.ann.bug.glbtmn.nc" ; path on macbook
 
-;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"       ; path on workstation
+; from observations
+;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806_latlon.nc"       ; path on workstation
 filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
+
+;filein_modobs="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on workstation
 filein_modobs="/Users/silvers/data/SatData/MODIS/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on macbook
 ;
   infile = addfile(filein,"r")
