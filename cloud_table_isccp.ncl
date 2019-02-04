@@ -141,6 +141,7 @@ print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
       ;
       fields_temp=infile->$pisso$(ftime,:,:)
       fields(i,j)   = wgt_areaave(fields_temp,clat,1.0,0)
+      ;fields(i,j)   = wgt_areaave(fields_temp,1.0,1.0,0)
       ;
       ; if j/tua is gt zero
       if (i .le. 5) then
