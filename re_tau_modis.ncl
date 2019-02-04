@@ -76,17 +76,18 @@ begin
 
 ; open/reference desired file (use addfiles to reference multiple data file)
 modv="am4 "
-toptitle="MODIS reice "+modv+" 1 yrglmn"
+toptitle="MODIS reice "+modv;+" 1 yrglmn"
 ytitle="reff (microns)"
 xtitle="optical depth"
 
-;varname="jpdftaureliqmodis"
+varname="jpdftaureliqmodis"
 ;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureliqmodis.ncwa.tmn.nc"
 ;filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureliqmodis.ncwa.tmn.nc"
+filein_new="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cosp_cfmip/ts/monthly/6yr/atmos_cosp_cfmip.200901-201412.jpdftaureliqmodis.nc"
 
-varname="jpdftaureicemodis"
-;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureicemodis.ncwa.tmn.nc"
-filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureicemodis.ncwa.tmn.nc"
+;varname="jpdftaureicemodis"
+;;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureicemodis.ncwa.tmn.nc"
+;filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureicemodis.ncwa.tmn.nc"
 
 
  infile_new = addfile(filein_new,"r")
