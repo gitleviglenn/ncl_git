@@ -46,21 +46,22 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
 
 ; for monthly data
+expname="AM4 amip" 
 path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
 ;infile=path_tomonth+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
 infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
-; monthly data from Songmiao
-; originally came from:
-; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
-expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
-;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
-;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
-infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+;; monthly data from Songmiao
+;; originally came from:
+;; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
+;expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
+;;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
+;;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
+;infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+;infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+;infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
@@ -728,15 +729,24 @@ else if (figurenumber .lt. 4) then
 ;
 ; read in additional dta from other experiments
 
-expname="c96L33_am4p0s"
-title_lg2="am4p0s"
-infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+;expname="c96L33_am4p0s"
+;title_lg2="am4p0s"
+;infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
-expname="c96L33_am4p0u"
-title_lg3="am4p0u"
-infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+expname="amip-p4K"
+title_lg2="amip p4K"
+infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
 
-title_lg1="am4p0r"
+;expname="c96L33_am4p0u"
+;title_lg3="am4p0u"
+;infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+
+expname="amip-future4K"
+title_lg3="amip future4K"
+infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
+
+
+title_lg1="am4 amip"
 
 data_1a = addfile(infile1a,"r")
 data_1b = addfile(infile1b,"r")
@@ -877,21 +887,23 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
  res                        = True
  lgres                      = True
 
+ fontsize=0.03
+
  res@tiMainString = "Upper-Level Cloud Fraction"
  res@tiMainFont = 21
- res@tiMainFontHeightF = 0.02
+ res@tiMainFontHeightF = fontsize
  res@tiYAxisString  = "Cloud Fraction [%]"
  res@tiYAxisFont    = 21
- res@tiYAxisFontHeightF = 0.02 
+ res@tiYAxisFontHeightF = fontsize 
  res@tiXAxisString  = "Latitude"
  res@tiXAxisFont    = 21
- res@tiXAxisFontHeightF = 0.02
+ res@tiXAxisFontHeightF = fontsize
 
  res@vpWidthF          = 1.2 
  res@vpHeightF         = 0.5 
 
- res@tmYLLabelFontHeightF = 0.02 
- res@tmXBLabelFontHeightF = 0.02 
+ res@tmYLLabelFontHeightF = fontsize 
+ res@tmXBLabelFontHeightF = fontsize
 
  lthick=2.0
  res@xyLineThicknessF     = lthick
