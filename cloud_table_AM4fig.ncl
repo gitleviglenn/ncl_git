@@ -86,19 +86,19 @@ begin
 ; specify paths
 
 ; from model output
-;filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.clisccp.1980-2014.tmn.nc" ; path on archive
-filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
+filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.clisccp.1980-2014.tmn.nc" ; path on archive
+;filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
 
-;filein_mod="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP_bugfix2/gfdl.ncrc3-intel-prod-openmp-modisbugfix/pp/atmos_cmip_modis/av/annual_5yr/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on archive
-filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on macbook
-;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980th2014.ann.bug.glbtmn.nc" ; path on macbook
+filein_mod="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP_bugfix2/gfdl.ncrc3-intel-prod-openmp-modisbugfix/pp/atmos_cmip_modis/av/annual_5yr/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on archive
+;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on macbook
+;;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980th2014.ann.bug.glbtmn.nc" ; path on macbook
 
 ; from observations
-;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806_latlon.nc"       ; path on workstation
-filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
+filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806_latlon.nc"       ; path on workstation
+;filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
 
-;filein_modobs="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on workstation
-filein_modobs="/Users/silvers/data/SatData/MODIS/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on macbook
+filein_modobs="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on workstation
+;filein_modobs="/Users/silvers/data/SatData/MODIS/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on macbook
 ;
   infile = addfile(filein,"r")
   infile_mod = addfile(filein_mod,"r")
