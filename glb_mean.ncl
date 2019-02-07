@@ -18,12 +18,14 @@
 begin
 ;---------------------------------------------------------------------
 ;varname="cltisccp" ; ISCCP total cloud fraction
-varname="Cloud_Optical_Thickness_Total_Mean"
-varname="tas"
+varname="clt"; ISCCP total cloud fraction
+;varname="Cloud_Optical_Thickness_Total_Mean"
+;varname="tas"
   print("varname is: "+varname)
 ;infile1="/archive/Levi.Silvers/awg/verona/c96L32_am4g10r8_2000climo_cosp_onlyisccp/gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_cospx/av/monthly_2yr/atmos_month_cospx.all_mn.nc"
 infile="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2005.02.C051.V02.nc"
-infile="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP_bugfix2/gfdl.ncrc3-intel-prod-openmp-modisbugfix/pp/atmos_cmip/av/monthly_5yr/atmos_cmip.2005-2009.12.nc"
+;infile="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP_bugfix2/gfdl.ncrc3-intel-prod-openmp-modisbugfix/pp/atmos_cmip/av/monthly_5yr/atmos_cmip.2005-2009.12.nc"
+infile="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
 ;
 aa = addfile(infile,"r")
 time=0
