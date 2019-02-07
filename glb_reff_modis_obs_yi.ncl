@@ -56,12 +56,12 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MCD08_M3_NC.2010.12.C051.V02.nc"
 model2="c96L32_am4G12r17_2010climo_A_cosp"
 ;
 infile_modis="/archive/Levi.Silvers/data/"+model2+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-varname="lremodis"
-;varname="iremodis"
-;varname2="tclmodis"
-varname2="lclmodis"
-;varname2="iclmodis"
-scale_mds=1e6
+varname="lremodis"  ; liquid water particle size*cpct from modis simulator
+;varname="iremodis" ; ice water particle size*cpct from modis simulator
+;varname2="tclmodis"; total cloud cover percentage
+varname2="lclmodis" ; liquid cloud fraction
+;varname2="iclmodis"; ice cloud area percentage
+scale_mds=1e6 ; to convert meters to microns
 
 infile_atm="/archive/Levi.Silvers/data/"+model2+"/atmos/atmos.0002-0011.alltmn.nc"
 
@@ -116,7 +116,9 @@ print("dimensions of lremodis are: "+dimsizes(file1_modis))
 ;;
 ;************************************************
 ; normalize by cloud fraction
-modis_reff=scale_mds*file_modis_re/file_modis_cf
+;modis_reff=scale_mds*file_modis_re/file_modis_cf
+modis_reff=scale_mds*file_modis_re/100.0
+;modis_reff=scale_mds*file_modis_re
 print("file_modis_re at point is: "+file_modis_re(45,45))
 print("file_modis_cf at point is: "+file_modis_cf(45,45))
 print("modis_reff at point is: "+modis_reff(45,45))
@@ -165,7 +167,9 @@ print("max of yi_reff is: "+max(yi_reff))
 ;; contour levels
 ;my_levels3 = (/5.,6.,7.,8.,9.,10.,11.,12.,13.,14.,15./) ;11
 my_levels3 = (/7.,8.,9.,10.,11.,12.,13.,14.,15./) ;9
-my_levels_liq = (/7.,8.,9.,10.,11.,12.,13.,14.,15./) ;9
+my_llevs_mo = (/11.,12.,13.,14.,15.,16.,17.,18.,19./) ;9 modis observations
+my_llevs_ms = (/1.,2.,3.,4.,5.,6.,7.,8.,9./) ;9 modis simulator
+my_llevs_ys = (/7.,8.,9.,10.,11.,12.,13.,14.,15./) ;9 yi's simple simulator
 my_levels_ice = (/15.,17.,19.,21.,23.,25.,27.,29.,31./) ;9
 my_colors =  (/2 ,3,4,5,6,7,8,9,10,11/)
 
@@ -173,7 +177,7 @@ my_colors =  (/2 ,3,4,5,6,7,8,9,10,11/)
 my_levels_diff = (/-2.5,-2,-1.5,-1,-0.5, 0, 0.5, 1,1.5, 2,2.5/) ;11
 my_colors_diff = (/30,25,20,15,10,5,76,81,86,91,96,100/) ; 12
 
-my_levels_ctl=my_levels_liq
+my_levels_ctl=my_llevs_mo
 my_colors_ctl=my_colors
 
 ;************************************************
@@ -208,7 +212,7 @@ my_colors_ctl=my_colors
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
 ;  res@cnLevels          = my_levels4
-  res@cnLevels          = my_levels_ctl
+  res@cnLevels          = my_llevs_mo
   res@cnFillColors      = my_colors_ctl
   res@txFontHeightF     = 0.015 
 
@@ -228,13 +232,13 @@ my_colors_ctl=my_colors
 
   res@gsnFrame         = False
   res@tiMainString       = "Modis Simulator am4g12r17" 
-  res@cnLevels          = my_levels_ctl
+  res@cnLevels          = my_llevs_ms
   res@cnFillColors      = my_colors_ctl
   contour2 = gsn_csm_contour_map(wks,modis_reff,res)  ; create the plot
   plot(1) = contour2
 
   res@gsnFrame         = False
-  res@cnLevels          = my_levels3
+  res@cnLevels          = my_llevs_ys
   res@cnFillColors      = my_colors
   res@tiMainString       = "Simple Simulator am4g12r17"
   contour3 = gsn_csm_contour_map(wks,yi_reff,res)  ; create the plot
