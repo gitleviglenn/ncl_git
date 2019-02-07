@@ -4,6 +4,9 @@
 ; produces two tables of values for cloud types ordered
 ; as tau vs. cloud top height
 ;
+; also produces two txt files with the values which
+; populate the tables
+;
 ; upper table is isccp simulator data
 ; lower table is isccp observational data (1983-2008)
 ;
@@ -85,6 +88,9 @@ begin
 ;
 ; specify paths
 ;filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
+
+; new files for isccp tests are here: 
+; /archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip_isccptest/gfdl.ncrc4-intel-prod/pp/atmos_cmip/ts/monthly/5yr/
 
 filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
 ;filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
