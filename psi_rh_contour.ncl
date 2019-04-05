@@ -6,6 +6,32 @@
 
 begin
 
+;-----------------------------------
+; define parameters for script:
+figurenumber = 2 ; 1 is defualt for crm resolution, 2 or greater is for gcm res
+crm_grid = 1 ; 1 for 1km, 2 for 2km
+ensind=5
+expstring="ctl" ; lwoff or ctl
+;-----------------------------------
+; name of output file
+fileout="myrh"
+;-----------------------------------
+;  expstring="lwoff"
+;if (figurenumber .lt. 2) then
+;  expstring="lwoff"
+;  ;expstring="ctl"
+;end if
+if (crm_grid .lt. 2) then
+  titstring=" 1 km "
+  var4="psi_1km"
+  var5="hur_1km"
+else
+  titstring=" 2 km"
+  var4="psi_2km"
+  var5="hur_2km"
+end if
+
+;-----------------------------------
 ; path to data
 path_to_wc="/Users/silvers/data"
 walkcell="/WalkerCell/gauss_d"
@@ -15,19 +41,29 @@ file_pre_b="/19800101"
 file_pre_c="/19810101"
 file_pre_d="/19820101"
 
-; name of output file
-fileout="myrh"
-
 ; for gcm
+
 in_rh=path_to_wc+walkcell+"/mymy_rh.nc"
-in_psi=path_to_wc+walkcell+"/mymy_psi.nc"
-  print("incoming file is: "+in_rh)
-  print("incoming file is: "+in_psi)
+;in_rh=path_to_wc+"/WalkerCell/testing_20181203"+"/mymy_rh.nc"
+;in_psi=path_to_wc+walkcell+"/mymy_psi.nc"
+in_psi=path_to_wc+"/WalkerCell/testing_20181203"+"/mymy_psi_ent0p9.nc"
+in_rh=path_to_wc+"/WalkerCell/testing_20181203"+"/mymy_clouds_ctl.nc"
+  print("incoming gcm file is: "+in_rh)
+  print("incoming gcm file is: "+in_psi)
 ; for crm
-in_rh_crm=path_to_wc+walkcell+"/c96L33_am4p0_50x2000_nh_2km_wlkr_4K/mymy_rh_crm.nc"
-in_psi_crm=path_to_wc+walkcell+"/c96L33_am4p0_50x2000_nh_2km_wlkr_4K/mymy_psi_crm.nc"
-  print("incoming file is: "+in_rh_crm)
-  print("incoming file is: "+in_psi_crm)
+;in_rh_crm=path_to_wc+walkcell+"/c96L33_am4p0_50x2000_nh_2km_wlkr_4K/mymy_rh_crm.nc"
+;in_psi_crm=path_to_wc+walkcell+"/c96L33_am4p0_50x2000_nh_2km_wlkr_4K/mymy_psi_crm.nc"
+;in_rh_crm=path_to_wc+walkcell+"/c50x2000L33_am4p0_2km_wlkr_4K/mymy_crm_tmn.nc"
+;in_psi_crm=path_to_wc+walkcell+"/c50x2000L33_am4p0_2km_wlkr_4K/mymy_crm_tmn.nc"
+
+; these files contain data from both 1km and 2km experiments even though they are in 
+; the directory for the 1km experiment
+;in_rh_crm=path_to_wc+walkcell+"/c10x4000L33_am4p0_1km_wlkr_4K/mymy_crm_tmn.nc"
+;in_psi_crm=path_to_wc+walkcell+"/c10x4000L33_am4p0_1km_wlkr_4K/mymy_crm_tmn.nc"
+in_rh_crm=path_to_wc+"/WalkerCell/testing_20181203"+"/mymy_crm_"+expstring+"_tmn.nc"
+in_psi_crm=path_to_wc+"/WalkerCell/testing_20181203"+"/mymy_crm_"+expstring+"_tmn.nc"
+  print("incoming crm file is: "+in_rh_crm)
+  print("incoming crm file is: "+in_psi_crm)
 
 data_rh=addfile(in_rh,"r")
 data_psi=addfile(in_psi,"r")
@@ -37,8 +73,12 @@ data_psi_crm=addfile(in_psi_crm,"r")
 var1="myrh" ; time, grid_y, grid_x
 var2="mystream"
 var3="pfull"
-var4="psi_crm"
-var5="rh_crm"
+;;var4="psi_crm"
+;;var5="rh_crm"
+;var4="psi_1km"
+;var5="hur_1km"
+;;var4="psi_2km"
+;;var5="hur_2km"
 
 field_rh  = data_rh->$var1$(:,:,:)
 field_psi = data_psi->$var2$(:,:,:)
@@ -46,6 +86,7 @@ field_psi = data_psi->$var2$(:,:,:)
 field_press  = data_rh_crm->$var3$(:)
 
 field_psi_crm = data_psi_crm->$var4$(:,:)
+  print("dimsizes for crm psi data are: "+dimsizes(field_psi_crm))
 field_rh_crm  = data_rh_crm->$var5$(:,:)
 
 ;
@@ -54,8 +95,11 @@ field_rh_crm  = data_rh_crm->$var5$(:,:)
   print("dimsizes of field rh are: "+dimsizes(field_rh))
   print("---------------------------------------------")
 
-
-plot_type="newPDF"
+;---------------------------------------
+; begin code related to creating figure
+;---------------------------------------
+;plot_type="newPDF"
+plot_type="eps"
 wks = gsn_open_wks(plot_type,fileout)
 
 my_levels1 = (/10,15,20, \
@@ -63,12 +107,33 @@ my_levels1 = (/10,15,20, \
                50,55,60,65,70, \
                75,80,85,90,95 /) ; 18
 
+
 ;my_levels_psi = (/-5000,-4000,-3000,-2000,-1000,0, \
 ;                   1000, 2000,3000,4000,5000  /) ; 9
 ;my_levels_psi = (/-5500,-4500,-3500,-2500,-1500,-500, \
 ;                   500, 1500, 2500,3500,4500,5500  /) ; 9
-my_levels_psi = (/-7500,-6500,-5500,-4500,-3500,-2500,-1500,-500, \
-                   500, 1500, 2500,3500,4500,5500,6500,7500  /) ; 
+;my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
+;                   5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
+
+if (figurenumber .ge. 2) then
+  scale_cons=1.e-2
+  my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
+                     5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
+else
+if (figurenumber .lt. 2) then
+  scale_cons=1.e-2
+  ;scale_cons=1.e11
+  my_levels_psi = (/-40*scale_cons,-35*scale_cons,-30*scale_cons,-25*scale_cons, \
+                    -20*scale_cons,-15*scale_cons,-10*scale_cons,-5*scale_cons, \
+                    -1*scale_cons,1*scale_cons, \
+                     5*scale_cons, 10*scale_cons, 15*scale_cons,20*scale_cons, \
+                     25*scale_cons,30*scale_cons,35*scale_cons,40*scale_cons  /) ; 
+  ;;my_levels_psi=scale_cons*my_levels_psi
+  ;scale_cons=1.e-2
+  ;my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
+  ;                   5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
+end if
+end if
 
 my_levels1_crm = (/1,3,5,7,9, \
                11,13,15,17,19, \
@@ -97,19 +162,15 @@ my_col_psi = (/11,15,18,23,31,\
 
 ;gsn_define_colormap(wks,"BlAqGrYeOrRe")
 
-figurenumber = 1 ; 1 is defualt
-;; 3 --> 3 month hov of 50x2000
-;; 1 --> two panel figure of gcm and crm
-;; 2 --> same as 3 
-if (figurenumber .lt. 2) then
 
-;gsn_define_colormap(wks,"gui_default")
-;gsn_define_colormap(wks,"MPL_Blues")
+gsn_define_colormap(wks,"MPL_Blues")
 ;gsn_define_colormap(wks,"NCV_blu_red")
 ;gsn_define_colormap(wks,"MPL_coolwarm")
 ;gsn_define_colormap(wks,"gui_default")
 ;gsn_define_colormap(wks,"BlAqGrYeOrRe")
-gsn_define_colormap(wks,"MPL_PuBuGn")
+
+; previously used default
+;gsn_define_colormap(wks,"MPL_PuBuGn")
 
 ;; start default plots----------------------------------------------------------
  plot = new(1,graphic)
@@ -125,8 +186,7 @@ gsn_define_colormap(wks,"MPL_PuBuGn")
  res@cnFillOn                 = True 
 ; res@cnFillMode               = "RasterFill"       ; Raster Mode
  res@cnLinesOn                = False
- ;res@cnLevelSelectionMode = "ManualLevels"
- res@cnLevelSelectionMode = "ExplicitLevels"
+ res@cnLevelSelectionMode = "ExplicitLevels" ; or "ManualLevels"
  res@cnLevels            = my_levels1
  res@cnFillColors        = my_colors1
 ; res@cnLinesOn             = False
@@ -145,47 +205,35 @@ res@gsnYAxisIrregular2Log = True    ; Convert Y axis to logarithmic
  res@gsnRightString = ""
  res@trYMaxF      = 100000
  res@trYMinF      = 10000
- res@trXMaxF      = 4000
  res@trXMinF      = 2
  res@tmXBMode     = "Explicit"
- res@tmXBValues   = (/25,1000,2000,3000,4000/)
+ res@tmXBValues   = (/2,1000,2000,3000,4000/)
  ;res2@tmXBLabels   = ""+res2@tmXBValues
  res@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
-; res@tmXBMode     = "Explicit"
 ; res@tmXBValues   = (/0,1000,2000,3000,4000/)
 ; res@tmXBLabels   = ""+res@tmXBValues
  res@tmYLMode     = "Explicit"
  res@tmYLValues   = (/100000,80000,60000,40000,20000,10000/)
- ;res@tmYLValues   = (/100,200,400,600,800,1000/)
- res@tmYLLabels    = (/"1000","800","600","400","200","100"/)
+ ;res@tmYLValues   = (/100,200,400,600,800,1000/) res@tmYLLabels    = (/"1000","800","600","400","200","100"/)
  ;res@tmYLLabels   = ""+res@tmYLValues
  res@tiXAxisString     = "km"
  res@tiYAxisString     = "Pressure (hPa) "
 
-ensind=4
-mainTitle="ent1p3"
-
-;rhplot=field_rh
-;psiplot=field_psi
-;hor_x=ispan(25,4000,25)
-;print("dimsizes of hor_x are: "+dimsizes(hor_x))
-
-rhplot=field_rh_crm
-psiplot=field_psi_crm
-hor_x=ispan(2,4000,2)
-print("dimsizes of hor_x are: "+dimsizes(hor_x))
-
-rhplot!0="plev"
-rhplot&plev=field_press
-psiplot!0="plev"
-psiplot&plev=field_press
-rhplot!1="xdim"
-rhplot&xdim=hor_x
-psiplot!1="xdim"
-psiplot&xdim=hor_x
+;;rhplot=field_rh
+;;psiplot=field_psi
+;;hor_x=ispan(25,4000,25)
+;
+;rhplot!0="plev"
+;rhplot&plev=field_press
+;psiplot!0="plev"
+;psiplot&plev=field_press
+;rhplot!1="xdim"
+;rhplot&xdim=hor_x
+;psiplot!1="xdim"
+;psiplot&xdim=hor_x
 
  ;plot_rh = gsn_csm_contour(wks,rhplot(:,:,ensind),res)
- plot_rh = gsn_csm_contour(wks,rhplot(:,:),res)
+ ;plot_rh = gsn_csm_contour(wks,rhplot(:,:),res)
  ;plot_rh = gsn_csm_contour(wks,rhplot(:,::-1,ensind),res)
  ;plot_rh = gsn_csm_contour(wks,rhplot(:,::-1),res)
  
@@ -196,7 +244,7 @@ psiplot&xdim=hor_x
  res2@cnInfoLabelOn         = False
  res2@cnLevelSelectionMode = "ExplicitLevels"
  res2@cnMonoLineDashPattern = False
- res2@cnLineDashPatterns = (/2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0/)
+ res2@cnLineDashPatterns = (/2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0/)
  res2@cnLinesOn             = True
  res2@cnLineLabelsOn        = False
  res2@cnLineThicknessF      = 3
@@ -207,10 +255,13 @@ psiplot&xdim=hor_x
  res2@trXMaxF      = 4000
  res2@trXMinF      = 2
  res2@tmXBMode     = "Explicit"
- res2@tmXBValues   = (/25,1000,2000,3000,4000/)
+  if (figurenumber .lt. 2) then
+    res2@tmXBValues   = (/2,1000,2000,3000,4000/)
+  else
+    res2@tmXBValues   = (/25,1000,2000,3000,4000/)
+  end if
  ;res2@tmXBLabels   = ""+res2@tmXBValues
  res2@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
- ;res2@tmYLMode     = "Explicit"
  ;;res2@tmYLValues   = (/100000,80000,60000,40000,20000,10000/)
  ;;res2@tmYLValues   = (/10000,20000,40000,60000,80000,100000/)
  ;;res2@tmYLLabels   = ""+res2@tmYLValues
@@ -223,18 +274,76 @@ psiplot&xdim=hor_x
  res2@tiXAxisString     = " "
  res2@tiYAxisString     = "height "
  
-;plot_psi = gsn_csm_contour(wks,psiplot(:,:,ensind),res2)
-plot_psi = gsn_csm_contour(wks,psiplot(:,:),res2)
-;plot_psi = gsn_csm_contour(wks,psiplot(:,::-1,ensind),res2)
-;plot_psi = gsn_csm_contour(wks,psiplot(:,::-1),res2)
+if (figurenumber .lt. 2) then
 
-overlay(plot_rh,plot_psi)
-plot(0) = plot_rh
-;plot(1) = gsn_csm_contour(wks,psiplot(:,:,ensind),res2)
+  mainTitle="Months 2-6:"+titstring+" "+expstring
+  
+  rhplot=field_rh_crm
+  psiplot=field_psi_crm
+  if (crm_grid .lt. 2) then
+    hor_x=ispan(1,4000,1)
+  else
+    hor_x=ispan(2,4000,2)
+  end if
+  print("dimsizes of hor_x are: "+dimsizes(hor_x))
+  print("dimsizes of rhplot are: "+dimsizes(rhplot))
+  print("dimsizes of psiplot are: "+dimsizes(psiplot))
+  
+  rhplot!0="plev"
+  rhplot&plev=field_press
+  psiplot!0="plev"
+  psiplot&plev=field_press
+  rhplot!1="xdim"
+  rhplot&xdim=hor_x
+  psiplot!1="xdim"
+  psiplot&xdim=hor_x
+  
+  ;print("values from psi are: "+psiplot(12,2000))
+  plot_rh = gsn_csm_contour(wks,rhplot(:,:),res)
+  plot_psi = gsn_csm_contour(wks,psiplot(:,:),res2)
+  ;plot_psi = gsn_csm_contour(wks,psiplot(:,::-1),res2)
+  
+  overlay(plot_rh,plot_psi)
+  plot(0) = plot_rh
 
+else ;--------------------------------------------------------------------------
+if (figurenumber .ge. 2) then
+
+  mainTitle="GCM resolution"
+
+  res@trXMinF       = 25
+  res2@trXMinF      = 25
+
+
+  rhplot=field_rh
+  psiplot=field_psi
+  hor_x=ispan(25,4000,25)
+  rhplot!0="plev"
+  rhplot&plev=field_press
+  psiplot!0="plev"
+  psiplot&plev=field_press
+  rhplot!1="xdim"
+  rhplot&xdim=hor_x
+  psiplot!1="xdim"
+  psiplot&xdim=hor_x
+
+print("dimsizes of hor_x are: "+dimsizes(hor_x))
+print("dimsizes of rhplot are: "+dimsizes(rhplot))
+print("dimsizes of psiplot are: "+dimsizes(psiplot))
+print("values from psi are: "+psiplot(12,80,ensind))
+  ;plot_rh = gsn_csm_contour(wks,rhplot(:,:,ensind),res)
+  plot_rh = gsn_csm_contour(wks,rhplot(::-1,::-1,ensind),res)
+  ;plot_psi = gsn_csm_contour(wks,psiplot(:,:,ensind),res2)
+  plot_psi = gsn_csm_contour(wks,psiplot(:,::-1,ensind),res2)
+  overlay(plot_rh,plot_psi)
+  plot(0) = plot_rh
+  ;plot(0) = gsn_csm_contour(wks,psiplot(:,:,ensind),res2)
+  ;plot(0) = gsn_csm_contour(wks,rhplot(:,:,ensind),res)
+;  gsn_panel(wks,plot,(/1,1/),resP)
+end if
+end if
 
 resP                         = True
-;resP@txString                = "good grief"
 resP@txString                = mainTitle
 resP@gsnPanelLabelBar        = True
 ;resP@vpWidthF          = 2.0 ; vpWidth and Height control box size
@@ -243,12 +352,7 @@ resP@gsnPanelLabelBar        = True
 resP@lbLabelFontHeightF      = 0.022
 
 gsn_panel(wks,plot,(/1,1/),resP)
-;
-;else ;--------------------------------------------------------------------------
-;if (figurenumber .lt. 4) then
-;end if
-;if (figurenumber .gt. 4) then
-;end if
-end if
+
+print("figurenumber is: "+figurenumber)
 
 end

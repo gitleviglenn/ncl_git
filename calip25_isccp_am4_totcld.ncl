@@ -398,7 +398,7 @@ my_colors_red = (/129,139,149,159,169,179,189,199,209,219,229,234,239,244,249,25
   ;gsn_define_colormap(wks,"matlab_jet")
   ;gsn_define_colormap(wks,"MPL_BrBG")
 
-figurenumber = 1 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
+figurenumber = 2 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
 ; 2 prints 3 panel figure with isccp, calipso, and am4 output
 ; 3 prints 3 panel figure with calipso, calipso simulator and am4 output
 
@@ -587,6 +587,7 @@ else ;--------------------------------------------------------------------------
   print("plotted third figure")
 end if
 end if
+  print("figurenumber is: "+figurenumber)
 
 
 end

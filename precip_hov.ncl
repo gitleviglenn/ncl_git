@@ -20,11 +20,23 @@ fileout="hov_guass_d"
 
 ;infile=path_to_wc+walkcell+"/am4p0_8x160_4K"+file_pre+".atmos_daily.nc"
 
-infile=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_b"+file_pre+".atmos_daily.nc"
+;infile=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_b"+file_pre+".atmos_daily.nc"
+infile=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_ent0p5"+file_pre+".atmos_daily.nc"
 infile_80=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_b"+file_pre_b+".atmos_daily.nc"
 infile_81=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_b"+file_pre_c+".atmos_daily.nc"
 infile_82=path_to_wc+walkcell+"/c96L33_am4p0_8x160_nh_25km_wlkr_4K_b"+file_pre_d+".atmos_daily.nc"
   print("incoming file is: "+infile)
+
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_25km_wlkr_ent0p9/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_25km_wlkr_ent0p9_lwoff/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_25km_wlkr_ent0p9_noconv/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_25km_wlkr_ent0p9_noconv_lwoff/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_lwoff/"+"1979th1983_daily.nc"
+;infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_noconv/"+"1979th1983_daily.nc"
+infile_new=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_noconv_lwoff/"+"1979th1983_daily.nc"
+  print("incoming file is: "+infile_new)
+
 ;infile2=path_to_wc+"/WalkerCell/c96L33_100x1000_nh_crm.19790101.atmos_daily.nc"
 file_pre="/19790101"
 infile2=path_to_wc+walkcell+"/c96L33_am4p0_50x2000_nh_2km_wlkr_4K"+file_pre+".atmos_daily.nc"
@@ -51,7 +63,12 @@ data_2km_d  = addfile(infile2d,"r")
 data_2km_e  = addfile(infile2e,"r")
 data_2km_f  = addfile(infile2f,"r")
 
+data_25km_new = addfile(infile_new,"r")
+
 var1="precip" ; time, grid_y, grid_x
+;var1="olr" ; time, grid_y, grid_x
+;var1="prec_conv" ; time, grid_y, grid_x
+;var1="prec_ls" ; time, grid_y, grid_x
 
 ;field1 = data_25km->$var1$(:,:,:)
 field1 = data_25km->$var1$(0:180,:,:)
@@ -66,7 +83,10 @@ field2d = data_2km_d->$var1$(:,:,:)
 field2e = data_2km_e->$var1$(:,:,:)
 field2f = data_2km_f->$var1$(:,:,:)
 
+field_new = data_25km_new->$var1$(:,:,:)
+
 p_25_xt=dim_avg_n(field1,1)
+p_25_new_xt=dim_avg_n(field_new,1)
 
 p_25full_xt=dim_avg_n(field1b,1)
 p_25full_80_xt=dim_avg_n(field1_80,1)
@@ -94,11 +114,13 @@ p_2full_xt=array_append_record(p_2full_xt_d,p_2full_f_xt,0)
 
 ; convert to mm/day
 p_25_xt=86400*p_25_xt
+p_new_xt=86400*p_25_new_xt
 p_25full_xt=86400*p_25full_xt
 p_2_xt=86400*p_2_xt
 p_2full_xt=86400*p_2full_xt
 
 p_25_xt!0="time"
+p_new_xt!0="time"
 p_25full_xt!0="time"
 p_2full_xt!0="time"
 
@@ -107,10 +129,16 @@ p_2full_xt!0="time"
 ;psiplot=field_psi
 
 hor_x=ispan(25,4000,25)
+;hor_x=ispan(100,4000,100)
 crm_x=ispan(2,4000,2)
 
 p_25_xt!1="xdim"
 p_25_xt&xdim=hor_x
+p_new_xt!1="xdim"
+p_new_xt&xdim=hor_x
+
+;p_new_xt!1="xdim"
+;p_new_xt&xdim=hor_x
 
 p_25full_xt!1="xdim"
 p_25full_xt&xdim=hor_x
@@ -131,6 +159,9 @@ print("dimsizes of hor_x are: "+dimsizes(hor_x))
   print("---------------------------------------------")
   print("max of p_25 is: "+max(p_25_xt))
   print("dimsizes of p_25_xt are: "+dimsizes(p_25_xt))
+  print("---------------------------------------------")
+  print("max of p_new is: "+max(p_new_xt))
+  print("dimsizes of p_new_xt are: "+dimsizes(p_new_xt))
   print("---------------------------------------------")
   print("dimsizes of field2 are: "+dimsizes(field2))
   print("dimsizes of field2b are: "+dimsizes(field2b))
@@ -170,129 +201,130 @@ my_colors1 = (/111,121,124,134,159, \
 gsn_define_colormap(wks,"amwg256")
 
 figurenumber = 1 ; 1 is defualt
-; 3 --> 3 month hov of 50x2000
 ; 1 --> two panel figure of gcm and crm
-; 2 --> same as 3 
+; 2 --> same as 3
+; 3 --> 3 month hov of 50x2000
+; 4 --> plot multiyear figure of 25km exp  
 if (figurenumber .lt. 2) then
 
-;gsn_define_colormap(wks,"gui_default")
-;gsn_define_colormap(wks,"MPL_Blues")
-;gsn_define_colormap(wks,"NCV_blu_red")
-;gsn_define_colormap(wks,"MPL_coolwarm")
-;gsn_define_colormap(wks,"gui_default")
-;gsn_define_colormap(wks,"BlAqGrYeOrRe")
-
-;; start default plots----------------------------------------------------------
- plot = new(2,graphic)
-
-; create resource for plot
- res = True     
-
- res@gsnDraw          = False
- res@gsnFrame         = False
-
-; set up vertical axis limits
- res@cnInfoLabelOn            = False
- res@cnFillOn                 = True 
- res@cnFillMode               = "RasterFill"       ; Raster Mode
- res@cnLinesOn                = False
- res@trXMaxF      = 4000
- res@trXMinF      = 2
- res@tmXBMode     = "Explicit"
- res@tmXBValues   = (/25,1000,2000,3000,4000/)
- res@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
- res@tiXAxisString     = "km"
- ;res@cnLevelSelectionMode = "ManualLevels"
- res@cnLevelSelectionMode = "ExplicitLevels"
- res@cnLevels            = my_levels1
- res@cnFillColors        = my_colors1
- res@cnLinesOn             = False
-; res@cnMinLevelValF       = 0.
-; res@cnMaxLevelValF       = 70.
- res@cnLineLabelInterval  = 0                   ; label every other line
-; res@cnLevelSpacingF      = 5.0
- ;res@vpWidthF          = 2.0 ; vpWidth and Height control box size
- ;res@vpHeightF         = 0.86 ; default for both is 0.6 in NDC units
- res@vpWidthF          = .5 ; vpWidth and Height control box size
- res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
-
- res@lbLabelBarOn      = False
-
-; these commands turn off/on the varname and units at top of image
- res@gsnLeftString = ""
- res@gsnRightString = ""
- res@tiXAxisString     = " "
- res@tiYAxisString     = "days "
-
- plot(0) = gsn_csm_contour(wks,p_25_xt,res)
- plot(1) = gsn_csm_contour(wks,p_2full_xt,res)
-
-resP                         = True
-;resP@txString                = "good grief"
-resP@txString                = fileout
-resP@gsnPanelLabelBar        = True
-;resP@lbLabelFontHeightF      = 0.012
-resP@lbLabelFontHeightF      = 0.022
-
-gsn_panel(wks,plot,(/1,2/),resP)
-
+  ;gsn_define_colormap(wks,"gui_default")
+  ;gsn_define_colormap(wks,"MPL_Blues")
+  ;gsn_define_colormap(wks,"NCV_blu_red")
+  ;gsn_define_colormap(wks,"MPL_coolwarm")
+  ;gsn_define_colormap(wks,"gui_default")
+  ;gsn_define_colormap(wks,"BlAqGrYeOrRe")
+  
+  ;; start default plots----------------------------------------------------------
+   plot = new(2,graphic)
+  
+  ; create resource for plot
+   res = True     
+  
+   res@gsnDraw          = False
+   res@gsnFrame         = False
+  
+  ; set up vertical axis limits
+   res@cnInfoLabelOn            = False
+   res@cnFillOn                 = True 
+   res@cnFillMode               = "RasterFill"       ; Raster Mode
+   res@cnLinesOn                = False
+   res@trXMaxF      = 4000
+   res@trXMinF      = 2
+   res@tmXBMode     = "Explicit"
+   res@tmXBValues   = (/25,1000,2000,3000,4000/)
+   res@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
+   res@tiXAxisString     = "km"
+   ;res@cnLevelSelectionMode = "ManualLevels"
+   res@cnLevelSelectionMode = "ExplicitLevels"
+   res@cnLevels            = my_levels1
+   res@cnFillColors        = my_colors1
+   res@cnLinesOn             = False
+  ; res@cnMinLevelValF       = 0.
+  ; res@cnMaxLevelValF       = 70.
+   res@cnLineLabelInterval  = 0                   ; label every other line
+  ; res@cnLevelSpacingF      = 5.0
+   ;res@vpWidthF          = 2.0 ; vpWidth and Height control box size
+   ;res@vpHeightF         = 0.86 ; default for both is 0.6 in NDC units
+   res@vpWidthF          = .5 ; vpWidth and Height control box size
+   res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
+  
+   res@lbLabelBarOn      = False
+  
+  ; these commands turn off/on the varname and units at top of image
+   res@gsnLeftString = ""
+   res@gsnRightString = ""
+   res@tiXAxisString     = " "
+   res@tiYAxisString     = "days "
+  
+   plot(0) = gsn_csm_contour(wks,p_25_xt,res)
+   plot(1) = gsn_csm_contour(wks,p_2full_xt,res)
+  
+  resP                         = True
+  ;resP@txString                = "good grief"
+  resP@txString                = fileout
+  resP@gsnPanelLabelBar        = True
+  ;resP@lbLabelFontHeightF      = 0.012
+  resP@lbLabelFontHeightF      = 0.022
+  
+  gsn_panel(wks,plot,(/1,2/),resP)
+  
 else ;--------------------------------------------------------------------------
 if (figurenumber .lt. 4) then
-; plot second figure option--------------------------------------------------------
- plot = new(1,graphic)
-
-; create resource for plot
- res = True     
-
- res@gsnDraw          = False
- res@gsnFrame         = False
-
-; set up vertical axis limits
- res@cnInfoLabelOn            = False
- res@cnFillOn                 = True 
- res@cnFillMode               = "RasterFill"       ; Raster Mode
- res@cnLinesOn                = False
- res@trXMaxF      = 4000
- res@trXMinF      = 2
- res@tmXBMode     = "Explicit"
- res@tmXBValues   = (/25,1000,2000,3000,4000/)
- res@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
- res@tiXAxisString     = "km"
- ;res@cnLevelSelectionMode = "ManualLevels"
- res@cnLevelSelectionMode = "ExplicitLevels"
- res@cnLevels            = my_levels1
- res@cnFillColors        = my_colors1
- res@cnLinesOn             = False
-; res@cnMinLevelValF       = 0.
-; res@cnMaxLevelValF       = 70.
- res@cnLineLabelInterval  = 0                   ; label every other line
-; res@cnLevelSpacingF      = 5.0
- res@vpWidthF          = .5 ; vpWidth and Height control box size
- res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
-
- res@lbLabelBarOn      = False
-
-; these commands turn off/on the varname and units at top of image
- res@gsnLeftString = ""
- res@gsnRightString = ""
- res@tiXAxisString     = " "
- res@tiYAxisString     = "days "
-
-
-print("dimsizes of p_25full_xt: "+dimsizes(p_25full_xt))
-print("dimsizes of p_2full_xt: "+dimsizes(p_2full_xt))
- ;plot(0) = gsn_csm_contour(wks,p_25full_xt,res)
- plot(0) = gsn_csm_contour(wks,p_2full_xt,res)
-
-resP                         = True
-;resP@txString                = "good grief"
-resP@txString                = fileout
-resP@gsnPanelLabelBar        = True
-resP@lbLabelFontHeightF      = 0.012
-
-gsn_panel(wks,plot,(/1,1/),resP)
+  ; plot second figure option--------------------------------------------------------
+   plot = new(1,graphic)
+  
+  ; create resource for plot
+   res = True     
+  
+   res@gsnDraw          = False
+   res@gsnFrame         = False
+  
+  ; set up vertical axis limits
+   res@cnInfoLabelOn            = False
+   res@cnFillOn                 = True 
+   res@cnFillMode               = "RasterFill"       ; Raster Mode
+   res@cnLinesOn                = False
+   res@trXMaxF      = 4000
+   res@trXMinF      = 2
+   res@tmXBMode     = "Explicit"
+   res@tmXBValues   = (/25,1000,2000,3000,4000/)
+   res@tmXBLabels   = (/"0","1000","2000","3000","4000"/)
+   res@tiXAxisString     = "km"
+   ;res@cnLevelSelectionMode = "ManualLevels"
+   res@cnLevelSelectionMode = "ExplicitLevels"
+   res@cnLevels            = my_levels1
+   res@cnFillColors        = my_colors1
+   res@cnLinesOn             = False
+  ; res@cnMinLevelValF       = 0.
+  ; res@cnMaxLevelValF       = 70.
+   res@cnLineLabelInterval  = 0                   ; label every other line
+  ; res@cnLevelSpacingF      = 5.0
+   res@vpWidthF          = .5 ; vpWidth and Height control box size
+   res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
+  
+   res@lbLabelBarOn      = False
+  
+  ; these commands turn off/on the varname and units at top of image
+   res@gsnLeftString = ""
+   res@gsnRightString = ""
+   res@tiXAxisString     = " "
+   res@tiYAxisString     = "days "
+  
+  
+  print("dimsizes of p_25full_xt: "+dimsizes(p_25full_xt))
+  print("dimsizes of p_2full_xt: "+dimsizes(p_2full_xt))
+   ;plot(0) = gsn_csm_contour(wks,p_25full_xt,res)
+   plot(0) = gsn_csm_contour(wks,p_2full_xt,res)
+  
+  resP                         = True
+  ;resP@txString                = "good grief"
+  resP@txString                = fileout
+  resP@gsnPanelLabelBar        = True
+  resP@lbLabelFontHeightF      = 0.012
+  
+  gsn_panel(wks,plot,(/1,1/),resP)
 end if
-if (figurenumber .gt. 4) then
+if (figurenumber .ge. 4) then
  plot = new(1,graphic)
 
 ; create resource for plot
@@ -339,7 +371,7 @@ if (figurenumber .gt. 4) then
 
 print("you putz") 
 ; plot(0) = gsn_csm_contour(wks,p_25full_xt,res)
- plot(0) = gsn_csm_contour(wks,p_25full_4yr_xt,res)
+ plot(0) = gsn_csm_contour(wks,p_new_xt,res)
 resP                         = True
 resP@txString                = " " 
 ;resP@txString                = "good grief"

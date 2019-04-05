@@ -23,7 +23,7 @@ var5="rh_crm"
 ;var6="cl_crm"
 ;var_test="cld_amt"
 
-model_switch=4 ; default=4, 2km crm
+model_switch=3 ; default=4, 2km crm
 ; 5 or above : gcm
 ; 4 : 2km crm 
 ; 3 : 1km crm
@@ -53,8 +53,8 @@ else if (model_switch .gt. 3) then ; for 2km crm
   var6="cl_crm"
   hor_x=ispan(2,4000,2)
   print("dimsizes of hor_x are: "+dimsizes(hor_x))
-  in_cld_crm_test=path_to_wc+walkcell+"/c96L33_am4p0_10x4000_nh_1km_wlkr_4K/garbagetest.nc"
-  print("incoming test file is: "+in_cld_crm_test)
+  ;in_cld_crm_test=path_to_wc+walkcell+"/c96L33_am4p0_10x4000_nh_1km_wlkr_4K/garbagetest.nc"
+;  print("incoming test file is: "+in_cld_crm_test)
   data_rh_crm=addfile(in_rh_crm,"r")
 else if (model_switch .gt. 2) then ; for 1km crm
   print("---------------------------------------------")
@@ -92,7 +92,7 @@ if (model_switch .gt. 4) then ; for gcm
 else if (model_switch .gt. 3) then ; for 2km crm 
   data_cld_crm=addfile(in_cld_crm,"r")
   data_psi_crm=addfile(in_psi_crm,"r")
-  data_cld_test_crm=addfile(in_cld_crm_test,"r")
+  ;data_cld_test_crm=addfile(in_cld_crm_test,"r")
   field_cld_crm  = data_cld_crm->$var6$(:,:)
   field_psi_crm = data_psi_crm->$var4$(:,:)
   field_rh_crm  = data_rh_crm->$var5$(:,:)
