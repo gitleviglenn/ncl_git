@@ -9,8 +9,8 @@ begin
 ;-----------------------------------
 ; define parameters for script:
 figurenumber = 2 ; 1 is defualt for crm resolution, 2 or greater is for gcm res
-crm_grid = 1 ; 1 for 1km, 2 for 2km
-ensind=5
+crm_grid = 2 ; 1 for 1km, 2 for 2km
+ensind=2
 expstring="ctl" ; lwoff or ctl
 ;-----------------------------------
 ; name of output file
@@ -117,8 +117,28 @@ my_levels1 = (/10,15,20, \
 
 if (figurenumber .ge. 2) then
   scale_cons=1.e-2
-  my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
-                     5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
+  ;my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
+  ;                   5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
+; use levels below to plot ensind = 0
+;  my_levels_psi = (/-30*scale_cons,-25*scale_cons,-20*scale_cons,-15*scale_cons,-10*scale_cons,-5*scale_cons, \
+;                     0*scale_cons, 5*scale_cons, 10*scale_cons, 15*scale_cons,20*scale_cons,25*scale_cons,30*scale_cons  /) ; 9
+; try the levels below for ensind = 2
+  my_levels_psi = (/-65*scale_cons, -60*scale_cons, -55*scale_cons, -50*scale_cons, \
+                    -45*scale_cons, -40*scale_cons, -35*scale_cons, -30*scale_cons, \
+                    -25*scale_cons, -20*scale_cons, -15*scale_cons, -10*scale_cons, \
+                     -5*scale_cons,   0*scale_cons,   5*scale_cons,  10*scale_cons, \
+                     15*scale_cons,  20*scale_cons,  25*scale_cons/) 
+;;  my_levels_psi = (/-65*scale_cons,  -55*scale_cons, \
+;;                    -45*scale_cons, -35*scale_cons, \
+;;                    -25*scale_cons, -15*scale_cons, \
+;;                     -5*scale_cons,  5*scale_cons, \
+;;                     15*scale_cons, 25*scale_cons/) 
+;; try the levels below for ensind = 3
+;  my_levels_psi = (/-45*scale_cons, -40*scale_cons, -35*scale_cons, -30*scale_cons, \
+;                    -25*scale_cons, -20*scale_cons, -15*scale_cons, -10*scale_cons, \
+;                     -5*scale_cons,   0*scale_cons,   5*scale_cons,  10*scale_cons, \
+;                     15*scale_cons,  20*scale_cons,  25*scale_cons,  30*scale_cons, \
+;                     35*scale_cons/) 
 else
 if (figurenumber .lt. 2) then
   scale_cons=1.e-2
@@ -129,11 +149,10 @@ if (figurenumber .lt. 2) then
                      5*scale_cons, 10*scale_cons, 15*scale_cons,20*scale_cons, \
                      25*scale_cons,30*scale_cons,35*scale_cons,40*scale_cons  /) ; 
   ;;my_levels_psi=scale_cons*my_levels_psi
-  ;scale_cons=1.e-2
-  ;my_levels_psi = (/-55*scale_cons,-45*scale_cons,-35*scale_cons,-25*scale_cons,-15*scale_cons,-5*scale_cons, \
-  ;                   5*scale_cons, 15*scale_cons, 25*scale_cons,35*scale_cons,45*scale_cons,55*scale_cons  /) ; 9
 end if
 end if
+
+print("my_levels_psi: "+my_levels_psi)
 
 my_levels1_crm = (/1,3,5,7,9, \
                11,13,15,17,19, \
@@ -163,9 +182,9 @@ my_col_psi = (/11,15,18,23,31,\
 ;gsn_define_colormap(wks,"BlAqGrYeOrRe")
 
 
-gsn_define_colormap(wks,"MPL_Blues")
+;gsn_define_colormap(wks,"MPL_Blues")
 ;gsn_define_colormap(wks,"NCV_blu_red")
-;gsn_define_colormap(wks,"MPL_coolwarm")
+gsn_define_colormap(wks,"MPL_coolwarm")
 ;gsn_define_colormap(wks,"gui_default")
 ;gsn_define_colormap(wks,"BlAqGrYeOrRe")
 
@@ -244,7 +263,13 @@ res@gsnYAxisIrregular2Log = True    ; Convert Y axis to logarithmic
  res2@cnInfoLabelOn         = False
  res2@cnLevelSelectionMode = "ExplicitLevels"
  res2@cnMonoLineDashPattern = False
+if (figurenumber .lt. 2) then
  res2@cnLineDashPatterns = (/2,2,2,2,2,2,2,2,2,0,0,0,0,0,0,0,0,0/)
+else
+ ;res2@cnLineDashPatterns = (/2,2,2,2,2,0,0,0,0,0,0,0/) ; use to plot ensind = 0
+ ;res2@cnLineDashPatterns = (/0,0,0,0,0,0,0,0,0,0,0,0,0/) ; use to plot ensind = 1
+ res2@cnLineDashPatterns = (/0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0/) ; use to plot ensind = 1
+end if
  res2@cnLinesOn             = True
  res2@cnLineLabelsOn        = False
  res2@cnLineThicknessF      = 3
@@ -330,6 +355,7 @@ if (figurenumber .ge. 2) then
 print("dimsizes of hor_x are: "+dimsizes(hor_x))
 print("dimsizes of rhplot are: "+dimsizes(rhplot))
 print("dimsizes of psiplot are: "+dimsizes(psiplot))
+print("max of psiplot is: "+max(psiplot(:,:,ensind))+" and min is: "+min(psiplot(:,:,ensind)))
 print("values from psi are: "+psiplot(12,80,ensind))
   ;plot_rh = gsn_csm_contour(wks,rhplot(:,:,ensind),res)
   plot_rh = gsn_csm_contour(wks,rhplot(::-1,::-1,ensind),res)
