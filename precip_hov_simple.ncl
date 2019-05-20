@@ -9,7 +9,7 @@ begin
 path_to_wc="/Users/silvers/data"
 
 fileout="hov_precip"
-plottitle="100km noconv lwoff"
+plottitle="25km lwoff"
 
 ; are you plotting gcm or crm data?
 model_type=2 ; 2 is default and corresponds to plotting gcm data
@@ -17,12 +17,17 @@ model_type=2 ; 2 is default and corresponds to plotting gcm data
 ; define the incoming data
 if (model_type .gt. 1) then
   ; for gcm...
-  incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_noconv_lwoff/"+"1979th1983_daily.nc"
+  ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_noconv_lwoff/"+"1979th1983_daily.nc"
+  ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9/"+"1979th1983_daily.nc"
+  ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_100km_wlkr_ent0p9_lwoff/"+"1979th1983_daily.nc"
   ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x40L33_am4p0_100km_wlkr_ent0p9/"+"1979th1983_daily.nc"
+  ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x640L33_am4p0_25km_wlkr_ent0p9/"+"1979th1983_daily.nc"
+  incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x640L33_am4p0_25km_wlkr_ent0p9_lwoff/"+"1979th1983_daily.nc"
   ;incoming=path_to_wc+"/WalkerCell/testing_20181203/c8x160L33_am4p0_25km_wlkr_ent0p9_noconv/"+"1979th1983_daily.nc"
   ;hor_x=ispan(25,4000,25)
   ;hor_x=ispan(100,4000,100)
-  hor_x=ispan(100,16000,100)
+  ;hor_x=ispan(100,16000,100)
+  hor_x=ispan(25,16000,25)
 else
   ; for crm...
   incoming=path_to_wc+"/WalkerCell/testing_20181203/c10x4000L33_am4p0_1km_wlkr_4K_lwoff/"+"1979.6mn.atmos_daily_selvars.nc"
@@ -36,7 +41,8 @@ infile_new=incoming
 
 var1="precip" ; time, grid_y, grid_x
 data_new = addfile(infile_new,"r")
-field_new = data_new->$var1$(1:180,:,:)
+field_new = data_new->$var1$(1:720,:,:)
+;field_new = data_new->$var1$(:,:,:)
   print("dimsizes of field_new are: "+dimsizes(field_new))
 p_in_xt=dim_avg_n(field_new,1)
 ; convert to mm/day
@@ -81,7 +87,7 @@ plot = new(1,graphic)
 ; set up vertical axis limits
  res@cnInfoLabelOn            = False
  res@cnFillOn                 = True 
- res@cnFillMode               = "RasterFill"       ; Raster Mode
+ ;res@cnFillMode               = "RasterFill"       ; Raster Mode
  res@cnLinesOn                = False
  ;res@cnLevelSelectionMode = "ManualLevels"
  res@cnLevelSelectionMode = "ExplicitLevels"
@@ -106,10 +112,10 @@ plot = new(1,graphic)
 ; res@cnLevelSpacingF      = 5.0
  ;res@vpWidthF          = .30 ; vpWidth and Height control box size
  ;res@vpHeightF         = 2.0 ; default for both is 0.6 in NDC units
- ;res@vpWidthF          = 0.50 ; vpWidth and Height control box size
- ;res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
- res@vpWidthF          = 0.81 ; vpWidth and Height control box size
- res@vpHeightF         = 0.5 ; default for both is 0.6 in NDC units
+ res@vpWidthF          = 0.50 ; vpWidth and Height control box size
+ res@vpHeightF         = 0.81 ; default for both is 0.6 in NDC units
+ ;res@vpWidthF          = 0.81 ; vpWidth and Height control box size
+ ;res@vpHeightF         = 0.5 ; default for both is 0.6 in NDC units
 
  res@lbLabelBarOn      = False
 
