@@ -1,17 +1,24 @@
-;================================================;
-;cloud_table_misr.ncl 
+;=======================================================================================;
+;ctp_tau_misr.ncl 
 ;
 ; produces a table of values for cloud types ordered
 ; as cloud top height (km) vs. tau using output from
 ; the misr simulator
 ;
+; originally based on the old script cloud_table_misr.ncl
+;
+; the output file may have extra dimensions which should be averaged over such as
+; longitude, latitude, or time.  
+;ncwa -O -a lat,lon atmos_cosp_cfmip.187001-187012.clmisr.nc atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc
+; cdo timmean atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc test3.nc
+;
 ; levi silvers  		march 2018
-;================================================;
+;=======================================================================================;
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"   
-; ================================================;
+;=======================================================================================;
 
 ;----------------------------------------------------------------------
 ; Procedure to attach a labelbar to the bottom of plot.
@@ -68,49 +75,41 @@ end
 begin
 
 ; open/reference desired file (use addfiles to reference multiple data file)
-modv="am4g12r18"
-toptitle="MISR "+modv+" 10 yrglmn"
+modv="am4"
+toptitle="MISR "+modv+" 1yr glmn"
 xtitle="hieght (km)"
 ytitle="optical depth"
-file_name="atmos_month_misr_"+modv+"_5yrjan_fldmean.nc"
-expname="c96L32_am4g9_2000climo_cosp_isccp/"
-archdir="/archive/Levi.Silvers/awg/ulm_201505/"
-exptree="gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_misr/av/monthly_10yr/"
-;filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_"+file_base+".nc"
-filein=archdir+expname+exptree+file_name
 
-filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
-;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
+;filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
+
+filein="/net2/Levi.Silvers/data/cfamip_testdiag/test3.nc"
 
  infile = addfile(filein,"r")
 
 print("infile is: "+filein)
 
-tau=infile->tauindx(:)
-print("tau =: "+tau)
 ;
 ;;-Reading and processing of data-------------------------------------------
 ;
-;;-read data----------------------------------------------------------------
-;
-;field_misr1=infile->misr_1
-;print("----------------info for misr1---------------")
-;print(field_misr1)
 
-varnames="misr_"+ispan(1,16,1)
+varname_misr="clmisr"
 
-fields=new((/16,7/),float)
+fields_new=new((/16,7/),float)
+fields_new=-999
 
-do i=0,15,1
-  ;fields(i,:)=infile->$varnames(i)$(0,:,0,0)
-  fields(i,:)=infile->$varnames(i)$(0,:)
+do i=0,6,1
+  do j=0,15,1
+    fields_new(j,i)=infile->$varname_misr$(0,i,j)
+  end do
 end do
+
+fields=fields_new
+
+;print("fields_new at i=3: "+fields_new(:,3))
 
 ; reverse the vertical dimension so that the lowest layers are at the bottom of plot
 fields=fields(::-1,:)
 
-;print("what kind of var is fields?"+fields)
-;print(fields)
 print("dimensions of fields: "+dimsizes(fields))
 ncr=dimsizes(fields)
 
@@ -121,7 +120,6 @@ print("overall min of fields is: "+min(fields))
 
 fields=where(fields.le.0.001,0.0,fields)
 fields=decimalPlaces(fields,1,True)
-;print(fields)
 text_values=""+fields
 
 ncols=7

@@ -1,13 +1,10 @@
 ;***********************************************************************************
-; glb_cf_modis_obs.ncl
+; modis_iwplwp_cosp_obs.ncl
 ;***********************************************************************************
 ;
-; plot global cloud fraction from modis observations.
+; plot global iwp and lwp from modis cosp and modis observations.
 ;
-; example here is for clouds below 3km with tau .gt. 0.3
-; for reference see Fig 9 of Marchand et al. 2010 JGR
-;
-; levi silvers							feb 2017
+; levi silvers							jun 2018
 ;***********************************************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -19,23 +16,44 @@ begin
 ; read in netCDF file
 ;***********************************************************************************
 ; variable to read: 
-;varname1="tclmodis" ; MODIS total cloud fraction
-;varname1="Cloud_Fraction_Retrieval_Total_Mean"
-;maintit="Cloud Fraction Retrieval 2010"
-;varname1="Cloud_Fraction_Mask_Total_Mean"
 ;scale=100.
-;varname1="Liquid_Path_Mean"
-;maintit="Liquid_Path_Mean 2010"
-varname1="Ice_Path_Mean"
-maintit="Ice_Path_Mean 2010"
-plotvar="IWP"
 scale=1.
 ;
+switchnum=1 ; 1 plots IWP, 2 plots LWP
 
-;varname="lwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
-;maintit_mod="Liq Wat Path lwpmodis"
-varname="iwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
-maintit_mod="Ice Wat Path iwpmodis"
+if (switchnum .eq. 1) then 
+plotvar="IWP"
+else if (switchnum .eq. 2) then
+plotvar="LWP"
+end if
+end if 
+
+if (switchnum .eq. 1) then
+  print("plotting IWP")
+  varname="iwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
+  ; varname1 is for the observations
+  varname1="Ice_Path_Mean"
+  maintit_mod="Ice Wat Path iwpmodis"
+  maintit="Ice_Path_Mean 2010"
+  ;plot_levs = (/35.,50.,55.,70.,95.,120.,150.,190.,220.,250.,280./)  ; 11
+  plot_levs = (/5.,10.,20.,35.,50.,55.,70.,95.,190.,250.,350./)  ; 11
+  plot_colors =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
+else if (switchnum .eq. 2) then
+print("plotting LWP")
+  varname="lwpmodis" ;kg/m^2 Mean Liq W Path*CPCT
+  ; varname1 is for the observations
+  varname1="Liquid_Path_Mean"
+  maintit_mod="Liq Wat Path lwpmodis"
+  maintit="Liquid_Path_Mean 2010"
+  ; values for lwp 
+  plot_levs = (/5.,10.,20.,35.,50.,55.,70.,95.,120.,150.,190./)  ; 11
+  ;my_colors_lwp =   (/2, 5,10,15,20,25,30,35,40,45,50,55/) ;12
+  plot_colors =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
+  my_levels_diff_lwp = (/-25.,-20,-15.,-10.,-5., 0., 5., 10.,15., 20.,25./) ;11
+  my_colors_diff_lwp = (/2,5,8,11,14,17,31,34,37,40,43,46/) ; 12
+end if
+end if
+;
 
 modscale=1.e3
 ;varname="tclmodis" ;%
@@ -63,17 +81,16 @@ filein_obs12="/net2/Levi.Silvers/data/modisdata/MYD08_M3_NC.2010.12.C051.V02.nc"
 ; load model data modis simulator
 
 model1="c96L32_am4G12r18_2010climo_A_cosp"
-;model2="c96L32_am4G12r17_2010climo_A_cosp"
-;model3="c96L32_am4G12r16_2010climo_new_cosp"
-;model3="c96L32_am4G12r18_2010climo_A_cosp"
 ;
+; path to deck amip data:
+path_amip="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp"
+;
+; from model output through cosp
 infile1="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile2="/archive/Levi.Silvers/data/"+model1+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile3="/archive/Levi.Silvers/data/"+model2+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
-;infile4="/archive/Levi.Silvers/data/"+model3+"/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 
-infile_atm="/archive/Levi.Silvers/data/"+model1+"/atmos/atmos.0002-0011.alltmn.nc"
-
+; from model output
+;infile_atm="/archive/Levi.Silvers/data/"+model1+"/atmos/atmos.0002-0011.alltmn.nc"
+infile_atm=path_amip+"/atmos/av/annual_36yr/atmos.1979-2014.ann.nc"
 
   data1 = addfile(filein_obs1,"r")
   data2 = addfile(filein_obs2,"r")
@@ -93,38 +110,14 @@ maintitle="what are you doing?"
 ; after norm the difference is taken from r18
 print("infile_atm is: "+infile_atm)
   fileatm     = addfile(infile_atm,"r")
-  ;var_lwp = fileatm->LWP(0,:,:)
-  var_lwp = fileatm->IWP(0,:,:)
-  var_lwp=var_lwp*1000. ; convert to grams /m2
-;print("infile is: "+infile1)
-;  file1     = addfile(infile1,"r")
-;  var_f1 = file1->$varname$(0,:,:)
-;  var_tcl= file1->$varnorm$(0,:,:)
-;  var_f1 = modscale*var_f1 
-;  var_ref_norm = var_f1/var_tcl
-;  ;var_ref_norm = 1
+  var_toplot = fileatm->$plotvar$(0,:,:)
+  var_toplot=var_toplot*1000. ; convert to grams /m2
 print("infile is: "+infile1)
   file2= addfile(infile1,"r")
   var_r18 = file2->$varname$(0,:,:) 
   var_tclr18 = file2->$varnorm$(0,:,:)
   var_r18 = modscale*var_r18 
   var_r18_norm = var_r18/var_tclr18 
-;  var_r18_norm = var_r18_norm-var_ref_norm
-;print("infile is: "+infile2)
-;print("infile is: "+infile3)
-;  file3= addfile(infile3,"r")
-;  var_r17 = file3->$varname$(0,:,:) 
-;  var_tclr17 = file3->$varnorm$(0,:,:)
-;  var_r17 = modscale*var_r17
-;  var_r17_norm = var_r17/var_tclr17 
-;  var_r17_norm = var_r17_norm-var_ref_norm 
-;print("infile is: "+infile4)
-;  file4= addfile(infile4,"r")
-;  var_r16 = file4->$varname$(0,:,:) 
-;  var_tclr16 = file4->$varnorm$(0,:,:)
-;  var_r16 = modscale*var_r16
-;  var_r16_norm = var_r16/var_tclr16
-;  ;var_r16_norm = var_r16_norm-var_ref_norm 
 
 print("filein_obs1 is: "+filein_obs1)
   t1 = data1->$varname1$(::-1,:)                       
@@ -141,31 +134,15 @@ print("filein_obs1 is: "+filein_obs1)
   t12 = data12->$varname1$(::-1,:)    
   t_total=(t1+t2+t3+t4+t5+t6+t7+t8+t9+t10+t11+t12)/12                   
   vartoplot=scale*t_total         
-  ;vartoplot=t_total         
   vartoplot!0="lat"
   vartoplot&lat=t1&lat
   vartoplot!1="lon"
   vartoplot&lon=t1&lon
   vartoplot@_FillValue=-999 ; sets _FillValue to -999
   tot_cld_sum=sum(vartoplot)
-  ;t2=where(vartoplot.ge.100.,0.0,vartoplot)
-  ;mean_cld=tot_cld_sum2/51840.
   print("sum of tot_cld_amt: "+tot_cld_sum)
   print("point values of cloud fraction: "+vartoplot(45,45))
-  ;print("sum2 of tot_cld_amt: "+tot_cld_sum2)
-  ;print("mean of tot_cld_amt: "+mean_cld)
 
-;; assign grid information to model data
-;  var_r16_norm!0="lat"
-;  var_r16_norm&lat=var_r16&lat
-;  var_r16_norm!1="lon"
-;  var_r16_norm&lon=var_r16&lon
-;
-;  var_r17_norm!0="lat"
-;  var_r17_norm&lat=var_r16&lat
-;  var_r17_norm!1="lon"
-;  var_r17_norm&lon=var_r16&lon
-;
   var_r18_norm!0="lat"
   var_r18_norm&lat=var_r18&lat
   var_r18_norm!1="lon"
@@ -199,22 +176,11 @@ my_colors = (/25,35,41,46,59,65,69,75,79,85,95,101/) ; 12
 my_levels_diff = (/-2.5,-2,-1.5,-1,-0.5, 0, 0.5, 1,1.5, 2,2.5/) ;11
 my_colors_diff = (/30,25,20,15,10,5,76,81,86,91,96,100/) ; 12
 
-; values for lwp 
-my_levels_lwp = (/5.,10.,20.,35.,50.,55.,70.,95.,120.,150.,190./)  ; 11
-;my_colors_lwp =   (/2, 5,10,15,20,25,30,35,40,45,50,55/) ;12
-my_colors_lwp =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
-my_levels_diff_lwp = (/-25.,-20,-15.,-10.,-5., 0., 5., 10.,15., 20.,25./) ;11
-my_colors_diff_lwp = (/2,5,8,11,14,17,31,34,37,40,43,46/) ; 12
-
-my_levels_iwp = (/35.,50.,55.,70.,95.,120.,150.,190.,220.,250.,280./)  ; 11
-my_levels_iwp = (/5.,10.,20.,35.,50.,55.,70.,95.,190.,250.,350./)  ; 11
-my_colors_iwp =   (/2,12,17,20,25,30,35,40,45,50,55,60/) ;12
-
 ;set plot cont/colors to local values
-plot_levs=my_levels_iwp
-plot_colors=my_colors_iwp
-plot_levs_diff=my_levels_diff_lwp
-plot_colors_diff=my_colors_diff_lwp
+;plot_levs=my_levels_iwp
+;plot_colors=my_colors_iwp
+;plot_levs_diff=my_levels_diff_lwp
+;plot_colors_diff=my_colors_diff_lwp
 
   ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
@@ -271,17 +237,6 @@ plot_colors_diff=my_colors_diff_lwp
   contour1 = gsn_csm_contour_map(wks,vartoplot,res)  ; create the plot
   plot(0) = contour1
 
-;  res@gsnFrame         = False
-;  tittittit=maintit_mod+" r16"
-;;  res@tiMainString       = tittittit
-;  res@tiMainString       = "r18-reff"
-;  ;res@cnLevels          = plot_levs
-;  ;res@cnFillColors      = plot_colors
-;  res@cnLevels          = plot_levs_diff
-;  res@cnFillColors      = plot_colors_diff
-;  contour2 = gsn_csm_contour_map(wks,var_r18_norm,res)  ; create the plot
-;  plot(1) = contour2
-
   res@gsnFrame         = False
   res@tiMainString     = "model output "+plotvar
   res@cnLevels          = plot_levs
@@ -289,7 +244,7 @@ plot_colors_diff=my_colors_diff_lwp
   ;res@cnLevels          = plot_levs_diff
   ;res@cnFillColors      = plot_colors_diff
   ;contour3 = gsn_csm_contour_map(wks,var_r17_norm,res)  ; create the plot
-  contour3 = gsn_csm_contour_map(wks,var_lwp,res)  ; create the plot
+  contour3 = gsn_csm_contour_map(wks,var_toplot,res)  ; create the plot
   plot(1) = contour3
 
   res@gsnFrame         = False

@@ -1,14 +1,18 @@
 ;================================================;
 ;cloud_table_isccp.ncl 
 ;
-; produces a table of values for cloud types ordered
+; produces two tables of values for cloud types ordered
 ; as tau vs. cloud top height
 ;
-; can process either observational or model output
+; also produces two txt files with the values which
+; populate the tables
 ;
-; to do: make a two panel figure, with obs and data
+; upper table is isccp simulator data
+; lower table is isccp observational data (1983-2008)
 ;
-; levi silvers  		feb 2018
+; processes both observational or model output
+;
+; levi silvers  		may 2018
 ;================================================;
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
@@ -81,29 +85,23 @@ begin
 ;
  titlebase="AM4.0 ISCCP "+model
  title_obs=" ISCCP OBS"+obsper
- titlebase_mod="AM4.0 MODIS "+model
- title_mod_obs=" MODIS OBS"+obsper_mod
 ;
 ; specify paths
 ;filein="/archive/oar.gfdl.cmip6/h1g/warsaw_201710_mom6_om4_v1.0/CM4_piControl_test_OM4_1p0/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/av/annual_1yr/"+"atmos_cmip.0001.ann.nc"
 
-;filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
-filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
-filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980-2014.ann.glbtmn.nc" ; path on macbook
-;filein_mod="/Users/silvers/data/am4p0/atmos_cmip_modis.1980th2014.ann.bug.glbtmn.nc" ; path on macbook
+; new files for isccp tests are here: 
+; /archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip_isccptest/gfdl.ncrc4-intel-prod/pp/atmos_cmip/ts/monthly/5yr/
 
-;filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"       ; path on workstation
-filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
-filein_modobs="/Users/silvers/data/SatData/MODIS/MCD08_M3_NC.2003th2010.total.C051.V02.gmn_ymn.nc" ; path on macbook
+filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISCCP/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/annual_5yr/atmos_cmip.1990-1994.ann.nc"
+;filein="/Users/silvers/data/am4p0/atmos_cmip.clisccp.1980-2014.cdotmn.nc" ; path on macbook
+
+filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"       ; path on workstation
+;filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
 ;
   infile = addfile(filein,"r")
-  infile_mod = addfile(filein_mod,"r")
   infile_obs = addfile(filein_obs,"r")
-  infile_modobs = addfile(filein_modobs,"r")
 print("infile is: "+filein)
-print("infile for modis is: "+filein_mod)
 print("infile for isccp observations is: "+filein_obs) ; (time, tau, plev7, lat, lon)
-print("infile for modis observations is: "+filein_modobs) ; (time, tau, plev7)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
@@ -115,14 +113,8 @@ print("infile for modis observations is: "+filein_modobs) ; (time, tau, plev7)
   field_obs=new((/7,7/),float)
   varnames="clisccp_"+ispan(1,7,1)
   varname="clisccp"
-  varnames_mod="tauctpmodis_"+ispan(1,7,1)
-  varname_mod="tauctpmodis"
   varname_modobs="Optical_Thickness_vs_Cloud_Top_Pressure"
 ;;  varnamemn="cltisccp" ; ISCCP total cloud fraction
-;     fieldobs_temp0a=infile_obs->$varname$(ftime,:,0,36,72)
-;     fieldobs_temp0b=infile_obs->$varname$(ftime,:,3,36,72)
-;     fieldobs_temp0c=infile_obs->$varname$(ftime,:,5,36,72)
-;     fieldobs_temp1=infile_obs->$varname$(ftime,3,:,36,72)
 ;print("test of isccp tau1: "+fieldobs_temp0a)
 ;print("test of isccp tau2: "+fieldobs_temp0b)
 ;print("test of isccp tau3: "+fieldobs_temp0c)
@@ -135,16 +127,12 @@ print("infile for modis observations is: "+filein_modobs) ; (time, tau, plev7)
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
   lat  = infile->lat
-  lato  = infile_obs->lat
+  lato  = infile_obs->latitude
   lon  = infile->lon
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
   clato = cos(lato*rad)
-;  field1_test = where(field1.gt.0., field1,default_fillvalue("float"))
-;  field1_weighted_ave     = wgt_areaave(field1,clat,1.0,1)
 ;
-; read in modis observations
-field_modobs=infile_modobs->$varname_modobs$(0,:,:)
 
 field_temp=infile_obs->$varname$(:,:,:,:,:)
 print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
@@ -159,7 +147,7 @@ print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
       ;
       fields_temp=infile->$pisso$(ftime,:,:)
       fields(i,j)   = wgt_areaave(fields_temp,clat,1.0,0)
-      ;fields_mod(i,j)=infile_mod->$pisso_m$(ftime,:,:)
+      ;fields(i,j)   = wgt_areaave(fields_temp,1.0,1.0,0)
       ;
       ; if j/tua is gt zero
       if (i .le. 5) then
@@ -171,47 +159,19 @@ print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
     end do
         field_obs(j,0) = 0.0
   end do
-;
-; read in data from modis simulator
-;
-fields_mod=0.0
-  do j=1,6,1 ; this should be the tau dimension
-    tempvar_m=varnames_mod(j)
-    tempvars_m=tempvar_m+"_"+ispan(1,7,1)
-    do i=0,6,1 ; this should be the plev7 dimenion
-      pisso_m=tempvars_m(i)
-;print("pisso_m is: "+pisso_m)
-      fields_mod(i,j)=infile_mod->$pisso_m$(ftime,:,:)
-    end do
-  end do
-;print("who? "+fields_mod)
-;
-; deterine which field will be tabulated and output...
+;;
+;;
+;; deterine which field will be tabulated and output...
 fields=fields(::-1,:) ; for am4 data
-fields_mod=fields_mod(::-1,:) ; for am4 data
-fields_modobs=100.*field_modobs
+
 fields_obs=field_obs ; for isccp sat observations
 
-  print("dimensions of fields_modobs: "+dimsizes(fields_modobs))
-  print("select values from fields_modobs: "+fields_modobs(3,4))
-  print("dimensions of fields_mod: "+dimsizes(fields_mod))
   print("dimensions of fields: "+dimsizes(fields))
 tot_cldfrac_isccp=sum(fields)
 tot_cldfrac_isccp_obs=sum(fields_obs)
-tot_cldfrac_mod_sim=sum(fields_mod)
-tot_cldfrac_mod_obs=sum(fields_modobs)
   print("total cloud fraction from isccp simulator : "+tot_cldfrac_isccp)
   print("total cloud fraction from isccp obs : "+tot_cldfrac_isccp_obs)
-  print("total cloud fraction from modis simulator : "+tot_cldfrac_mod_sim)
-  print("total cloud fraction from modis obs : "+tot_cldfrac_mod_obs)
 ;
-  fields_mod=where(fields_mod.le.0.001,0.0,fields_mod)
-  fields_mod=decimalPlaces(fields_mod,1,True)
-  text_values_mod=""+fields_mod
-  
-  fields_modobs=where(fields_modobs.le.0.001,0.0,fields_modobs)
-  fields_modobs=decimalPlaces(fields_modobs,1,True)
-  text_values_modobs=""+fields_modobs
   
   fields=where(fields.le.0.001,0.0,fields)
   fields=decimalPlaces(fields,1,True)
@@ -260,10 +220,10 @@ cols_for_vals = new(ncr,"string")
 cols_for_txt = new(ncr,"string")
 cols_for_vals_obs = new(ncr,"string")
 cols_for_txt_obs = new(ncr,"string")
-cols_for_vals_mod = new(ncr,"string")
-cols_for_txt_mod = new(ncr,"string")
-cols_for_vals_modobs = new(ncr,"string")
-cols_for_txt_modobs = new(ncr,"string")
+;cols_for_vals_mod = new(ncr,"string")
+;cols_for_txt_mod = new(ncr,"string")
+;cols_for_vals_modobs = new(ncr,"string")
+;cols_for_txt_modobs = new(ncr,"string")
 ;
 ; for isccp 
 cols_for_vals = colors(3)
@@ -284,18 +244,6 @@ do i=2,10
       else
         cols_for_vals_obs = cols_for_vals_obs
       end if  
-      ; for modis sim data
-      if(rng_beg.le.fields_mod(j,k) .and. fields_mod(j,k).lt.rng_end) then 
-        cols_for_vals_mod(j,k) = colors(i)
-      else
-        cols_for_vals_mod = cols_for_vals_mod
-      end if  
-      ; for modis obs data
-      if(rng_beg.le.fields_modobs(j,k) .and. fields_modobs(j,k).lt.rng_end) then 
-        cols_for_vals_modobs(j,k) = colors(i)
-      else
-        cols_for_vals_modobs = cols_for_vals_modobs
-      end if  
     end do
   end do 
 end do
@@ -311,8 +259,8 @@ end do
 ;
 cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","white","black")
 cols_for_txt_obs = where(cols_for_vals_obs.eq."Navy".or.cols_for_vals_obs.eq."MediumBlue","white","black")
-cols_for_txt_mod = where(cols_for_vals_mod.eq."Navy".or.cols_for_vals_mod.eq."MediumBlue","white","black")
-cols_for_txt_modobs = where(cols_for_vals_modobs.eq."Navy".or.cols_for_vals_modobs.eq."MediumBlue","white","black")
+;cols_for_txt_mod = where(cols_for_vals_mod.eq."Navy".or.cols_for_vals_mod.eq."MediumBlue","white","black")
+;cols_for_txt_modobs = where(cols_for_vals_modobs.eq."Navy".or.cols_for_vals_modobs.eq."MediumBlue","white","black")
 ;
 ;;-----------------------------------------------------------------------------
 ; Start the graphics.
@@ -484,163 +432,19 @@ cols_for_txt_modobs = where(cols_for_vals_modobs.eq."Navy".or.cols_for_vals_modo
   ;rest@gsLineColor   = -1                ; No border lines
   rest@gsFillColor   = cols_for_vals_obs     ; Each cell of table
   rest@txFontColor   = cols_for_txt_obs
-  ;rest@gsFillColor   = cols_for_vals_mod     ; Each cell of table
-  ;rest@txFontColor   = cols_for_txt_mod
 
   rest@txFontHeightF = 0.015             ; Size of centered text
 
   gsn_table(wks,ncr,x,y,text_values_obs,rest)    ; Draw table
  
 ; 
-; fourth table *******************************************************************
-;
-  resb4                         = True
-  resb4@gsnDraw                 = False
-  resb4@gsnFrame                = False
-
-  resb4@vpYF                    = 0.48  ; specifies the location of top edge of view object
-  resb4@vpXF                    = 0.55  ; specifies the location of the left edge of view object
-  resb4@vpHeightF               = 0.3 ; 0.45 ; 0.85
-  resb4@vpWidthF                = 0.3 ; 0.35 ; 0.75
-
-; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-  resb4@tmXBMode                = "Explicit"
-  resb4@tmXBValues              = fspan(0.,1.-col_width,ncols)
-  ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23.0,60.0/)
-  nrow_labels=(/1000,800,680,560,440,310,180/)
-  resb4@tmXBLabels              = ncol_labels
-  resb4@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Explicitly label Y axis.
-  resb4@tmYLMode                = "Explicit"
-  resb4@tmYLValues              = fspan(0.,1.-row_width,nrows)
-  resb4@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Turn off right and top tickmarks
-  resb4@tmYROn                  = False
-  resb4@tmXTOn                  = False
-
-; Main title
-  title_mod_obs=" MODIS OBS"+obsper_mod
-  ;totaltitle4 = title_mod_obs
-  resb4@tiXAxisString    = "Optical depth"
-  ;resb4@tiMainString            = totaltitle4
-
-  ;totaltitle = titlebase_mod
-  resb4@tiMainString            =title_mod_obs
-
-  blank = gsn_csm_blank_plot(wks,resb4)
-  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
-  draw(blank)                                 ; Draw tickmarks and labelbar
-;
-; Get position and size of the blank plot so we can
-; be sure to draw the table in same location.
-;
-  getvalues blank
-    "vpXF"      : vpx
-    "vpYF"      : vpy
-    "vpWidthF"  : vpw
-    "vpHeightF" : vph
-  end getvalues
-
-; Start and end coordinates for table.
-  x = (/vpx,vpx+vpw/)
-  y = (/vpy-vph,vpy/)
-
-
-; Set up resources for table
-  rest               = True
-
-  ;rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
-  ;rest@gsLineColor   = -1                ; No border lines
-  rest@gsFillColor   = cols_for_vals_modobs     ; Each cell of table
-  rest@txFontColor   = cols_for_txt_modobs
-
-  rest@txFontHeightF = 0.015             ; Size of centered text
-
-  gsn_table(wks,ncr,x,y,text_values_modobs,rest)    ; Draw table
-
-; 
-; second table *******************************************************************
-;
-  resb2                         = True
-  resb2@gsnDraw                 = False
-  resb2@gsnFrame                = False
-
-  resb2@vpYF                    = 0.92  ; specifies the location of top edge of view object
-  resb2@vpXF                    = 0.55  ; specifies the location of the left edge of view object
-  resb2@vpHeightF               = 0.3 ; 0.45 ; 0.85
-  resb2@vpWidthF                = 0.3 ; 0.35 ; 0.75
-
-; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-  resb2@tmXBMode                = "Explicit"
-  resb2@tmXBValues              = fspan(0.,1.-col_width,ncols)
-  ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23.0,60.0/)
-  nrow_labels=(/1000,800,680,560,440,310,180/)
-  resb2@tmXBLabels              = ncol_labels
-  resb2@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Explicitly label Y axis.
-  resb2@tmYLMode                = "Explicit"
-  resb2@tmYLValues              = fspan(0.,1.-row_width,nrows)
-  resb2@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Turn off right and top tickmarks
-  resb2@tmYROn                  = False
-  resb2@tmXTOn                  = False
-
-; Main title
-  totaltitle = titlebase_mod
-  resb2@tiMainString            = totaltitle
-
-  blank = gsn_csm_blank_plot(wks,resb2)
-  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
-  draw(blank)                                 ; Draw tickmarks and labelbar
-;
-; Get position and size of the blank plot so we can
-; be sure to draw the table in same location.
-;
-  getvalues blank
-    "vpXF"      : vpx
-    "vpYF"      : vpy
-    "vpWidthF"  : vpw
-    "vpHeightF" : vph
-  end getvalues
-
-; Start and end coordinates for table.
-  x = (/vpx,vpx+vpw/)
-  y = (/vpy-vph,vpy/)
-
-
-; Set up resources for table
-  rest               = True
-
-  ;rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
-  ;rest@gsLineColor   = -1                ; No border lines
-  ;rest@gsFillColor   = cols_for_vals_obs     ; Each cell of table
-  ;rest@txFontColor   = cols_for_txt_obs
-  rest@gsFillColor   = cols_for_vals_mod     ; Each cell of table
-  rest@txFontColor   = cols_for_txt_mod
-
-  rest@txFontHeightF = 0.015             ; Size of centered text
-
-  gsn_table(wks,ncr,x,y,text_values_mod,rest)    ; Draw table
+;;
 
 ;--------------------------------------------------------
 ; write out ASCII files
   option        = True
   option@row    = False
   option@tspace = 0
-
-  option@fout   = "am4ModisSim.txt"
-  option@title  = titlebase_mod
-  write_matrix (fields_mod, "7f7.2", option)
-
-  option@fout   = "ModisObs.txt"
-  option@title  = title_mod_obs
-  write_matrix (fields_modobs, "7f7.2", option)
 
   option@fout   = "ISCCPObs.txt"
   option@title  = title_obs
@@ -649,11 +453,6 @@ cols_for_txt_modobs = where(cols_for_vals_modobs.eq."Navy".or.cols_for_vals_modo
   option@fout   = "AM4IsccpObs.txt"
   option@title  = titlebase
   write_matrix (fields, "7f7.2", option)
-
-  blah=fields_modobs-fields_mod
-  option@fout   = "AM4diff.txt"
-  option@title  = "MOD obs minus MOD sim"
-  write_matrix (blah, "7f7.2", option)
 
 end
 ;

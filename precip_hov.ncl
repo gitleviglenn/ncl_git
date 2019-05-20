@@ -147,7 +147,6 @@ end if
 
 
 ; convert to mm/day
-;p_25_xt=86400*p_25_xt
 ;p_25new_xt=86400*p_25new_xt
 p_new_xt=86400*p_new_xt
 p_noc_xt=86400*p_noc_xt
@@ -171,8 +170,6 @@ hor_x=ispan(25,4000,25)
 crm2_x=ispan(2,4000,2)
 crm1_x=ispan(1,4000,1)
 
-;p_25_xt!1="xdim"
-;p_25_xt&xdim=hor_x
 p_new_xt!1="xdim"
 p_new_xt&xdim=hor_x
 p_noc_xt!1="xdim"

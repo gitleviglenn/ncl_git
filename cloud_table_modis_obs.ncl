@@ -267,8 +267,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 
 ; why doesn't png work?
 ;  wks = gsn_open_wks("ps","testplot")
-;  wks = gsn_open_wks("newpdf",outputfile)
-  wks = gsn_open_wks("eps",outputfile)
+  wks = gsn_open_wks("newpdf",outputfile)
+;  wks = gsn_open_wks("eps",outputfile)
   gsn_define_colormap(wks,colors)
 
   ;

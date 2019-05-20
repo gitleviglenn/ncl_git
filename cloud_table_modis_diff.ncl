@@ -175,7 +175,7 @@ print("global mean of non missing data "+varnamemn+" at time "+ftime+" is: "+fie
 print("dimensions of fields are: "+dimsizes(fields))
   do j=1,6,1
     tempvar=varnames(j)
-    tempvars=tempvar+"_"+ispan(0,7,1)
+    tempvars=tempvar+"_"+ispan(0,7,1) ; doesn't this create 8 tempvars?
     ;print("tempvar for j: "+varnames(j))
     do i=0,6,1
       pisso=tempvars(i+1)
@@ -184,12 +184,13 @@ print("dimensions of fields are: "+dimsizes(fields))
       ;print("piss offs: "+tempvars
       ;fields(i,j)=infile2->$pisso$(ftime,flat,flon) ; for single point
       fields(i,j)=infile->$pisso$(ftime); for global mean
+      print("what's my name?: "+pisso+" varname at i="+i+" j="+j+" value= "+fields(i,j))
       ;print(fields(i,j)+" at i="+i+" j="+j)
     end do
 ;    print("fields for i= "+i+" "+fields(i,6))
   end do
 ;
-print("single piss off: "+pisso)
+;print("single piss off: "+pisso)
 ; some schenanigans were necessary to get the plot to line up correctly with the 
 ; pressure and tau levels
 ;
@@ -385,8 +386,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 choosefig=2
   
   outputfile="testplot"
-  ;wks = gsn_open_wks("newPDF",outputfile)
-  wks = gsn_open_wks("eps",outputfile)
+  wks = gsn_open_wks("newPDF",outputfile)
+  ;wks = gsn_open_wks("eps",outputfile)
 
 if (choosefig .lt. 2) then
   gsn_define_colormap(wks,colors)

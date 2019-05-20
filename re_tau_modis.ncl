@@ -1,17 +1,24 @@
-;================================================;
-;cloud_table_misr.ncl 
+;=======================================================================================;
+;re_tau_modis.ncl 
 ;
 ; produces a table of values for cloud types ordered
-; as cloud top height (km) vs. tau using output from
-; the misr simulator
+; as reliq vs. tau using output from
+; the modis simulator
+;
+; originally based on the old script ctp_tau_misr.ncl
+;
+; the output file may have extra dimensions which should be averaged over such as
+; longitude, latitude, or time.  
+; ncwa -O -a lat,lon atmos_cosp_cfmip.187001-187012.clmisr.nc atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc
+; cdo timmean atmos_cosp_cfmip.187001-187012.clmisr.ncwa.nc test3.nc
 ;
 ; levi silvers  		march 2018
-;================================================;
+;=======================================================================================;
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"   
-; ================================================;
+;=======================================================================================;
 
 ;----------------------------------------------------------------------
 ; Procedure to attach a labelbar to the bottom of plot.
@@ -68,49 +75,48 @@ end
 begin
 
 ; open/reference desired file (use addfiles to reference multiple data file)
-modv="am4g12r18"
-toptitle="MISR "+modv+" 10 yrglmn"
-xtitle="hieght (km)"
-ytitle="optical depth"
-file_name="atmos_month_misr_"+modv+"_5yrjan_fldmean.nc"
-expname="c96L32_am4g9_2000climo_cosp_isccp/"
-archdir="/archive/Levi.Silvers/awg/ulm_201505/"
-exptree="gfdl.ncrc3-intel-prod-openmp/pp/atmos_month_misr/av/monthly_10yr/"
-;filein="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4g6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_"+file_base+".nc"
-filein=archdir+expname+exptree+file_name
+modv="am4 "
+toptitle="MODIS reice "+modv;+" 1 yrglmn"
+ytitle="reff (microns)"
+xtitle="optical depth"
 
-filein="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
-;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
+varname="jpdftaureliqmodis"
+;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureliqmodis.ncwa.tmn.nc"
+;filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureliqmodis.ncwa.tmn.nc"
+filein_new="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cosp_cfmip/ts/monthly/6yr/atmos_cosp_cfmip.200901-201412.jpdftaureliqmodis.nc"
 
- infile = addfile(filein,"r")
+;varname="jpdftaureicemodis"
+;;filein_new="/net2/Levi.Silvers/data/cfamip_testdiag/atmos_cosp_cfmip.187001-187012.jpdftaureicemodis.ncwa.tmn.nc"
+;filein_new="/archive/Levi.Silvers/data/cfmip_highfreq/atmos_cosp_cfmip.18700101-18701231.jpdftaureicemodis.ncwa.tmn.nc"
 
-print("infile is: "+filein)
 
-tau=infile->tauindx(:)
-print("tau =: "+tau)
+ infile_new = addfile(filein_new,"r")
+print("infile new is: "+filein_new)
+
 ;
 ;;-Reading and processing of data-------------------------------------------
 ;
-;;-read data----------------------------------------------------------------
-;
-;field_misr1=infile->misr_1
-;print("----------------info for misr1---------------")
-;print(field_misr1)
 
-varnames="misr_"+ispan(1,16,1)
 
-fields=new((/16,7/),float)
+fields_new=new((/6,7/),float)
+fields_new=-999
 
-do i=0,15,1
-  ;fields(i,:)=infile->$varnames(i)$(0,:,0,0)
-  fields(i,:)=infile->$varnames(i)$(0,:)
+do i=0,6,1
+  do j=0,5,1
+    fields_new(j,i)=infile_new->$varname$(0,i,j)
+  end do
 end do
+
+print("number of missing values in fields_new: "+num(ismissing(fields_new)))
+
+fields=100.*fields_new
+
+print("fields_new at i=3: "+fields_new(:,3))
+print("fields_new at j=3: "+fields_new(3,:))
 
 ; reverse the vertical dimension so that the lowest layers are at the bottom of plot
 fields=fields(::-1,:)
 
-;print("what kind of var is fields?"+fields)
-;print(fields)
 print("dimensions of fields: "+dimsizes(fields))
 ncr=dimsizes(fields)
 
@@ -121,11 +127,10 @@ print("overall min of fields is: "+min(fields))
 
 fields=where(fields.le.0.001,0.0,fields)
 fields=decimalPlaces(fields,1,True)
-;print(fields)
-text_values=""+fields
+;text_values=""+fields
 
 ncols=7
-nrows=16
+nrows=6
 col_width  = 1./ncols
 row_width  = 1./nrows
 col_width2 = col_width/2.
@@ -152,14 +157,19 @@ labels = new(dimsizes(colors)-1,string)    ; for labelbar
 cols_for_vals = new(ncr,"string")
 cols_for_txt = new(ncr,"string")
 
-contours=(/0.0,0.1,0.5,1.0,2.0,3.0,5.0,7.0,10,30/)
+; for liquid re
+contours=(/0.0,0.1,0.5,1.0,2.0,3.0,4.0,5.0,7.0,10.0/)
+; for ice re
 
 cols_for_vals = colors(3)
 do i=2,10
   do k=0,6
-    do j=0,15
+    do j=0,5
       rng_beg = contours(i-2)
       rng_end = contours(i-1)
+      if(ismissing(fields(j,k))) then
+        fields(j,k)=0.0
+      end if
       if(rng_beg.le.fields(j,k) .and. fields(j,k).lt.rng_end) then 
         cols_for_vals(j,k) = colors(i)
       else
@@ -168,6 +178,8 @@ do i=2,10
     end do
   end do 
 end do
+
+text_values=""+fields
 
 ;---Create formatted labels for the labelbar
 ;---Converts floats or doubles into formatted strings.
@@ -200,23 +212,26 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
   resb@gsnDraw                 = False
   resb@gsnFrame                = False
 
-  resb@vpYF                    = 0.92
-  resb@vpXF                    = 0.10
-  resb@vpHeightF               = 0.85
-  resb@vpWidthF                = 0.75
+  resb@vpYF                    = 0.9
+  resb@vpXF                    = 0.15
+  resb@vpHeightF               = 0.8
+  resb@vpWidthF                = 0.7
 
 ; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
   resb@tmXBMode                = "Explicit"
-  resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
+  resb@tmXBValues              = fspan(0.,1.-col_width,ncols)
   print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
-  ncol_labels=(/0.15,0.80,2.45,6.50,16.2,41.5,100./)
-  nrow_labels=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,7.0,9.0,11.0,13.0,15.0,17.0/)
+  ncol_labels=(/0.0,0.3,1.3,3.6,9.4,23,60./)
+; for liq re
+;  nrow_labels=(/8.0,10.0,13.0,15.0,20.0,30.0/)
+; for ice re
+  nrow_labels=(/10.0,20.0,30.0,40.0,60.0,90.0/)
   resb@tmXBLabels              = ncol_labels
   resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
 
 ; Explicitly label Y axis.
   resb@tmYLMode                = "Explicit"
-  resb@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
+  resb@tmYLValues              = fspan(0.+row_width,1.,nrows)
   resb@tmYLLabels              = nrow_labels
 ;
 ; The Y labels need to be reversed, because the label in the first
@@ -236,6 +251,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ; Main title
   ;resb@tiMainString            = file_base
   resb@tiMainString            = toptitle
+  resb@tiXAxisString    = xtitle
+  resb@tiYAxisString    = ytitle
 
   blank = gsn_csm_blank_plot(wks,resb)
   add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
@@ -259,8 +276,8 @@ cols_for_txt = where(cols_for_vals.eq."Navy".or.cols_for_vals.eq."MediumBlue","w
 ; Set up resources for table
   rest               = True
 
-  ;rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
+  rest@tiXAxisString    = xtitle
+  rest@tiYAxisString    = ytitle
   rest@gsLineColor   = -1                ; No border lines
   rest@gsFillColor   = cols_for_vals     ; Each cell of table
   rest@txFontColor   = cols_for_txt
