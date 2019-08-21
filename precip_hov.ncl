@@ -104,10 +104,11 @@ end if
 
 print("dimsizes of field_1km are: "+dimsizes(field_1km))
 
+numdays=1800
 ; determine how much of the experiment to plot...
 ;field_new = data_25km_new->$var1$(:,:,:)
-field_new = data_25km_new->$var1$(0:180,:,:)
-field_noc = data_25km_new_noc->$var1$(0:180,:,:)
+field_new = data_25km_new->$var1$(0:numdays,:,:)
+field_noc = data_25km_new_noc->$var1$(0:numdays,:,:)
 
 ;p_25_xt=dim_avg_n(field1,1)
 p_new_xt=dim_avg_n(field_new,1)
@@ -407,11 +408,11 @@ print("you putz")
 ; plot(0) = gsn_csm_contour(wks,p_25full_xt,res)
  plot(0) = gsn_csm_contour(wks,p_new_xt,res)
 resP                         = True
-resP@txString                = " " 
-;resP@txString                = "good grief"
-resP@txString                = fileout
-resP@gsnPanelLabelBar        = True
-resP@lbLabelFontHeightF      = 0.012
+;resP@txString                = " " 
+;;resP@txString                = "good grief"
+;;resP@txString                = fileout
+;resP@gsnPanelLabelBar        = True
+;resP@lbLabelFontHeightF      = 0.012
 
 gsn_panel(wks,plot,(/1,1/),resP)
 
