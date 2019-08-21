@@ -35,7 +35,7 @@ title6="T on 700 hPa "
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="~/data/amip_Long/"
+datapath="~/data/amip_Long/data_from_2017/"
 ;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 period="late"
 ;period="early" 
