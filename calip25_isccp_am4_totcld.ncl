@@ -384,7 +384,8 @@ my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
 ;my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low numbers are dark colors
 my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
 my_colors_green = (/66,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
-my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors
+;my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors
+my_colors_blue = (/0,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16/) ; 16 --> low numbers are dark colors
 ;my_colors_blue = (/34,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
@@ -398,7 +399,7 @@ my_colors_red = (/129,139,149,159,169,179,189,199,209,219,229,234,239,244,249,25
   ;gsn_define_colormap(wks,"matlab_jet")
   ;gsn_define_colormap(wks,"MPL_BrBG")
 
-figurenumber = 2 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
+figurenumber = 3 ; 2 will trigger the 3 panel figure to be plotted, 1 is defualt
 ; 2 prints 3 panel figure with isccp, calipso, and am4 output
 ; 3 prints 3 panel figure with calipso, calipso simulator and am4 output
 
@@ -552,7 +553,8 @@ else ;--------------------------------------------------------------------------
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
   res@cnLevels          = my_levels2
-  res@cnFillColors      = my_colors_red
+  res@cnFillColors      = my_colors_blue
+  ;res@cnFillColors      = my_colors_red
   ;res@cnFillColors      = my_colors_blured
   res@txFontHeightF     = 0.015 
   res@lbLabelBarOn       = False
