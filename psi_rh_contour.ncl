@@ -8,7 +8,7 @@ begin
 
 ;-----------------------------------
 ; define parameters for script:
-figurenumber = 2 ; 1 is defualt for crm resolution, 2 or greater is for gcm res
+figurenumber = 1 ; 1 is defualt for crm resolution, 2 or greater is for gcm res
 crm_grid = 2 ; 1 for 1km, 2 for 2km
 ensind=2
 expstring="ctl" ; lwoff or ctl
