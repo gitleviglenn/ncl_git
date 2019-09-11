@@ -1,9 +1,13 @@
 ;***********************************************************************************
-; alpha_tseries.ncl
+; alpha_tseries_1pan.ncl
 ; 
 ; Function codes: see https://www.ncl.ucar.edu/Applications/fcodes.shtml
 ; for useful examples.  This is how I inserted superscipts in the axis labels
 ;
+; mirror plot 1b of Silvers et al. 2017 GRL, but include windows and rest of tropics
+; region from windows used by Qu et al. 2014.  
+;
+; levi silvers                                                     November 7, 2017
 ;***********************************************************************************
 ;***********************************************************************************
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -14,10 +18,8 @@
 begin
 ;***********************************************************************************
 
-datapath="~/data/amip_Long/data_from_2017/"
-;infile1=datapath+"armlane.nc"
-infile1=datapath+"idiot_box2.nc"
-;infile2=datapath+"whatisyourdamage.nc"
+datapath="~/data/amip_Long/"
+infile1=datapath+"idiot_box3.nc"
 infile2=datapath+"quwindows.nc"
 f1=addfile(infile1,"r")
 f2=addfile(infile2,"r")
@@ -32,17 +34,29 @@ print("incoming file2 is: "+infile2)
   alpha_ensmn_am2_f1     = f1->alpha_ensmn_am2(:) 
 
   alpha_cre_am4_f1           = f1->alpha_cre_ensmbr_am4(:,:) 
+  alpha_clr_am4_f1           = f1->alpha_clr_ensmbr_am4(:,:) 
   alpha_cre_ensmn_am4_f1     = f1->alpha_cre_ensmn_am4(:) 
+  alpha_clr_ensmn_am4_f1     = f1->alpha_clr_ensmn_am4(:) 
   alpha_lwcre_ensmn_am4_f1   = f1->alpha_lwcre_ensmn_am4(:) 
+  alpha_lwcre_am4_f1         = f1->alpha_lwcre_ensmbr_am4(:,:) 
   alpha_swcre_ensmn_am4_f1   = f1->alpha_swcre_ensmn_am4(:) 
+  alpha_swcre_am4_f1         = f1->alpha_swcre_ensmbr_am4(:,:) 
   alpha_cre_am3_f1           = f1->alpha_cre_ensmbr_am3(:,:) 
+  alpha_clr_am3_f1           = f1->alpha_clr_ensmbr_am3(:,:) 
   alpha_cre_ensmn_am3_f1     = f1->alpha_cre_ensmn_am3(:) 
+  alpha_clr_ensmn_am3_f1     = f1->alpha_clr_ensmn_am3(:) 
   alpha_lwcre_ensmn_am3_f1   = f1->alpha_lwcre_ensmn_am3(:) 
+  alpha_lwcre_am3_f1         = f1->alpha_lwcre_ensmbr_am3(:,:) 
   alpha_swcre_ensmn_am3_f1   = f1->alpha_swcre_ensmn_am3(:) 
+  alpha_swcre_am3_f1         = f1->alpha_swcre_ensmbr_am3(:,:) 
   alpha_cre_am2_f1           = f1->alpha_cre_ensmbr_am2(:,:) 
+  alpha_clr_am2_f1           = f1->alpha_clr_ensmbr_am2(:,:) 
   alpha_cre_ensmn_am2_f1     = f1->alpha_cre_ensmn_am2(:) 
+  alpha_clr_ensmn_am2_f1     = f1->alpha_clr_ensmn_am2(:) 
   alpha_lwcre_ensmn_am2_f1   = f1->alpha_lwcre_ensmn_am2(:) 
+  alpha_lwcre_am2_f1         = f1->alpha_lwcre_ensmbr_am2(:,:) 
   alpha_swcre_ensmn_am2_f1   = f1->alpha_swcre_ensmn_am2(:) 
+  alpha_swcre_am2_f1         = f1->alpha_swcre_ensmbr_am2(:,:) 
 
   alpha_lcc_am4_f1           = f1->alpha_lcc_ensmbr_am4(:,:) 
   alpha_lcc_ensmn_am4_f1     = f1->alpha_lcc_ensmn_am4(:) 
@@ -361,46 +375,13 @@ am4_qucan=dim_avg_n(am4_qucan_arr,1)
 ; compute sums over desired geographic regions for plotting
 
   ;am4_tropsrest      = am4_trops1+am4_trops2+am4_trops3+am4_trops4+am4_trops5+am4_trops6
-  am4_trops_ns        = am4_strops+am4_ntrops
+  am4_trops_ns        = am4_strops+am4_ntrops ; should be tropics between +/- 30 degrees
   am4_tropwinds       = am4_satl+am4_sind+am4_epac
   am4_tropsrest       = am4_trops1+am4_trops2+am4_trops3+am4_trops4+am4_trops5+am4_trops6
+; determined the tropical (+/-) region outside the realm of Qu et al.'s 2014 windows is a mess.  I used the 12 windows below
   am4_trops_qu_rest   = am4_tropsA+am4_tropsB1+am4_tropsB2+am4_tropsC+am4_tropsD+am4_tropsE+am4_tropsF+am4_tropsG+am4_tropsH+am4_tropsI+am4_tropsJ+am4_tropsK
-  am4_lctrops_qu      = am4_qucal+am4_quper+am4_quaus+am4_qunam1+am4_qunam2+am4_qucan
+  am4_lctrops_qu      = am4_qucal+am4_quper+am4_quaus+am4_qunam1+am4_qunam2+am4_qucan ; 5 windows from Qu et al. 2014
   am4_qu_tr_windowsum = am4_lctrops_qu+am4_trops_qu_rest
-
-;; I am confused about what the code below is doing.  why am i only using ensnumber and not a loop?
-;; am i plotting the time series from individual members here?
-;  am3_ntrops = f2->alpha_window_am3(:,ensnumber,4)
-;  am3_strops = f2->alpha_window_am3(:,ensnumber,5)
-;; grap timeseries for the tropical windows
-;  am3_satl   = f2->alpha_window_am3(:,ensnumber,0)
-;  am3_sind   = f2->alpha_window_am3(:,ensnumber,1)
-;  am3_epac   = f2->alpha_window_am3(:,ensnumber,2)
-;; grap timeseries for the rest of the tropics
-;  am3_trops1 = f2->alpha_window_am3(:,ensnumber,8)
-;  am3_trops2 = f2->alpha_window_am3(:,ensnumber,9)
-;  am3_trops3 = f2->alpha_window_am3(:,ensnumber,10)
-;  am3_trops4 = f2->alpha_window_am3(:,ensnumber,11)
-;  am3_trops5 = f2->alpha_window_am3(:,ensnumber,12)
-;  am3_trops6 = f2->alpha_window_am3(:,ensnumber,13)
-;
-;  ;am3_tropsrest   = am3_trops1+am3_trops2+am3_trops3+am3_trops4+am3_trops5+am3_trops6
-;  am3_tropwinds   = am3_satl+am3_sind+am3_epac
-;  am3_tropsrest   = am3_trops1+am3_trops2+am3_trops3+am3_trops4+am3_trops5+am3_trops6
-;
-;  am2_ntrops = f2->alpha_window_am2(:,ensnumber,4)
-;  am2_strops = f2->alpha_window_am2(:,ensnumber,5)
-;; grap timeseries for the tropical windows
-;  am2_satl   = f2->alpha_window_am2(:,ensnumber,0)
-;  am2_sind   = f2->alpha_window_am2(:,ensnumber,1)
-;  am2_epac   = f2->alpha_window_am2(:,ensnumber,2)
-;; grap timeseries for the rest of the tropics
-;  am2_trops1 = f2->alpha_window_am2(:,ensnumber,8)
-;  am2_trops2 = f2->alpha_window_am2(:,ensnumber,9)
-;  am2_trops3 = f2->alpha_window_am2(:,ensnumber,10)
-;  am2_trops4 = f2->alpha_window_am2(:,ensnumber,11)
-;  am2_trops5 = f2->alpha_window_am2(:,ensnumber,12)
-;  am2_trops6 = f2->alpha_window_am2(:,ensnumber,13)
 
   am3_tropwinds   = am3_satl+am3_sind+am3_epac
   am3_trops_ns        = am3_strops+am3_ntrops
@@ -424,47 +405,26 @@ alpha_am4_f1!1 = "ensnum"
 print("dimsizes of alpha_am4_f1 are: "+dimsizes(alpha_am4_f1))
 
 
-mnmx = new((/6,105/), float)
-mnmx(0,:) = dim_min( alpha_am4_f1)
-mnmx(1,:) = dim_max( alpha_am4_f1)
-mnmx(2,:) = dim_min( alpha_am3_f1)
-mnmx(3,:) = dim_max( alpha_am3_f1)
-mnmx(4,:) = dim_min( alpha_am2_f1)
-mnmx(5,:) = dim_max( alpha_am2_f1)
-
-mnmx_cre = new((/6,105/), float)
-mnmx_cre(0,:) = dim_min( alpha_cre_am4_f1)
-mnmx_cre(1,:) = dim_max( alpha_cre_am4_f1)
-mnmx_cre(2,:) = dim_min( alpha_cre_am3_f1)
-mnmx_cre(3,:) = dim_max( alpha_cre_am3_f1)
-mnmx_cre(4,:) = dim_min( alpha_cre_am2_f1)
-mnmx_cre(5,:) = dim_max( alpha_cre_am2_f1)
-
-mnmx_lcc = new((/6,105/), float)
-mnmx_lcc(0,:) = dim_min( alpha_lcc_am4_f1)
-mnmx_lcc(1,:) = dim_max( alpha_lcc_am4_f1)
-mnmx_lcc(2,:) = dim_min( alpha_lcc_am3_f1)
-mnmx_lcc(3,:) = dim_max( alpha_lcc_am3_f1)
-mnmx_lcc(4,:) = dim_min( alpha_lcc_am2_f1)
-mnmx_lcc(5,:) = dim_max( alpha_lcc_am2_f1)
-
 ;-----------------------------------------------------------
 wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+;wks = gsn_open_wks("pdf","testplot")          ; send graphics to PNG file
 ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
 
 gsn_define_colormap(wks,"GMT_relief_oceanonly")
 
-;am2fill="orange1"
 am2fill="paleturquoise1"
 am3fill="palegreen2"
 am4fill="cornsilk3"
 
-;am2line="royalblue1"
 am2line="deepskyblue3"
 am3line="darkgreen"
 am4line="black"
 
-plot = new(4,graphic)
+length=0.40
+height=0.25
+
+scalef=-1.
+
 
 res                   = True
 res@trYMinF           = -3.5
@@ -473,57 +433,95 @@ res@trXMinF           = 1885
 res@trXMaxF           = 1990
 ;res@tmYLLabelFontHeightF = 0.01
 res@tiYAxisFontHeightF = 0.011
-res@tiYAxisString    = "Climate feedback parameter (W "+"m~S~-2~NN~K~S~-1"+"~N~"+")" 
-res@tiXAxisString    = " "
 res@tmYROn            = False
 res@tmXTOn            = False
 res@tmXTBorderOn      = False
 res@tmYRBorderOn      = False
-res@gsnDraw           = False ; default: T
-res@gsnFrame          = False ; default: T
-
-length=0.40
-height=0.25
+res@gsnDraw           = True ; default: T
+res@gsnFrame          = False; default: T
 
 res@vpWidthF          = length
 res@vpHeightF         = height
-
-scalef=-1.
-
-
-res@gsnXYFillColors = am2fill 
-res@xyLineColor     = -1
-am2_cloud  = gsn_csm_xy(wks,time,scalef*mnmx(4:5,:),res) ; create filled xy plot
-
-res@gsnXYFillColors = am3fill
-res@xyLineColor     = -1
-am3_cloud  = gsn_csm_xy(wks,time,scalef*mnmx(2:3,:),res) ; create filled xy plot
-
-res@gsnXYFillColors = am4fill
-res@xyLineColor     = -1
-am4_cloud  = gsn_csm_xy(wks,time,scalef*mnmx(0:1,:),res) ; create filled xy plot
+res@tiYAxisString    = "Climate feedback parameter (W "+"m~S~-2~NN~K~S~-1"+"~N~"+")"
+res@tiXAxisString    = "Year "
+res@xyLineColors  = am4line
+res@xyLineThicknessF   = 1.0
 
 res@xyLineThicknessF   = 3.0
-res@xyLineColors  = am2line
-ens_am2mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am2_f1(:),res)
-
-res@xyLineColors  = am3line
-ens_am3mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am3_f1(:),res)
-
-res@xyLineColors  = am4line
+res@xyDashPattern = 2 ; short dash
+tropwinds_am4mn = gsn_csm_xy(wks,time,scalef*am4_tropwinds(:),res)
+res@xyDashPattern = 16 ; long dash
+tropsrest_am4mn = gsn_csm_xy(wks,time,scalef*am4_tropsrest(:),res)
+res@xyDashPattern = 2  ; short dashed, almost dots
+res@xyLineThicknessF   = 1.0
+trops_qu_lcc_am4mn = gsn_csm_xy(wks,time,scalef*am4_lctrops_qu(:),res)
+res@xyDashPattern = 16 ; long dash
+trops_qu_rest_am4mn = gsn_csm_xy(wks,time,scalef*am4_trops_qu_rest(:),res)
+res@xyDashPattern = 0
+res@xyLineThicknessF   = 3.0
+;trops_ns_am4mn = gsn_csm_xy(wks,time,scalef*am4_trops_ns(:),res)
+res@xyDashPattern = 0
 ens_am4mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am4_f1(:),res)
 
-overlay(am2_cloud,am3_cloud)
-overlay(am2_cloud,am4_cloud)
-overlay(am2_cloud,ens_am2mn)
-overlay(am2_cloud,ens_am3mn)
-overlay(am2_cloud,ens_am4mn)
+res@xyLineColors  = am3line
+res@xyDashPattern = 16
+res@xyLineThicknessF   = 3.0
+res@xyDashPattern = 2 ; short dash
+tropwinds_am3mn = gsn_csm_xy(wks,time,scalef*am3_tropwinds(:),res)
+res@xyDashPattern = 16 ; long dash
+tropsrest_am3mn = gsn_csm_xy(wks,time,scalef*am3_tropsrest(:),res)
+res@xyDashPattern = 2
+res@xyLineThicknessF   = 1.0
+trops_qu_lcc_am3mn = gsn_csm_xy(wks,time,scalef*am3_lctrops_qu(:),res)
+res@xyDashPattern = 16 ; long dash
+trops_qu_rest_am3mn = gsn_csm_xy(wks,time,scalef*am3_trops_qu_rest(:),res)
+res@xyDashPattern = 0
+res@xyLineThicknessF   = 3.0
+;trops_ns_am3mn = gsn_csm_xy(wks,time,scalef*am3_trops_ns(:),res)
+res@xyDashPattern = 0
+ens_am3mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am3_f1(:),res)
 
-; crap for the legend
+res@xyLineColors  = am2line
+res@xyDashPattern = 16
+res@xyLineThicknessF   = 3.0
+res@xyDashPattern = 2 ; short dash
+tropwinds_am2mn = gsn_csm_xy(wks,time,scalef*am2_tropwinds(:),res)
+res@xyDashPattern = 16
+tropsrest_am2mn = gsn_csm_xy(wks,time,scalef*am2_tropsrest(:),res)
+res@xyDashPattern = 2
+res@xyLineThicknessF   = 1.0
+trops_qu_lcc_am2mn = gsn_csm_xy(wks,time,scalef*am2_lctrops_qu(:),res)
+res@xyDashPattern = 16 ; short dash
+trops_qu_rest_am2mn = gsn_csm_xy(wks,time,scalef*am2_trops_qu_rest(:),res)
+res@xyDashPattern = 0
+res@xyLineThicknessF   = 3.0
+;trops_ns_am2mn = gsn_csm_xy(wks,time,scalef*am2_trops_ns(:),res)
+res@xyDashPattern = 0
+ens_am2mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am2_f1(:),res)
 
-ltitle3="  GFDL AM4.0"
-ltitle2="  GFDL AM3"
-ltitle1="  GFDL AM2.1"
+;overlay(tropwinds_am4mn,tropwinds_am2mn)
+;overlay(tropwinds_am4mn,tropsrest_am2mn)
+;overlay(tropwinds_am4mn,ens_am2mn)
+;;overlay(tropwinds_am4mn,trops_qu_lcc_am2mn)
+;;overlay(tropwinds_am4mn,trops_qu_rest_am2mn)
+;
+;overlay(tropwinds_am4mn,tropwinds_am3mn)
+;overlay(tropwinds_am4mn,ens_am3mn)
+;overlay(tropwinds_am4mn,tropsrest_am3mn)
+;;overlay(tropwinds_am4mn,trops_qu_lcc_am3mn)
+;;overlay(tropwinds_am4mn,trops_qu_rest_am3mn)
+;
+;overlay(tropwinds_am4mn,ens_am4mn)
+;overlay(tropwinds_am4mn,tropsrest_am4mn)
+;;overlay(tropwinds_am4mn,trops_qu_lcc_am4mn)
+;;overlay(tropwinds_am4mn,trops_qu_rest_am4mn)
+
+; legend for panel (B)
+
+ltitle1="  Global"
+ltitle2="  Tropics"
+;ltitle3="  Tropics-Windows"
+ltitle3="  Windows"
 lthick=3.0
 
 colors1 = (/am2line,am3line,am4line/) 
@@ -531,262 +529,44 @@ colors1 = (/am2line,am3line,am4line/)
 lgres                      = True
 lgres@xyLabelMode            = "Custom"
 lgres@xyLineLabelFontHeightF = 0.015                ; font height
-lgres@lgLineColors         = (/colors1(0),colors1(1),colors1(2)/)
+lgres@lgLineColors         = (/colors1(2),colors1(2),colors1(2)/)
 lgres@lgItemType           = "Lines"
-;lgres@lgLabelFontHeightF   = .10
 lgres@lgLabelFontHeightF   = .08
-lgres@vpWidthF             = 0.12        ; width of legend
-;lgres@vpHeightF            = 0.18        ; height of legend
+lgres@vpWidthF             = 0.1        ; width of legend
 lgres@vpHeightF            = 0.1        ; height of legend
 lgres@lgLineThicknessF     = lthick
 lgres@lgPerimThicknessF    = 2.0
 lgres@lgMonoDashIndex      = False
-lgres@lgDashIndexes          = (/"0","0","0"/)
+lgres@lgDashIndexes        = (/"0","16","2"/)
 lgres@lgPerimOn            = False
-
 
 labels = (/ltitle1,ltitle2,ltitle3/)
 legend  = gsn_create_legend (wks, 3, labels, lgres)
 amres = True
 amres@amJust = "BottomRight"
-;amres@amParallelPosF   = 0.44    ; Move legend to right
 amres@amParallelPosF   = 0.5    ; Move legend to right
 amres@amOrthogonalPosF = -0.05     ; Move legend down
 
-annoid = gsn_add_annotation(am2_cloud,legend,amres) ; add legend to plot
+annoid = gsn_add_annotation(tropwinds_am4mn,legend,amres) ; add legend to plot
 
-plot(0) = am2_cloud
+;plot = tropwinds_am4mn
 
-; second plot - --------------------------------------------------
-res@vpWidthF          = length
-res@vpHeightF         = height
-res@tiYAxisString    = "Climate feedback parameter (W "+"m~S~-2~NN~K~S~-1"+"~N~"+")"
-res@tiXAxisString    = " "
-res@xyLineColors  = am4line
-res@xyLineThicknessF   = 1.0
-
-res@xyDashPattern = 16
-res@xyLineThicknessF   = 2.0
-tropwinds_am4mn = gsn_csm_xy(wks,time,scalef*am4_tropwinds(:),res)
-tropsrest_am4mn = gsn_csm_xy(wks,time,scalef*am4_tropsrest(:),res)
-res@xyDashPattern = 3
-res@xyLineThicknessF   = 1.0
-trops_qu_lcc_am4mn = gsn_csm_xy(wks,time,scalef*am4_lctrops_qu(:),res)
-trops_qu_rest_am4mn = gsn_csm_xy(wks,time,scalef*am4_trops_qu_rest(:),res)
-res@xyDashPattern = 0
-res@xyLineThicknessF   = 3.0
-trops_ns_am4mn = gsn_csm_xy(wks,time,scalef*am4_trops_ns(:),res)
-ens_am4mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am4_f1(:),res)
-
-;res@xyDashPattern = 3
-;res@xyLineThicknessF   = 2.0
-;tropsrest_am4mn = gsn_csm_xy(wks,time,scalef*am4_tropsrest(:),res)
-;res@xyLineThicknessF   = 1.0
-;trops_qu_rest_am4mn = gsn_csm_xy(wks,time,scalef*am4_trops_qu_rest(:),res)
-;res@xyLineThicknessF   = 1.0
-;res@xyDashPattern = 5
-;trops_qu_windsum_am4mn = gsn_csm_xy(wks,time,scalef*am4_qu_tr_windowsum(:),res)
-
-res@xyLineColors  = am3line
-res@xyDashPattern = 16
-res@xyLineThicknessF   = 2.0
-tropwinds_am3mn = gsn_csm_xy(wks,time,scalef*am3_tropwinds(:),res)
-tropsrest_am3mn = gsn_csm_xy(wks,time,scalef*am3_tropsrest(:),res)
-res@xyDashPattern = 3
-res@xyLineThicknessF   = 1.0
-trops_qu_lcc_am3mn = gsn_csm_xy(wks,time,scalef*am3_lctrops_qu(:),res)
-trops_qu_rest_am3mn = gsn_csm_xy(wks,time,scalef*am3_trops_qu_rest(:),res)
-res@xyDashPattern = 0
-res@xyLineThicknessF   = 3.0
-trops_ns_am3mn = gsn_csm_xy(wks,time,scalef*am3_trops_ns(:),res)
-ens_am3mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am3_f1(:),res)
-
-res@xyLineColors  = am2line
-res@xyDashPattern = 16
-res@xyLineThicknessF   = 2.0
-tropwinds_am2mn = gsn_csm_xy(wks,time,scalef*am2_tropwinds(:),res)
-tropsrest_am2mn = gsn_csm_xy(wks,time,scalef*am2_tropsrest(:),res)
-res@xyDashPattern = 3
-res@xyLineThicknessF   = 1.0
-trops_qu_lcc_am2mn = gsn_csm_xy(wks,time,scalef*am2_lctrops_qu(:),res)
-trops_qu_rest_am2mn = gsn_csm_xy(wks,time,scalef*am2_trops_qu_rest(:),res)
-res@xyDashPattern = 0
-res@xyLineThicknessF   = 3.0
-trops_ns_am2mn = gsn_csm_xy(wks,time,scalef*am2_trops_ns(:),res)
-ens_am2mn = gsn_csm_xy(wks,time,scalef*alpha_ensmn_am2_f1(:),res)
-
-overlay(tropwinds_am4mn,tropwinds_am2mn)
-overlay(tropwinds_am4mn,ens_am2mn)
-overlay(tropwinds_am4mn,tropsrest_am2mn)
-overlay(tropwinds_am4mn,trops_qu_lcc_am2mn)
-overlay(tropwinds_am4mn,trops_qu_rest_am2mn)
-
-overlay(tropwinds_am4mn,tropwinds_am3mn)
-overlay(tropwinds_am4mn,ens_am3mn)
-overlay(tropwinds_am4mn,tropsrest_am3mn)
-overlay(tropwinds_am4mn,trops_qu_lcc_am3mn)
-overlay(tropwinds_am4mn,trops_qu_rest_am3mn)
-
-overlay(tropwinds_am4mn,ens_am4mn)
-overlay(tropwinds_am4mn,tropsrest_am4mn)
-overlay(tropwinds_am4mn,trops_qu_lcc_am4mn)
-overlay(tropwinds_am4mn,trops_qu_rest_am4mn)
-
-;overlay(tropwinds_am4mn,trops_qu_rest_am4mn)
-;overlay(tropwinds_am4mn,trops_qu_lcc_am4mn)
-;;overlay(tropwinds_am4mn,trops_qu_windsum_am4mn)
-;overlay(tropwinds_am4mn,trops_ns_am4mn)
-
-plot(1) = tropwinds_am4mn
-
-; third plot - ---------------------------------------------------
-res3                   = True
-res3@trXMinF           = 1885
-res3@trXMaxF           = 1990
-res3@tiYAxisFontHeightF = 0.011
-res3@tiYAxisString    = "Cloud feedback parameter (W "+"m~S~-2~NN~K~S~-1"+"~N~"+")"
-res3@tiXAxisString    = "Year"
-res3@tmYROn            = False
-res3@tmXTOn            = False
-res3@tmXTBorderOn      = False
-res3@tmYRBorderOn      = False
-res3@gsnDraw           = False ; default: T
-res3@gsnFrame          = False ; default: T
-
-res3@xyLineThicknessF   = 1.0
-res3@xyLineColor     = -1
-res3@trYMinF           = -2.0
-res3@trYMaxF           = 1.5
-
-res3@vpWidthF          = length
-res3@vpHeightF         = height
-;res3@tiMainString      = "where"
-
-scalef=1.0
-
-res3@xyLineColor     = -1
-res3@gsnXYFillColors = am2fill 
-res3@xyLineColor     = -1
-am2_cre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_cre(4:5,:),res3) ; create filled xy plot
-res3@xyLineColor     = -1
-res3@gsnXYFillColors = am3fill 
-res3@xyLineColor     = -1
-am3_cre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_cre(2:3,:),res3) ; create filled xy plot
-res3@xyLineColor     = -1
-res3@gsnXYFillColors = am4fill
-res3@xyLineColor     = -1
-am4_cre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_cre(0:1,:),res3) ; create filled xy plot
-
-res3@xyLineThicknessF   = 3.0
-res3@xyLineColors  = am2line
-ens_cre_am2mn = gsn_csm_xy(wks,time,scalef*alpha_cre_ensmn_am2_f1(:),res3)
-res3@xyLineThicknessF   = 2.0
-res3@xyDashPattern = 2
-ens_lwcre_am2mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am2_f1(:),res3)
-res3@xyDashPattern = 1
-ens_swcre_am2mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am2_f1(:),res3)
-res3@xyLineThicknessF   = 3.0
-res3@xyDashPattern = 0
-
-res3@xyLineColors  = am3line
-ens_cre_am3mn = gsn_csm_xy(wks,time,scalef*alpha_cre_ensmn_am3_f1(:),res3)
-res3@xyLineThicknessF   = 2.0
-res3@xyDashPattern = 2
-ens_lwcre_am3mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am3_f1(:),res3)
-res3@xyDashPattern = 1
-ens_swcre_am3mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am3_f1(:),res3)
-res3@xyLineThicknessF   = 3.0
-res3@xyDashPattern = 0
-
-res3@xyLineColors  = am4line
-ens_cre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_cre_ensmn_am4_f1(:),res3)
-res3@xyLineThicknessF   = 2.0
-res3@xyDashPattern = 2
-ens_lwcre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am4_f1(:),res3)
-res3@xyDashPattern = 1
-ens_swcre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am4_f1(:),res3)
-res3@xyDashPattern = 0
-
-overlay(am2_cre_cloud,am3_cre_cloud)
-overlay(am2_cre_cloud,am4_cre_cloud)
-overlay(am2_cre_cloud,ens_cre_am2mn)
-overlay(am2_cre_cloud,ens_cre_am3mn)
-overlay(am2_cre_cloud,ens_cre_am4mn)
-overlay(am2_cre_cloud,ens_lwcre_am2mn)
-overlay(am2_cre_cloud,ens_swcre_am2mn)
-overlay(am2_cre_cloud,ens_lwcre_am3mn)
-overlay(am2_cre_cloud,ens_swcre_am3mn)
-overlay(am2_cre_cloud,ens_lwcre_am4mn)
-overlay(am2_cre_cloud,ens_swcre_am4mn)
-
-plot(2) = am2_cre_cloud
-
-; fourth plot - --------------------------------------------------
-res4                   = True
-res4@trXMinF           = 1885
-res4@trXMaxF           = 1990
-res4@tiYAxisFontHeightF = 0.011
-res4@tiYAxisString    = "Cloud anomaly parameter (% "+"K~S~-1"+"~N~"+")"
-res4@tiXAxisString    = "Year"
-res4@tmYROn            = False
-res4@tmXTOn            = False
-res4@tmXTBorderOn      = False
-res4@tmYRBorderOn      = False
-res4@gsnDraw           = False ; default: T
-res4@gsnFrame          = False ; default: T
-
-res4@xyLineThicknessF   = 1.0
-res4@xyLineColor     = -1
-res4@trYMinF           = -2.0
-res4@trYMaxF           = 1.5
-
-res4@vpWidthF          = length
-res4@vpHeightF         = height
-
-;res4@vpWidthF          = .81
-;res4@vpHeightF         = .5
-;res4@tiMainString      = "how"
-
-scalef=1.0
-
-res4@xyLineColor     = -1
-res4@gsnXYFillColors = am2fill 
-res4@xyLineColor     = -1
-am2_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(4:5,:),res4) ; create filled xy plot
-res4@xyLineColor     = -1
-res4@gsnXYFillColors = am3fill
-res4@xyLineColor     = -1
-am3_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(2:3,:),res4) ; create filled xy plot
-res4@xyLineColor     = -1
-res4@gsnXYFillColors = am4fill
-res4@xyLineColor     = -1
-am4_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(0:1,:),res4) ; create filled xy plot
-
-res4@xyLineThicknessF   = 3.0
-res4@xyLineColors  = am2line
-ens_lcc_am2mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am2_f1(:),res4)
-
-res4@xyLineColors  = am3line
-ens_lcc_am3mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am3_f1(:),res4)
-
-res4@xyLineColors  = am4line
-ens_lcc_am4mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am4_f1(:),res4)
-
-
-overlay(am2_lcc_cloud,am3_lcc_cloud)
-overlay(am2_lcc_cloud,am4_lcc_cloud)
-overlay(am2_lcc_cloud,ens_lcc_am2mn)
-overlay(am2_lcc_cloud,ens_lcc_am3mn)
-overlay(am2_lcc_cloud,ens_lcc_am4mn)
-
-plot(3) = am2_lcc_cloud
-
-; -----------------------------------
-;frame(wks)
-respanel = True
-respanel@gsnPanelFigureStrings= (/"a)","b)","c)","d)"/)
-respanel@amJust = "TopLeft"
-;respanel@txString = "16 hp"
-gsn_panel(wks,plot,(/2,2/),respanel)
+;; third plot - ---------------------------------------------------
+;
+;; fourth plot - --------------------------------------------------
+;overlay(am2_lcc_cloud,ens_lcc_am3mn)
+;overlay(am2_lcc_cloud,ens_lcc_am4mn)
+;
+;plot(3) = am2_lcc_cloud
+;
+;
+;;; -----------------------------------
+frame(wks)
+;;respanel = True
+;;;respanel@gsnPanelFigureStrings= (/"a)","b)","c)","d)"/)
+;;;respanel@gsnPanelFigureStrings= (/"a)","b)","c)","d)","e)","f)"/)
+;;respanel@gsnPanelFigureStrings= (/"A","B","C","D","E","F"/)
+;;respanel@amJust = "TopLeft"
+;;gsn_panel(wks,plot,(/3,2/),respanel)
 
 end

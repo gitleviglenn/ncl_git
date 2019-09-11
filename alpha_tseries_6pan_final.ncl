@@ -19,7 +19,7 @@
 begin
 ;***********************************************************************************
 
-datapath="~/data/amip_Long/"
+datapath="~/data/amip_Long/data_from_2017/"
 ;infile1=datapath+"armlane.nc"
 infile1=datapath+"idiot_box3.nc"
 ;infile2=datapath+"whatisyourdamage.nc"

@@ -1,4 +1,4 @@
-;***********************************************************************************
+2***********************************************************************************
 ; calip25_isccp_am4_totcld.ncl
 ;***********************************************************************************
 ;
@@ -10,6 +10,8 @@
 ; simulators are plotted
 ;
 ; cosine weighted global mean values are computed.
+;
+; three different figures can be plotted: change 'figurenumber' between 1,2, or 3
 ;
 ; alternate figure: plot the total cloud fraction from am4p0 compared to that from 
 ; the am4p0 simulators.   
@@ -382,7 +384,8 @@ my_colors = (/12,18,22,26,30,34,37,40,43,46,49,52,55,58,61,64/) ; 16
 ;my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low numbers are dark colors
 my_colors_rev = (/64,58,52,46,43,40,37,34,30,26,24,21,18,15,12,9/) ; 16 --> low numbers are dark colors
 my_colors_green = (/66,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
-my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors
+;my_colors_blue = (/128,121,114,107,100,93,87,80,73,66,59,52,45,38,31,24/) ; 16 --> low numbers are dark colors
+my_colors_blue = (/0,128,120,112,104,96,88,80,72,64,56,48,40,32,24,16/) ; 16 --> low numbers are dark colors
 ;my_colors_blue = (/34,70,74,78,82,86,90,94,98,102,106,110,114,118,122,128/) ; 16 --> low numbers are dark colors
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
@@ -550,7 +553,8 @@ else ;--------------------------------------------------------------------------
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
   res@cnLevels          = my_levels2
-  res@cnFillColors      = my_colors_red
+  res@cnFillColors      = my_colors_blue
+  ;res@cnFillColors      = my_colors_red
   ;res@cnFillColors      = my_colors_blured
   res@txFontHeightF     = 0.015 
   res@lbLabelBarOn       = False
@@ -585,6 +589,7 @@ else ;--------------------------------------------------------------------------
   print("plotted third figure")
 end if
 end if
+  print("figurenumber is: "+figurenumber)
 
 
 end

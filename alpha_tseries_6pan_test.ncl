@@ -4,6 +4,11 @@
 ; Function codes: see https://www.ncl.ucar.edu/Applications/fcodes.shtml
 ; for useful examples.  This is how I inserted superscipts in the axis labels
 ;
+; filling between lines: border lines/ boundary lines/ edge of filled region
+;                        for some reason it seems necessary to create a new res 
+;                        for each panel or else the lower edge of the contour lines
+;                        will be outlined.  I don't understand this.
+;
 ;***********************************************************************************
 ;***********************************************************************************
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -14,7 +19,7 @@
 begin
 ;***********************************************************************************
 
-datapath="~/data/amip_Long/data_from_2017/"
+datapath="~/data/amip_Long/"
 ;infile1=datapath+"armlane.nc"
 infile1=datapath+"idiot_box2.nc"
 ;infile2=datapath+"whatisyourdamage.nc"
@@ -34,15 +39,21 @@ print("incoming file2 is: "+infile2)
   alpha_cre_am4_f1           = f1->alpha_cre_ensmbr_am4(:,:) 
   alpha_cre_ensmn_am4_f1     = f1->alpha_cre_ensmn_am4(:) 
   alpha_lwcre_ensmn_am4_f1   = f1->alpha_lwcre_ensmn_am4(:) 
+  alpha_lwcre_am4_f1         = f1->alpha_lwcre_ensmbr_am4(:,:) 
   alpha_swcre_ensmn_am4_f1   = f1->alpha_swcre_ensmn_am4(:) 
+  alpha_swcre_am4_f1         = f1->alpha_swcre_ensmbr_am4(:,:) 
   alpha_cre_am3_f1           = f1->alpha_cre_ensmbr_am3(:,:) 
   alpha_cre_ensmn_am3_f1     = f1->alpha_cre_ensmn_am3(:) 
   alpha_lwcre_ensmn_am3_f1   = f1->alpha_lwcre_ensmn_am3(:) 
+  alpha_lwcre_am3_f1         = f1->alpha_lwcre_ensmbr_am3(:,:) 
   alpha_swcre_ensmn_am3_f1   = f1->alpha_swcre_ensmn_am3(:) 
+  alpha_swcre_am3_f1         = f1->alpha_swcre_ensmbr_am3(:,:) 
   alpha_cre_am2_f1           = f1->alpha_cre_ensmbr_am2(:,:) 
   alpha_cre_ensmn_am2_f1     = f1->alpha_cre_ensmn_am2(:) 
   alpha_lwcre_ensmn_am2_f1   = f1->alpha_lwcre_ensmn_am2(:) 
+  alpha_lwcre_am2_f1         = f1->alpha_lwcre_ensmbr_am2(:,:) 
   alpha_swcre_ensmn_am2_f1   = f1->alpha_swcre_ensmn_am2(:) 
+  alpha_swcre_am2_f1         = f1->alpha_swcre_ensmbr_am2(:,:) 
 
   alpha_lcc_am4_f1           = f1->alpha_lcc_ensmbr_am4(:,:) 
   alpha_lcc_ensmn_am4_f1     = f1->alpha_lcc_ensmn_am4(:) 
@@ -448,6 +459,22 @@ mnmx_lcc(3,:) = dim_max( alpha_lcc_am3_f1)
 mnmx_lcc(4,:) = dim_min( alpha_lcc_am2_f1)
 mnmx_lcc(5,:) = dim_max( alpha_lcc_am2_f1)
 
+mnmx_lwcre = new((/6,105/), float)
+mnmx_lwcre(0,:) = dim_min( alpha_lwcre_am4_f1)
+mnmx_lwcre(1,:) = dim_max( alpha_lwcre_am4_f1)
+mnmx_lwcre(2,:) = dim_min( alpha_lwcre_am3_f1)
+mnmx_lwcre(3,:) = dim_max( alpha_lwcre_am3_f1)
+mnmx_lwcre(4,:) = dim_min( alpha_lwcre_am2_f1)
+mnmx_lwcre(5,:) = dim_max( alpha_lwcre_am2_f1)
+
+mnmx_swcre = new((/6,105/), float)
+mnmx_swcre(0,:) = dim_min( alpha_swcre_am4_f1)
+mnmx_swcre(1,:) = dim_max( alpha_swcre_am4_f1)
+mnmx_swcre(2,:) = dim_min( alpha_swcre_am3_f1)
+mnmx_swcre(3,:) = dim_max( alpha_swcre_am3_f1)
+mnmx_swcre(4,:) = dim_min( alpha_swcre_am2_f1)
+mnmx_swcre(5,:) = dim_max( alpha_swcre_am2_f1)
+
 ;-----------------------------------------------------------
 wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
 ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
@@ -464,7 +491,7 @@ am2line="deepskyblue3"
 am3line="darkgreen"
 am4line="black"
 
-plot = new(4,graphic)
+plot = new(6,graphic)
 
 res                   = True
 res@trYMinF           = -3.5
@@ -632,11 +659,6 @@ overlay(tropwinds_am4mn,tropsrest_am4mn)
 overlay(tropwinds_am4mn,trops_qu_lcc_am4mn)
 overlay(tropwinds_am4mn,trops_qu_rest_am4mn)
 
-;overlay(tropwinds_am4mn,trops_qu_rest_am4mn)
-;overlay(tropwinds_am4mn,trops_qu_lcc_am4mn)
-;;overlay(tropwinds_am4mn,trops_qu_windsum_am4mn)
-;overlay(tropwinds_am4mn,trops_ns_am4mn)
-
 plot(1) = tropwinds_am4mn
 
 ; third plot - ---------------------------------------------------
@@ -743,10 +765,6 @@ res4@trYMaxF           = 1.5
 res4@vpWidthF          = length
 res4@vpHeightF         = height
 
-;res4@vpWidthF          = .81
-;res4@vpHeightF         = .5
-;res4@tiMainString      = "how"
-
 scalef=1.0
 
 res4@xyLineColor     = -1
@@ -781,12 +799,100 @@ overlay(am2_lcc_cloud,ens_lcc_am4mn)
 
 plot(3) = am2_lcc_cloud
 
+; fifth plot - ---------------------------------------------------
+res5                   = True
+res5@trXMinF           = 1885
+res5@trXMaxF           = 1990
+res5@tiYAxisFontHeightF = 0.011
+res5@tiYAxisString    = "Cloud anomaly parameter (% "+"K~S~-1"+"~N~"+")"
+res5@tiXAxisString    = "Year"
+res5@tmYROn            = False
+res5@tmXTOn            = False
+res5@tmXTBorderOn      = False
+res5@tmYRBorderOn      = False
+res5@gsnDraw           = False ; default: T
+res5@gsnFrame          = False ; default: T
+
+res5@xyLineThicknessF   = 1.0
+res5@xyLineColor     = -1
+res5@trYMinF           = -2.0
+res5@trYMaxF           = 1.5
+
+res5@vpWidthF          = length
+res5@vpHeightF         = height
+
+scalef=1.0
+
+res5@xyLineColor     = -1
+res5@gsnXYFillColors = am2fill 
+res5@xyLineColor     = -1
+am2_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(4:5,:),res5) ; create filled xy plot
+res5@xyLineColor     = -1
+res5@gsnXYFillColors = am3fill
+res5@xyLineColor     = -1
+am3_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(2:3,:),res5) ; create filled xy plot
+res5@xyLineColor     = -1
+res5@gsnXYFillColors = am4fill
+res5@xyLineColor     = -1
+am4_lcc_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_lcc(0:1,:),res5) ; create filled xy plot
+
+res5@xyLineThicknessF   = 3.0
+res5@xyLineColors  = am2line
+ens_lcc_am2mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am2_f1(:),res5)
+
+res5@xyLineColors  = am3line
+ens_lcc_am3mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am3_f1(:),res5)
+
+res5@xyLineColors  = am4line
+ens_lcc_am4mn = gsn_csm_xy(wks,time,scalef*alpha_lcc_ensmn_am4_f1(:),res5)
+
+
+overlay(am2_lcc_cloud,am3_lcc_cloud)
+overlay(am2_lcc_cloud,am4_lcc_cloud)
+overlay(am2_lcc_cloud,ens_lcc_am2mn)
+overlay(am2_lcc_cloud,ens_lcc_am3mn)
+overlay(am2_lcc_cloud,ens_lcc_am4mn)
+
+plot(4) = am2_lcc_cloud
+
+
+;am2_swcre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_swcre(4:5,:),res4) ; create filled xy plot
+;am3_swcre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_swcre(2:3,:),res4) ; create filled xy plot
+;am4_swcre_cloud  = gsn_csm_xy(wks,time,scalef*mnmx_swcre(0:1,:),res4) ; create filled xy plot
+;
+;ens_swcre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am4_f1(:),res4)
+;ens_swcre_am3mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am3_f1(:),res4)
+;ens_swcre_am2mn = gsn_csm_xy(wks,time,scalef*alpha_swcre_ensmn_am2_f1(:),res4)
+
+;plot(4) = am2_swcre_cloud
+
+; -----------------------------------
+; plot 6
+
+res3@tiYAxisString    = "LW Cloud feedback parameter (W "+"m~S~-2~NN~K~S~-1"+"~N~"+")"
+res3@gsnDraw           = False ; default: T
+res3@gsnFrame          = False ; default: T
+
+res3@xyDashPattern = 0
+res3@xyLineThicknessF   = 2.0
+res3@xyLineColors  = am4line
+ens_cre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_cre_ensmn_am4_f1(:),res3)
+res3@xyLineColors  = am4line
+ens_lwcre_am4mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am4_f1(:),res3)
+res3@xyLineColors  = am3line
+ens_lwcre_am3mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am3_f1(:),res3)
+res3@xyLineColors  = am2line
+ens_lwcre_am2mn = gsn_csm_xy(wks,time,scalef*alpha_lwcre_ensmn_am2_f1(:),res3)
+
+overlay(ens_lwcre_am4mn,ens_lwcre_am3mn)
+overlay(ens_lwcre_am4mn,ens_lwcre_am2mn)
+plot(5) = ens_lwcre_am4mn 
+
 ; -----------------------------------
 ;frame(wks)
 respanel = True
 respanel@gsnPanelFigureStrings= (/"a)","b)","c)","d)"/)
 respanel@amJust = "TopLeft"
-;respanel@txString = "16 hp"
-gsn_panel(wks,plot,(/2,2/),respanel)
+gsn_panel(wks,plot,(/3,2/),respanel)
 
 end

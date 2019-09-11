@@ -35,7 +35,7 @@ title6="T on 700 hPa "
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="~/data/amip_Long/data_from_2017/"
+datapath="~/data/amip_Long/"
 ;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 period="late"
 ;period="early" 
@@ -272,8 +272,8 @@ my_colors_netcre = (/ 7, 2,74,77,80,83,86,89,92,95,100/)
 my_colors_swcre = (/ 56,50,44,38,32,26,20,14,8,2,2/)
 
 ;************************************************
-  ;wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("newpdf","testplot")          ; send graphics to PNG file
+  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
   ;wks = gsn_open_wks("ps","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"gui_default")
   gsn_define_colormap(wks,"BlueDarkRed18")
@@ -434,16 +434,48 @@ plot3(0) = am2_lcc_cloud
 
 ;;;;;------------------------------------------------------------------------------
 
+; resources for windows
+  gnres                   = True
+  gnres@gsFillColor       = "white"
+  gnres@gsLineThicknessF  = 20.0
+  gnres@gsFillOpacityF    = 0.0
+  gnres@gsEdgesOn         = True
+  gnres@gsLineThicknessF  = 4.0
+
+; define lat/lon for windows
+  lonbox1 = (/210.,240.,240.,210.,210./)
+  latbox1 = (/10.,10.,30.,30.,10./)
+  lonbox2 = (/250.,280.,280.,250.,250./)
+  latbox2 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox3 = (/60.,90.,90.,60.,60./)
+  latbox3 = (/-10.,-10.,-30.,-30.,-10./)
+  lonbox4 = (/330.,360.,360.,330.,330./)
+  latbox4 = (/-10.,-10.,-30.,-30.,-10./)
+
   res@tiMainString      = "AM2 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour0 = gsn_csm_contour_map(wks,lcloud_f2,res)  ; create the plot
+
+; apply windows to contour0
+  dum1=gsn_add_polygon(wks, contour0, lonbox1, latbox1, gnres)
+  dum2=gsn_add_polygon(wks, contour0, lonbox2, latbox2, gnres)
+  dum3=gsn_add_polygon(wks, contour0, lonbox3, latbox3, gnres)
+  dum4=gsn_add_polygon(wks, contour0, lonbox4, latbox4, gnres)
+
   plot1(0) = contour0
 
   res@tiMainString      = "AM3 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour1 = gsn_csm_contour_map(wks,lcloud_f4,res)  ; create the plot
+
+; apply windows to contour1
+  dum1a=gsn_add_polygon(wks, contour1, lonbox1, latbox1, gnres)
+  dum2a=gsn_add_polygon(wks, contour1, lonbox2, latbox2, gnres)
+  dum3a=gsn_add_polygon(wks, contour1, lonbox3, latbox3, gnres)
+  dum4a=gsn_add_polygon(wks, contour1, lonbox4, latbox4, gnres)
+
   plot1(1) = contour1
 
   res@tiMainString      = "AM4 LCC (% per 30 yr)"
@@ -451,6 +483,13 @@ plot3(0) = am2_lcc_cloud
   res@cnFillColors      = my_colors_posneg
   ;res@mpMajorLatSpacingF  = 45
   contour2 = gsn_csm_contour_map(wks,lcloud_f6,res)  ; create the plot
+
+; apply windows to contour2
+  dum1b=gsn_add_polygon(wks, contour2, lonbox1, latbox1, gnres)
+  dum2b=gsn_add_polygon(wks, contour2, lonbox2, latbox2, gnres)
+  dum3b=gsn_add_polygon(wks, contour2, lonbox3, latbox3, gnres)
+  dum4b=gsn_add_polygon(wks, contour2, lonbox4, latbox4, gnres)
+
   plot1(2) = contour2
 
 ; row 2
@@ -459,18 +498,39 @@ plot3(0) = am2_lcc_cloud
   res@cnFillColors      = my_colors_posneg
 ;  res@lbLabelBarOn       = True
   contour6 = gsn_csm_contour_map(wks,lcloud_f1,res)  ; create the plot
+
+; apply windows to contour6
+  dum1c=gsn_add_polygon(wks, contour6, lonbox1, latbox1, gnres)
+  dum2c=gsn_add_polygon(wks, contour6, lonbox2, latbox2, gnres)
+  dum3c=gsn_add_polygon(wks, contour6, lonbox3, latbox3, gnres)
+  dum4c=gsn_add_polygon(wks, contour6, lonbox4, latbox4, gnres)
+
   plot1(3) = contour6
 
   res@tiMainString      = "AM3 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour7 = gsn_csm_contour_map(wks,lcloud_f3,res)  ; create the plot
+
+; apply windows to contour7
+  dum1d=gsn_add_polygon(wks, contour7, lonbox1, latbox1, gnres)
+  dum2d=gsn_add_polygon(wks, contour7, lonbox2, latbox2, gnres)
+  dum3d=gsn_add_polygon(wks, contour7, lonbox3, latbox3, gnres)
+  dum4d=gsn_add_polygon(wks, contour7, lonbox4, latbox4, gnres)
+
   plot1(4) = contour7
 
   res@tiMainString      = "AM4 LCC (% per 30 yr)"
   res@cnLevels          = my_levels_simple
   res@cnFillColors      = my_colors_posneg
   contour8 = gsn_csm_contour_map(wks,lcloud_f5,res)  ; create the plot
+
+; apply windows to contour8
+  dum1e=gsn_add_polygon(wks, contour8, lonbox1, latbox1, gnres)
+  dum2e=gsn_add_polygon(wks, contour8, lonbox2, latbox2, gnres)
+  dum3e=gsn_add_polygon(wks, contour8, lonbox3, latbox3, gnres)
+  dum4e=gsn_add_polygon(wks, contour8, lonbox4, latbox4, gnres)
+
   plot1(5) = contour8
 
 ; row 3

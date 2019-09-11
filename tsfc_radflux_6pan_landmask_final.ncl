@@ -34,7 +34,7 @@ begin
 ; read in netCDF files for column on left; experiment one 
 ;***********************************************************************************
 ;
-datapath="~/data/amip_Long/"
+datapath="~/data/amip_Long/data_from_2017/"
 ;datapath="/net2/Levi.Silvers/data/amip_long/pp_files/"
 
 infile1=datapath+"am4_trends_tsfc_early_pdown.nc"
