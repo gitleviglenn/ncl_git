@@ -467,8 +467,8 @@ figurenumber = 3 ; 1 is default and plots 9 panel figure
                  ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
 if (figurenumber .lt. 2) then
 
-  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
-  wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
+  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+  ;wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   ;gsn_define_colormap(wks,"matlab_jet")
@@ -628,7 +628,8 @@ maximize_output(wks,psres) ; calls draw and frame
 ;  gsn_panel(wks,plot,(/3,3/),resP)
 else if (figurenumber .lt. 3) then
 ;end if 
- wks   = gsn_open_wks ("newPDF","testplot")
+; wks   = gsn_open_wks ("newPDF","testplot")
+ wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
  plot = new(3,graphic)
 
   res   = True
@@ -880,7 +881,8 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
 
 
 ;*************************************************************
- wks   = gsn_open_wks ("newPDF","testplot")
+ ;wks   = gsn_open_wks ("newPDF","testplot")
+ wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
  plot = new(3,graphic)
 
 ; resources for the panels, and the legend
