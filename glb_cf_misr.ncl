@@ -38,8 +38,8 @@ print("infile is: "+infile)
 my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/)
 my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/)
 
-  ;wks = gsn_open_wks("ps","proj")          ; send graphics to ps file
-  wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("ps","proj")          ; send graphics to ps file
+  ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   gsn_define_colormap(wks,"WhBlGrYeRe")
 
 
