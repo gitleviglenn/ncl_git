@@ -53,6 +53,16 @@ infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
 infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
+;filetoread="clhcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+;filetoread="clhcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
+filetoread="clhcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+infile_test="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"+filetoread
+data_test = addfile(infile_test,"r")
+print("infile for test is: "+infile_test)
+var_test=data_test->$varname3$(:,:,:)
+var_new=dim_avg_n(var_test,0)
+print("dimenstions of test shovels: "+dimsizes(var_test))
+
 ;; monthly data from Songmiao
 ;; originally came from:
 ;; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
@@ -96,6 +106,16 @@ print("infile calipso obs is: "+infile_calobs)
 var1 = data->$varname1$(0,:,:)                                
 var2 = data2->$varname2$(0,:,:)                                
 var3 = data3->$varname3$(0,:,:)                                
+var3 = var_new
+
+var3!0="lat"
+var3&lat=var1&lat
+var3!1="lon"
+var3&lon=var1&lon
+
+print("heck with this: "+dimsizes(var2))
+print("heck with this varnew: "+dimsizes(var3))
+
 latitude_model=data->lat(:)
 
 var1@_FillValue = -1.e+30
