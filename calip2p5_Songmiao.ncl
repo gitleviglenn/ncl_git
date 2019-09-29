@@ -46,22 +46,21 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
 
 ; for monthly data
-expname="AM4 amip" 
 path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
 ;infile=path_tomonth+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
 infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
 
-;; monthly data from Songmiao
-;; originally came from:
-;; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
-;expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
-;;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
-;;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
-;infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-;infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-;infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+; monthly data from Songmiao
+; originally came from:
+; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
+expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
+;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
+;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
+infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
@@ -295,31 +294,23 @@ field4_weighted_ave     = wgt_areaave(var1calscale,clat_cobs,1.0,0)
 field5_weighted_ave     = wgt_areaave(var2calscale,clat_cobs,1.0,0)
 field6_weighted_ave     = wgt_areaave(var3calscale,clat_cobs,1.0,0)
 
-; compute biases
-lcf_bias=field1_weighted_ave-field4_weighted_ave
-mcf_bias=field2_weighted_ave-field5_weighted_ave
-hcf_bias=field3_weighted_ave-field6_weighted_ave
-
 print("======================================")
 print("low level clouds")
 print("raw(bef interp) global mean from simulator "+varname1+" is: "+field1_weighted_ave)
 print("raw(aft interp) global mean from simulator "+varname1+" is: "+field1_2p5x2p5_weighted_ave)
 print("weighted low level am4 cal sim: "+var1_90x180_weighted_ave)
 print("weighted and masked low level am4 cal sim: "+var1_masked_weighted_ave)
-print("low level cloud fraction bias: "+lcf_bias)
 
 print("mid level clouds")
 print("raw(bef interp) global mean from simulator "+varname2+" is: "+field2_weighted_ave)
 print("raw(aft interp) global mean from simulator "+varname2+" is: "+field2_2p5x2p5_weighted_ave)
 print("weighted mid level am4 cal sim: "+var2_90x180_weighted_ave)
 print("weighted and masked mid level am4 cal sim: "+var2_masked_weighted_ave)
-print("mid level cloud fraction bias: "+mcf_bias)
 
 print("high level clouds")
 print("raw global mean of "+varname3+" is: "+field3_weighted_ave)
 print("weighted high level am4 cal sim: "+var3_90x180_weighted_ave)
 print("weighted and masked high level am4 cal sim: "+var3_masked_weighted_ave)
-print("high level cloud fraction bias: "+hcf_bias)
 
 print("-------------------")
 print("weighted low level calipso obs:   "+field4_weighted_ave)
@@ -328,28 +319,15 @@ print("weighted upper level calipso obs: "+field6_weighted_ave)
 print("======================================")
 ;---------------------------------------------------------------------
 ;
-;---------------------------------------------------------------------
-; create strings from the global mean values of cloud fraction
-;---------------------------------------------------------------------
-posh1=flt2string(decimalPlaces(field1_weighted_ave,1,True))
-obs_cal_lcf_wmn=flt2string(decimalPlaces(field4_weighted_ave,1,True))
-lowcf_bias=flt2string(decimalPlaces(lcf_bias,1,True))
-posh2=flt2string(decimalPlaces(field2_weighted_ave,1,True))
-obs_cal_mcf_wmn=flt2string(decimalPlaces(field5_weighted_ave,1,True))
-midcf_bias=flt2string(decimalPlaces(mcf_bias,1,True))
-posh3=flt2string(decimalPlaces(field3_weighted_ave,1,True)) ; high clouds
-obs_cal_hcf_wmn=flt2string(decimalPlaces(field6_weighted_ave,1,True))
-highcf_bias=flt2string(decimalPlaces(hcf_bias,1,True))
+posh1=flt2string(decimalPlaces(field1_weighted_ave,2,True))
+posh2=flt2string(decimalPlaces(field2_weighted_ave,2,True))
+posh3=flt2string(decimalPlaces(field3_weighted_ave,2,True))
 ;maintitle=modelv+" "+" 10yrm "+varname1+" = "+posh
 titletop=modelv+" "+varname3+" = "+posh3
-titletop_calobs="CAL "+" "+obs_cal_hcf_wmn
 titletop_bias="cal - "+modelv+" "+varname3
 titlemid=modelv+" "+varname2+" = "+posh2
-titlemid_calobs="CAL "+" "+obs_cal_mcf_wmn
-;titlemid_bias="cal - "+modelv+" "+varname2
 titlemid_bias="cal - "+modelv+" "+varname2
 titlelow=modelv+" "+varname1+" = "+posh1
-titlelow_calobs="CAL "+" "+obs_cal_lcf_wmn
 titlelow_bias="cal - "+modelv+" "+varname1
 
 ; compute zonal mean 
@@ -488,8 +466,8 @@ figurenumber = 3 ; 1 is default and plots 9 panel figure
                  ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
 if (figurenumber .lt. 2) then
 
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
-  ;wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
+  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+  wks = gsn_open_wks("newPDF","testplot_25")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   ;gsn_define_colormap(wks,"matlab_jet")
@@ -550,7 +528,7 @@ if (figurenumber .lt. 2) then
 
   res@lbLabelFontHeightF  = 0.01           ; label bar font height
 
-  res@tiMainString       = titletop_calobs  ; add a title
+  res@tiMainString       = titletop  ; add a title
   res@tiMainFontHeightF  = .01                               ; font height
 
   res@vpXF             = 0.25                  ; position and sizes
@@ -560,10 +538,10 @@ if (figurenumber .lt. 2) then
   res@vpHeightF        = 0.32
 
   contour1 = gsn_csm_contour_map(wks,var3calscale,res)  ; create the plot
-  res@tiMainString       = titlemid_calobs  ; add a title
+  res@tiMainString       = titlemid  ; add a title
   res@vpYF             = 0.68                  ; for XY plot
   contour2 = gsn_csm_contour_map(wks,var2calscale,res)  ; create the plot
-  res@tiMainString       = titlelow_calobs  ; add a title
+  res@tiMainString       = titlelow  ; add a title
   res@vpYF             = 0.38                  ; for XY plot
   contour3 = gsn_csm_contour_map(wks,var1calscale,res)  ; create the plot
 
@@ -574,12 +552,12 @@ if (figurenumber .lt. 2) then
 
   res@cnLevels          = my_levels_15posneg
   res@cnFillColors      = my_colors_posneg
-  res@tiMainString       = "CAL-AM4.0 = "+highcf_bias ; add a title
+  res@tiMainString       = titletop_bias  ; add a title
   contour4 = gsn_csm_contour_map(wks,blah3,res)  ; create the plot
-  res@tiMainString       = "CAL-AM4.0 = "+midcf_bias; add a title
+  res@tiMainString       = titlemid_bias  ; add a title
   res@vpYF             = 0.68                  ; for XY plot
   contour5 = gsn_csm_contour_map(wks,blah2,res)  ; create the plot
-  res@tiMainString       = "CAL-AM4.0 = "+lowcf_bias  ; add a title
+  res@tiMainString       = titlelow_bias  ; add a title
   res@vpYF             = 0.38                  ; for XY plot
   contour6 = gsn_csm_contour_map(wks,blah1,res)  ; create the plot
 
@@ -591,11 +569,9 @@ if (figurenumber .lt. 2) then
 
  reszm@trXMinF = 15
  reszm@trXMaxF = 55
- reszm@xyDashPattern=16
- reszm@xyDashPattern=0
- reszm@xyLineColors="black"
+ reszm@xyLineColors="blue"
  plotta=gsn_csm_xy(wks,var3calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
- reszm@xyDashPattern=16
+ reszm@xyLineColors="black"
  plottb=gsn_csm_xy(wks,var3_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
 
  overlay(plotta,plottb)
@@ -606,10 +582,9 @@ if (figurenumber .lt. 2) then
 
  reszm@trXMinF = 0
  reszm@trXMaxF = 40
- reszm@xyDashPattern=0
- reszm@xyLineColors="black"
+ reszm@xyLineColors="blue"
  plotma=gsn_csm_xy(wks,var2calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
- reszm@xyDashPattern=16
+ reszm@xyLineColors="black"
  plotmb=gsn_csm_xy(wks,var2_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
 ; plotmb=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),res)
 
@@ -622,9 +597,9 @@ if (figurenumber .lt. 2) then
 
  reszm@trXMinF = 5
  reszm@trXMaxF = 70
- reszm@xyDashPattern=0
+ reszm@xyLineColors="blue"
  plotba=gsn_csm_xy(wks,var1calscale_zmn(:),sin(latitude(:)/180*PI),reszm)
- reszm@xyDashPattern=16
+ reszm@xyLineColors="black"
 ; plot0b=gsn_csm_xy(wks,var1_90x180_zmn(:),sin(latitude(:)/180*PI),reszm)
  plotbb=gsn_csm_xy(wks,var1_zmn(:),sin(latitude_model(:)/180*PI),reszm)
  
@@ -652,8 +627,7 @@ maximize_output(wks,psres) ; calls draw and frame
 ;  gsn_panel(wks,plot,(/3,3/),resP)
 else if (figurenumber .lt. 3) then
 ;end if 
-; wks   = gsn_open_wks ("newPDF","testplot")
- wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+ wks   = gsn_open_wks ("newPDF","testplot")
  plot = new(3,graphic)
 
   res   = True
@@ -754,24 +728,15 @@ else if (figurenumber .lt. 4) then
 ;
 ; read in additional dta from other experiments
 
-;expname="c96L33_am4p0s"
-;title_lg2="am4p0s"
-;infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+expname="c96L33_am4p0s"
+title_lg2="am4p0s"
+infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
-expname="amip-p4K"
-title_lg2="amip p4K"
-infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
+expname="c96L33_am4p0u"
+title_lg3="am4p0u"
+infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
-;expname="c96L33_am4p0u"
-;title_lg3="am4p0u"
-;infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-
-expname="amip-future4K"
-title_lg3="amip future4K"
-infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
-
-
-title_lg1="am4 amip"
+title_lg1="am4p0r"
 
 data_1a = addfile(infile1a,"r")
 data_1b = addfile(infile1b,"r")
@@ -905,31 +870,28 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
 
 
 ;*************************************************************
- ;wks   = gsn_open_wks ("newPDF","testplot")
- wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+ wks   = gsn_open_wks ("newPDF","testplot")
  plot = new(3,graphic)
 
 ; resources for the panels, and the legend
  res                        = True
  lgres                      = True
 
- fontsize=0.03
-
  res@tiMainString = "Upper-Level Cloud Fraction"
  res@tiMainFont = 21
- res@tiMainFontHeightF = fontsize
+ res@tiMainFontHeightF = 0.02
  res@tiYAxisString  = "Cloud Fraction [%]"
  res@tiYAxisFont    = 21
- res@tiYAxisFontHeightF = fontsize 
+ res@tiYAxisFontHeightF = 0.02 
  res@tiXAxisString  = "Latitude"
  res@tiXAxisFont    = 21
- res@tiXAxisFontHeightF = fontsize
+ res@tiXAxisFontHeightF = 0.02
 
  res@vpWidthF          = 1.2 
  res@vpHeightF         = 0.5 
 
- res@tmYLLabelFontHeightF = fontsize 
- res@tmXBLabelFontHeightF = fontsize
+ res@tmYLLabelFontHeightF = 0.02 
+ res@tmXBLabelFontHeightF = 0.02 
 
  lthick=2.0
  res@xyLineThicknessF     = lthick
