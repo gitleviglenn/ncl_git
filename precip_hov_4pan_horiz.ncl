@@ -13,8 +13,8 @@ fileout="hov_precip"
 plottitle="test title tude"
 ;endtime=1800
 endtime=1090
-;var1="prec_ls" ; time, grid_y, grid_x
-var1="olr" ; time, grid_y, grid_x
+var1="prec_ls" ; time, grid_y, grid_x
+;var1="olr" ; time, grid_y, grid_x
 dom_x=1 ; 1 is default and corresponds to a domain size of 4000km
 
 hor_x_a=ispan(100,16000,100)
@@ -38,7 +38,7 @@ infile_new_c=incoming_c
 infile_new_d=incoming_d
 
 scale=86400
-scale=1
+;scale=1 ; works well for olr
 
 ; for incoming_a
 data_a = addfile(infile_new_a,"r")
@@ -108,23 +108,18 @@ my_levels1 = (/1,5,10,15,20, \
                75,80,85,90,95/); \
                ;100,105 /)
 
-my_levels1 = (/210,215,220,225,230, \
-               235,240,245,250,255, \
-               260,265,270,275,280, \
-               285,290,305,315,325/); \
-               ;100,105 /)
+; works for olr
+;my_levels1 = (/210,215,220,225,230, \
+;               235,240,245,250,255, \
+;               260,265,270,275,280, \
+;               285,290,305,315,325/); \
+;               ;100,105 /)
 
 my_colors1 = (/111,121,124,134,159, \
-                166,173,110,186,193, \
+                166,173,180,186,193, \
                 200,205,210,215,220, \
-                225,230,5,240,245, \
+                225,230,235,240,245, \
                 255 /);,211,216/) ; 
-
-;my_colors1 = (/111,121,124,134,159, \
-;                166,173,180,186,193, \
-;                200,205,210,215,220, \
-;                225,230,235,240,245, \
-;                255 /);,211,216/) ; 
 
 gsn_define_colormap(wks,"amwg256")
 ;gsn_define_colormap(wks,"cmocean_algae")
@@ -160,6 +155,8 @@ gsn_define_colormap(wks,"amwg256")
  res@cnLineLabelInterval  = 0                   ; label every other line
 ; res@cnLevelSpacingF      = 5.0
  res@lbLabelBarOn      = False
+ res@tiMainFontHeightF = 0.019
+ res@tiMainString      = "P100 Large D" 
 
 ; far left
  res@vpXF            =   0.09
@@ -190,16 +187,13 @@ gsn_define_colormap(wks,"amwg256")
  res@tmYLLabelsOn = False
  res@tiXAxisString     = "10^3 km"
  res@tiYAxisString     = " "
+ res@tiMainFontHeightF = 0.019
+ res@tiMainString      = "P25 Large D" 
  res@vpXF            =   0.53
  res@vpYF            =   0.85
  res@vpWidthF          = 0.18 ; vpWidth and Height control box size
  res@vpHeightF         = 0.7 ; default for both is 0.6 in NDC units
  
-; res@vpXF            =   0.15
-; res@vpYF            =   0.94
-; res@vpWidthF          = 0.4 ; vpWidth and Height control box size
-; res@vpHeightF         = 0.4 ; default for both is 0.6 in NDC units
-
  plot1 = gsn_csm_contour(wks,p_c_xt,res) ; large domain 25km resolution
 
 ; far right
@@ -209,19 +203,13 @@ gsn_define_colormap(wks,"amwg256")
   res@tmXBLabels   = (/"","1 ","2 ","3 ",""/)
  res@tiXAxisString     = "10^3 km"
  res@tiYAxisString     = "  "
+ res@tiMainString      = "P25 Small D" 
  res@vpXF            =   0.75
  res@vpYF            =   0.85
  res@vpWidthF          = 0.18 ; vpWidth and Height control box size
  res@vpHeightF         = 0.7 ; default for both is 0.6 in NDC units
  
-; res@vpXF            =   0.6
-; res@vpYF            =   0.5
-; res@vpWidthF          = 0.11 ; vpWidth and Height control box size
-; res@vpHeightF         = 0.4 ; default for both is 0.6 in NDC units
-; res@tiYAxisString     = " "
-
  plot2 = gsn_csm_contour(wks,p_d_xt,res)
- ;plot2 = gsn_csm_contour(wks,p_b_xt,res) ; 100 km
 
 ; left
   res@trXMaxF      = 4000
@@ -232,17 +220,13 @@ gsn_define_colormap(wks,"amwg256")
   res@tmYLLabels   = (/" "," "," "," "," "/)
  res@tiXAxisString     = "10^3 km"
  res@tiYAxisString     = "  "
+; res@tiMainString      = "bosch 2" 
+ res@tiMainString      = "P100 Small D" 
  res@vpXF            =   0.31
  res@vpYF            =   0.85
  res@vpWidthF          = 0.18 ; vpWidth and Height control box size
  res@vpHeightF         = 0.7 ; default for both is 0.6 in NDC units
 
-; res@vpXF            =   0.6
-; res@vpYF            =   0.94
-; res@vpWidthF          = 0.11 ; vpWidth and Height control box size
-; res@vpHeightF         = 0.4 ; default for both is 0.6 in NDC units
-
- ;plot3 = gsn_csm_contour(wks,p_d_xt,res)
  plot3 = gsn_csm_contour(wks,p_b_xt,res) ; 100 km
 
 print("values of p_d_xt are: "+p_b_xt(34,:))
