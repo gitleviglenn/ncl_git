@@ -8,7 +8,10 @@
 ; interpolated to a 2x2 degree grid before being plotted
 ;
 ; figurenumber is a switch that deterimines which of 3 figures will be output
-; figurenumber 3 mostly corresponds to tests that I am analyzing with Songmiao Fan
+; figurenumber 3  plots cloud fraction as a function of latitude for 
+;                 amipp4k amipfuture and amip
+; figurenumber 4  plots cloud fraction as a function of latitude for high, mid, 
+;                 and low-level clouds
 ;
 ; data from model output via the calipso simulator is accessed with:
 ; infile1, infile2, and infile3
@@ -46,32 +49,52 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
 
 ; for monthly data
+
+; the default experiment to read here should be AM4 amip
 expname="AM4 amip" 
 path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
 ;infile=path_tomonth+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
 infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
 infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
+;
+;-------------------------------------------------------------------------------------------- 
+; the files below are to be used in the case of figurenumber=4
+;-------------------------------------------------------------------------------------------- 
+;  aqua control
+filetoread_aqh="clhcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqm="clmcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aql="cllcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
+;  aqua control lwoff 
+filetoread_aqlw="clhcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqlw="clmcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqlw="cllcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+;  aqua p4K
+filetoread_aqp4_h="clhcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqp4_h="clmcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqp4_h="cllcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
 
-;filetoread="clhcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
-;filetoread="clhcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
-filetoread="clhcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
-infile_test="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"+filetoread
-data_test = addfile(infile_test,"r")
-print("infile for test is: "+infile_test)
-var_test=data_test->$varname3$(:,:,:)
-var_new=dim_avg_n(var_test,0)
+; amip p4K
+filetoread_amp4_h="clhcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amp4_m="clmcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+; amip p4K lwoff
+filetoread_amp4lw_h="clhcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amp4lw_m="clmcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amp4lw_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+; amip m4K
+filetoread_amm4_h="clhcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amm4_m="clmcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
+filetoread_amm4_l="cllcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
+;-------------------------------------------------------------------------------------------- 
+
+infile_l="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"+filetoread_amm4_h
+data_h = addfile(infile_test,"r")
+print("infile for test is: "+infile_h)
+var_h=data_h->$varname3$(:,:,:)
+var_h=dim_avg_n(var_h,0)
 print("dimenstions of test shovels: "+dimsizes(var_test))
-
-;; monthly data from Songmiao
-;; originally came from:
-;; /archive/snf/awg/warsaw/c96L33_am4p0u/gfdl.ncrc3-intel-prod-openmp/pp/atmos_cmip/av/monthly_5yr/
-;expname="c96L33_am4p0r" ; no damping of Bergeron in RK, rthresh = 7.0
-;;expname="c96L33_am4p0s" ; same as am4p0 except rthresh = 7.0
-;;expname="c96L33_am4p0u" ; same as am4p0r but no wind nudging
-;infile1="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-;infile2="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-;infile3="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
+;-------------------------------------------------------------------------------------------- 
 
 infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
 infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
@@ -85,9 +108,9 @@ modelv="am4.0"
 PI=acos(-1.)
 
 ; from model
-data = addfile(infile1,"r")
-data2 = addfile(infile2,"r")
-data3 = addfile(infile3,"r")
+data = addfile(infile1,"r")    ; low clouds
+data2 = addfile(infile2,"r")   ; mid level clouds
+data3 = addfile(infile3,"r")   ; high clouds
 ; from obs
 data4 = addfile(infile4,"r")
 data5 = addfile(infile5,"r")
@@ -106,7 +129,7 @@ print("infile calipso obs is: "+infile_calobs)
 var1 = data->$varname1$(0,:,:)                                
 var2 = data2->$varname2$(0,:,:)                                
 var3 = data3->$varname3$(0,:,:)                                
-var3 = var_new
+;var3 = var_new
 
 var3!0="lat"
 var3&lat=var1&lat
@@ -506,6 +529,7 @@ my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 figurenumber = 3 ; 1 is default and plots 9 panel figure
                  ; 2 plots the 3 panel figure of zonal means
                  ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
+                 ; 4 plots the 3 panel figure of zonal means with a linear cosine axis
 if (figurenumber .lt. 2) then
 
   wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
@@ -770,26 +794,15 @@ else if (figurenumber .lt. 3) then
 else if (figurenumber .lt. 4) then
 ; ------------------------------------------------------------------------------------
 ;
-; mostly related to analysis with Songmiao Fan
-;
 ; read in additional dta from other experiments
-
-;expname="c96L33_am4p0s"
-;title_lg2="am4p0s"
-;infile1a="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
 
 expname="amip-p4K"
 title_lg2="amip p4K"
 infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
 
-;expname="c96L33_am4p0u"
-;title_lg3="am4p0u"
-;infile1b="/archive/Levi.Silvers/data/songmiao/"+expname+"/atmos_cmip.2000-2004.tmn.nc"
-
 expname="amip-future4K"
 title_lg3="amip future4K"
 infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
-
 
 title_lg1="am4 amip"
 
