@@ -98,16 +98,24 @@ filein="/archive/Levi.Silvers/awg/warsaw_201710/c96L33_am4p0_cmip6_cosp_ModisISC
 filein_obs="/net2/Levi.Silvers/data/isccpdata/clisccp_198307-200806.nc"       ; path on workstation
 ;filein_obs="/Users/silvers/data/SatData/ISCCP/clisccp_198307-200806_latlon.nc" ; path on macbook
 ;
-  infile = addfile(filein,"r")
-  infile_obs = addfile(filein_obs,"r")
+filein_cmip6="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/ts/monthly/36yr/atmos_cmip.197901-201412.clisccp.nc";
+filein_cmip6_clt="/archive/oar.gfdl.cmip6/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/atmos_cmip/ts/monthly/36yr/atmos_cmip.197901-201412.clt.nc";
+;
+  infile       = addfile(filein,"r")
+  infile_obs   = addfile(filein_obs,"r")
+  infile_cmip  = addfile(filein_cmip6,"r")
+  infile_clt   = addfile(filein_cmip6_clt,"r")
 print("infile is: "+filein)
+print("infile for isccp data from the amip DECK exp is: "+filein_cmip6) ; (time, tau, plev7, lat, lon)
+print("infile for clt data from the amip DECK exp is: "+filein_cmip6_clt) ; (time, lat, lon)
 print("infile for isccp observations is: "+filein_obs) ; (time, tau, plev7, lat, lon)
 ;
 ;;;-read data----------------------------------------------------------------
 ;;
   ftime=0
-  flat=45 ; 90
-  flon=0
+  checktime=200
+  flat=0 
+  flon=200
   fields=new((/7,7/),float)
   fields_mod=new((/7,7/),float)
   field_obs=new((/7,7/),float)
@@ -135,30 +143,46 @@ print("infile for isccp observations is: "+filein_obs) ; (time, tau, plev7, lat,
 ;
 
 field_temp=infile_obs->$varname$(:,:,:,:,:)
-print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
-  do j=0,6,1 ; this should be the tau dimension
-    tempvar=varnames(j)
-    tempvars=tempvar+"_"+ispan(1,7,1)
-    ;tempvar_m=varnames_mod(j)
-    ;tempvars_m=tempvar_m+"_"+ispan(1,7,1)
-    do i=0,6,1 ; this should be the plev7 dimenion
-      pisso=tempvars(i)
-      ;pisso_m=tempvars_m(i)
-      ;
-      fields_temp=infile->$pisso$(ftime,:,:)
-      fields(i,j)   = wgt_areaave(fields_temp,clat,1.0,0)
-      ;fields(i,j)   = wgt_areaave(fields_temp,1.0,1.0,0)
-      ;
-      ; if j/tua is gt zero
-      if (i .le. 5) then
-        fieldobs_full=infile_obs->$varname$(:,i,j,:,:)
-        fieldobs_temp=dim_avg_n(fieldobs_full,0)
-        fieldobs_temp@_FillValue=1.e+20
-        field_obs(j,i+1)   = wgt_areaave(fieldobs_temp,clato,1.0,0)
-      end if
-    end do
-        field_obs(j,0) = 0.0
+field_cmip6=infile_cmip->$varname$(checktime,:,:,:,:)
+field_clt=infile_clt->clt(checktime,:,:)
+
+field_cmip6@_FillValue = 1e+20
+
+  print("dimensions of fieldobs_temp: "+dimsizes(field_temp))
+  print("dimensions of field_cmip6: "+dimsizes(field_cmip6))
+  print("dimensions of field_clt: "+dimsizes(field_clt))
+
+  ;print("before the mystery ends: "+field_cmip6(:,:,flat,flon))
+  print("stumbling words: "+field_clt(flat,flon))
+test_cloud_a=dim_sum_n(field_cmip6(:,:,flat,flon),0)
+  print("dimensions of test_cloud_a: "+dimsizes(test_cloud_a))
+test_cloud_b=dim_sum_n(test_cloud_a,0)
+  print("before the mystery ends: "+dim_sum_n(field_cmip6(:,:,flat,flon),0))
+  print("test_cloud_b: "+test_cloud_b)
+
+do j=0,6,1 ; this should be the tau dimension
+  tempvar=varnames(j)
+  tempvars=tempvar+"_"+ispan(1,7,1)
+  ;tempvar_m=varnames_mod(j)
+  ;tempvars_m=tempvar_m+"_"+ispan(1,7,1)
+  do i=0,6,1 ; this should be the plev7 dimenion
+    pisso=tempvars(i)
+    ;pisso_m=tempvars_m(i)
+    ;
+    fields_temp=infile->$pisso$(ftime,:,:)
+    fields(i,j)   = wgt_areaave(fields_temp,clat,1.0,0)
+    ;fields(i,j)   = wgt_areaave(fields_temp,1.0,1.0,0)
+    ;
+    ; if j/tua is gt zero
+    if (i .le. 5) then
+      fieldobs_full=infile_obs->$varname$(:,i,j,:,:)
+      fieldobs_temp=dim_avg_n(fieldobs_full,0)
+      fieldobs_temp@_FillValue=1.e+20
+      field_obs(j,i+1)   = wgt_areaave(fieldobs_temp,clato,1.0,0)
+    end if
   end do
+      field_obs(j,0) = 0.0
+end do
 ;;
 ;;
 ;; deterine which field will be tabulated and output...
@@ -173,13 +197,13 @@ tot_cldfrac_isccp_obs=sum(fields_obs)
   print("total cloud fraction from isccp obs : "+tot_cldfrac_isccp_obs)
 ;
   
-  fields=where(fields.le.0.001,0.0,fields)
-  fields=decimalPlaces(fields,1,True)
-  text_values=""+fields
+fields=where(fields.le.0.001,0.0,fields)
+fields=decimalPlaces(fields,1,True)
+text_values=""+fields
   
-  fields_obs=where(fields_obs.le.0.001,0.0,fields_obs)
-  fields_obs=decimalPlaces(fields_obs,1,True)
-  text_values_obs=""+fields_obs
+fields_obs=where(fields_obs.le.0.001,0.0,fields_obs)
+fields_obs=decimalPlaces(fields_obs,1,True)
+text_values_obs=""+fields_obs
 ;
 ;;
 ;; Define colors to use for the table. Be sure to include white and black for background
@@ -359,7 +383,7 @@ cols_for_txt_obs = where(cols_for_vals_obs.eq."Navy".or.cols_for_vals_obs.eq."Me
   gsn_table(wks,ncr,x,y,text_values,rest)    ; Draw table
 
 ; 
-; third table *******************************************************************
+; second table *******************************************************************
 ;
   resb3                         = True
   resb3@gsnDraw                 = False
