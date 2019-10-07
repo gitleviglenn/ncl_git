@@ -39,11 +39,18 @@ varname3="clhcalipso"
 
 ; path to observations from calipso
 path_obs="/net2/Levi.Silvers/data_calipso/"
+
+; path on archive
+path_on_archive="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"
+; path to data on mac
+path_on_mac="/Users/silvers/data/cfmip_clouds/"
+;
+path_to_data=path_on_mac
 ;***********************************************************************************
 
 ; for 8xdaily data
-path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
-infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
+;path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
+;infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 ;infile1=path_to8xdaily+"atmos_8xdaily.197901-200812_cllcalipso_tmean.nc"
 ;infile2=path_to8xdaily+"atmos_8xdaily.197901-200812_clmcalipso_tmean.nc"
 ;infile3=path_to8xdaily+"atmos_8xdaily.197901-200812_clhcalipso_tmean.nc"
@@ -52,23 +59,29 @@ infile=path_to8xdaily+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
 
 ; the default experiment to read here should be AM4 amip
 expname="AM4 amip" 
-path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
-;infile=path_tomonth+"atmos_8xdaily.197901-200812_cltcalipso_tmean.nc"
-infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
-infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
-infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
+;path_tomonth="/archive/Levi.Silvers/data/cfmip_amip/calipso/"
+;infile1=path_tomonth+"atmos_cmip.198001-201412.cllcalipso.month.tmn.nc"
+;infile2=path_tomonth+"atmos_cmip.198001-201412.clmcalipso.month.tmn.nc"
+;infile3=path_tomonth+"atmos_cmip.198001-201412.clhcalipso.month.tmn.nc"
+infile1=path_to_data+"atmos_cmip.197901-201412.cllcalipso.nc"
+infile2=path_to_data+"atmos_cmip.197901-201412.clmcalipso.nc"
+infile3=path_to_data+"atmos_cmip.197901-201412.clhcalipso.nc"
 ;
 ;-------------------------------------------------------------------------------------------- 
 ; the files below are to be used in the case of figurenumber=4
 ;-------------------------------------------------------------------------------------------- 
+title_lg2="amip p4K"
+;title_lg2="aqua control"
+title_lg3="amip m4K"
+title_lg1="am4 amip"
 ;  aqua control
 filetoread_aqh="clhcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
 filetoread_aqm="clmcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
 filetoread_aql="cllcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
 ;  aqua control lwoff 
-filetoread_aqlw="clhcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
-filetoread_aqlw="clmcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
-filetoread_aqlw="cllcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqlw_h="clhcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqlw_m="clmcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
+filetoread_aqlw_l="cllcalipso_CFmon_GFDL-CM4_aqua-control-lwoff_r1i1p1f1_gr1_198001-198912.nc"
 ;  aqua p4K
 filetoread_aqp4_h="clhcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
 filetoread_aqp4_h="clmcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912.nc"
@@ -78,6 +91,14 @@ filetoread_aqp4_h="cllcalipso_CFmon_GFDL-CM4_aqua-p4K_r1i1p1f1_gr1_198001-198912
 filetoread_amp4_h="clhcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
 filetoread_amp4_m="clmcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
 filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+; test amip p4K
+;filetoread_amp4_h="clhcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+;filetoread_amp4_m="clmcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+;filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
+; 
+;filetoread_amp4_h="clhcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
+;filetoread_amp4_m="clmcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
+;filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
 ; amip p4K lwoff
 filetoread_amp4lw_h="clhcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
 filetoread_amp4lw_m="clmcalipso_CFmon_GFDL-CM4_amip-p4K-lwoff_r1i1p1f1_gr1_197901-201412.nc"
@@ -88,53 +109,61 @@ filetoread_amm4_m="clmcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412
 filetoread_amm4_l="cllcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
 ;-------------------------------------------------------------------------------------------- 
 
-infile_l="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"+filetoread_amm4_h
-data_h = addfile(infile_test,"r")
+infile_h=path_to_data+filetoread_amm4_h
+data_h = addfile(infile_h,"r")
 print("infile for test is: "+infile_h)
-var_h=data_h->$varname3$(:,:,:)
-var_h=dim_avg_n(var_h,0)
-print("dimenstions of test shovels: "+dimsizes(var_test))
+var_full_h=data_h->$varname3$(:,:,:)
+print("dimenstions of test shovels: "+dimsizes(var_full_h))
+var_h=dim_avg_n(var_full_h,0)
+print("dimenstions of test shovels: "+dimsizes(var_h))
 ;-------------------------------------------------------------------------------------------- 
 
-infile4=path_obs+"calip_2x2xL40_avg_cll/cllcalipso_tmn_20060615_20101215.nc"
-infile5=path_obs+"calip_2x2xL40_avg_clm/clmcalipso_tmn_20060615_20101215.nc"
-infile6=path_obs+"calip_2x2xL40_avg_clh/clhcalipso_tmn_20060615_20101215.nc"
+path_obs="/Users/silvers/data/SatData/CALIPSO/"
 
-infile_calobs=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
+;infile_calobs=path_obs+"from_Greg_Jan2017/MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
+infile_calobs=path_obs+"MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
 
 modelv="am4.0"
 
 ; compute pi
 PI=acos(-1.)
 
-; from model
+; amip data from model
 data = addfile(infile1,"r")    ; low clouds
 data2 = addfile(infile2,"r")   ; mid level clouds
 data3 = addfile(infile3,"r")   ; high clouds
 ; from obs
-data4 = addfile(infile4,"r")
-data5 = addfile(infile5,"r")
-data6 = addfile(infile6,"r")
 data_calobs = addfile(infile_calobs,"r")
 
-print("infile for cltcalipso is: "+infile)
 print("infile is: "+infile1)
 print("infile is: "+infile2)
 print("infile is: "+infile3)
-print("infile is: "+infile4)
-print("infile is: "+infile5)
-print("infile is: "+infile6)
 print("infile calipso obs is: "+infile_calobs)
 
-var1 = data->$varname1$(0,:,:)                                
-var2 = data2->$varname2$(0,:,:)                                
-var3 = data3->$varname3$(0,:,:)                                
-;var3 = var_new
+;var1 = data->$varname1$(0,:,:)  ; low                               
+;var2 = data2->$varname2$(0,:,:)                                
+;var3 = data3->$varname3$(0,:,:)                                
+var1_full = data->$varname1$(:,:,:)  ; low                               
+var1=dim_avg_n(var1_full,0)
+var2_full = data2->$varname2$(:,:,:)                                
+var2=dim_avg_n(var2_full,0)
+var3_full = data3->$varname3$(:,:,:)                                
+var3=dim_avg_n(var3_full,0)
 
+var1!0="lat"
+var1&lat=var1_full&lat
+var1!1="lon"
+var1&lon=var1_full&lon
+var2!0="lat"
+var2&lat=var2_full&lat
+var2!1="lon"
+var2&lon=var2_full&lon
 var3!0="lat"
-var3&lat=var1&lat
+var3&lat=var3_full&lat
 var3!1="lon"
-var3&lon=var1&lon
+var3&lon=var3_full&lon
+
+
 
 print("heck with this: "+dimsizes(var2))
 print("heck with this varnew: "+dimsizes(var3))
@@ -152,7 +181,7 @@ var1@_FillValue = -1.e+30
 ;var3calscale=100*var3cal
 
 ; if using calipso data between 200701-201612
-var1cal = data_calobs->$varname1$(0,:,:)                                
+var1cal = data_calobs->$varname1$(0,:,:) ; low                               
 var1calscale=100*var1cal
 var2cal = data_calobs->$varname2$(0,:,:)                                
 var2calscale=100*var2cal
@@ -797,26 +826,84 @@ else if (figurenumber .lt. 4) then
 ; read in additional dta from other experiments
 
 expname="amip-p4K"
-title_lg2="amip p4K"
-infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
+;title_lg2="amip p4K"
+;filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
+infile1a_l=path_to_data+filetoread_amp4_l
+infile1a_m=path_to_data+filetoread_amp4_m
+infile1a_h=path_to_data+filetoread_amp4_h
+;infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
 
-expname="amip-future4K"
-title_lg3="amip future4K"
-infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
+;expname="amip-future4K"
+expname="amip-m4K"
+;title_lg3="amip future4K"
+;title_lg3="amip m4K"
+;filetoread_amm4_h
+infile1b_l=path_to_data+filetoread_amm4_l
+infile1b_m=path_to_data+filetoread_amm4_m
+infile1b_h=path_to_data+filetoread_amm4_h
+;infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
 
-title_lg1="am4 amip"
+;title_lg2="amip p4K"
+;title_lg3="amip m4K"
+;title_lg1="am4 amip"
 
-data_1a = addfile(infile1a,"r")
-data_1b = addfile(infile1b,"r")
+data_1a_l = addfile(infile1a_l,"r")
+data_1a_m = addfile(infile1a_m,"r")
+data_1a_h = addfile(infile1a_h,"r")
+data_1b_l = addfile(infile1b_l,"r")
+data_1b_m = addfile(infile1b_m,"r")
+data_1b_h = addfile(infile1b_h,"r")
 
-var1a = data_1a->$varname1$(0,:,:)                                
-var1b = data_1b->$varname1$(0,:,:)                                
-var2a = data_1a->$varname2$(0,:,:)                                
-var2b = data_1b->$varname2$(0,:,:)                                
-var3a = data_1a->$varname3$(0,:,:)                                
-var3b = data_1b->$varname3$(0,:,:)                                
+print("what is this file name>? "+infile1a_m)
 
-latitude_model=data_1a->lat(:)
+var1a_full = data_1a_l->$varname1$(:,:,:) ; low                               
+var1a=dim_avg_n(var1a_full,0)
+var1b_full = data_1b_l->$varname1$(:,:,:)                                
+var1b=dim_avg_n(var1b_full,0)
+var2a_full = data_1a_m->$varname2$(:,:,:) ; mid                               
+var2a=dim_avg_n(var2a_full,0)
+var2b_full = data_1b_m->$varname2$(:,:,:)                                
+var2b=dim_avg_n(var2b_full,0)
+var3a_full = data_1a_h->$varname3$(:,:,:)                                
+var3a=dim_avg_n(var3a_full,0)
+var3b_full = data_1b_h->$varname3$(:,:,:) ; high                               
+var3b=dim_avg_n(var3b_full,0)
+
+print("dimsizes of var1a are: "+dimsizes(var1a))
+
+; the dimensions appear to get overwritten when the dim_avg_n function is used
+var1a!0="lat"
+var1a&lat=var1a_full&lat
+var1a!1="lon"
+var1a&lon=var1a_full&lon
+
+var1b!0="lat"
+var1b&lat=var1b_full&lat
+var1b!1="lon"
+var1b&lon=var1b_full&lon
+
+var2a!0="lat"
+var2a&lat=var2a_full&lat
+var2a!1="lon"
+var2a&lon=var2a_full&lon
+
+var2b!0="lat"
+var2b&lat=var2b_full&lat
+var2b!1="lon"
+var2b&lon=var2b_full&lon
+
+var3a!0="lat"
+var3a&lat=var3a_full&lat
+var3a!1="lon"
+var3a&lon=var3a_full&lon
+
+var3b!0="lat"
+var3b&lat=var3b_full&lat
+var3b!1="lon"
+var3b&lon=var3b_full&lon
+
+
+latitude_model=data_1a_m->lat(:)
 
 ; the interpolated low-level cloud amount has problematic values where the surface
 ; is encountered, for zonal means, just use the uniterpolated values... 
@@ -964,7 +1051,7 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
  res@tmYLLabelFontHeightF = fontsize 
  res@tmXBLabelFontHeightF = fontsize
 
- lthick=2.0
+ lthick=3.0
  res@xyLineThicknessF     = lthick
  res@tmXBMode = "explicit"
  res@tmXBValues = (/-60,-30,0,30,60/)
@@ -983,6 +1070,23 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
  res@gsnDraw         = False
  res@gsnFrame         = False
 
+plotbias=1 ; default is to not plot the bias
+var3s_bias=var3s_90x180_zmn-var3_90x180_zmn
+var3u_bias=var3u_90x180_zmn-var3_90x180_zmn
+zero3_bias=var3_90x180_zmn-var3_90x180_zmn
+
+if (plotbias .gt. 0) then
+ res@trYMinF = -10 
+ res@trYMaxF = 10 
+ res@xyLineColors=colors(0)
+ plot0a=gsn_csm_xy(wks,latitude(:),var3calscale_zmn(:),res)
+ res@xyLineColors=colors(1)
+ plot0b=gsn_csm_xy(wks,latitude(:),zero3_bias(:),res)
+ res@xyLineColors=colors(2)
+ plot0c=gsn_csm_xy(wks,latitude(:),var3s_bias(:),res)
+ res@xyLineColors=colors(3)
+ plot0d=gsn_csm_xy(wks,latitude(:),var3u_bias(:),res)
+else
  res@trYMinF = 15
  res@trYMaxF = 55
  res@xyLineColors=colors(0)
@@ -993,12 +1097,29 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
  plot0c=gsn_csm_xy(wks,latitude(:),var3s_90x180_zmn(:),res)
  res@xyLineColors=colors(3)
  plot0d=gsn_csm_xy(wks,latitude(:),var3u_90x180_zmn(:),res)
- 
+end if 
  overlay(plot0a,plot0b)
  overlay(plot0a,plot0c)
  overlay(plot0a,plot0d)
  plot(0)=plot0a
 
+var2s_bias=var2s_90x180_zmn-var2_90x180_zmn
+var2u_bias=var2u_90x180_zmn-var2_90x180_zmn
+zero2_bias=var2_90x180_zmn-var2_90x180_zmn
+
+if (plotbias .gt. 0) then
+ res@trYMinF = -10
+ res@trYMaxF = 10
+ res@tiMainString = "Mid-Level Cloud Fraction"
+ res@xyLineColors=colors(0)
+ plot1a=gsn_csm_xy(wks,latitude(:),var2calscale_zmn(:),res)
+ res@xyLineColors=colors(1)
+ plot1b=gsn_csm_xy(wks,latitude(:),zero2_bias(:),res)
+ res@xyLineColors=colors(2)
+ plot1c=gsn_csm_xy(wks,latitude(:),var2s_bias(:),res)
+ res@xyLineColors=colors(3)
+ plot1d=gsn_csm_xy(wks,latitude(:),var2u_bias(:),res)
+else
  res@trYMinF = 0
  res@trYMaxF = 40
  res@tiMainString = "Mid-Level Cloud Fraction"
@@ -1010,20 +1131,38 @@ var1s_90x180_zmn=dim_avg_n(var1s_90x180,1)
  plot1c=gsn_csm_xy(wks,latitude(:),var2s_90x180_zmn(:),res)
  res@xyLineColors=colors(3)
  plot1d=gsn_csm_xy(wks,latitude(:),var2u_90x180_zmn(:),res)
+end if
 
  overlay(plot1a,plot1b)
  overlay(plot1a,plot1c)
  overlay(plot1a,plot1d)
  plot(1)=plot1a
 
+var1s_bias=var1s_zmn-var1_zmn
+var1u_bias=var1u_zmn-var1_zmn
+zero1_bias=var1_zmn-var1_zmn
+
+if (plotbias .gt. 0) then
+ res@trYMinF = -10 
+ res@trYMaxF = 10 
+ res@xyLineColors=colors(0)
+ res@tiMainString = "Low-Level Cloud Fraction"
+ plot2a=gsn_csm_xy(wks,latitude(:),var1calscale_zmn(:),res)
+ res@xyLineColors=colors(1)
+ res@xyDashPattern="0"
+ plot2c=gsn_csm_xy(wks,latitude_model(:),zero1_bias(:),res)
+ res@xyLineColors=colors(2)
+ res@xyDashPattern="0"
+ plot2d=gsn_csm_xy(wks,latitude_model(:),var1s_bias(:),res)
+ res@xyLineColors=colors(3)
+ res@xyDashPattern="0"
+ plot2e=gsn_csm_xy(wks,latitude_model(:),var1u_bias(:),res)
+else
  res@trYMinF = 5 
  res@trYMaxF = 70 
  res@xyLineColors=colors(0)
  res@tiMainString = "Low-Level Cloud Fraction"
  plot2a=gsn_csm_xy(wks,latitude(:),var1calscale_zmn(:),res)
-print("lat: "+latitude(1)+" latitude_model : "+latitude_model(1))
-print("dims of lat "+dimsizes(latitude)+"  dims of lat_model "+dimsizes(latitude_model))
- ;plot2a=gsn_csm_xy(wks,latitude_model(:),var1u_zmn(:),res)
  res@xyLineColors=colors(1)
  res@xyDashPattern="0"
  plot2c=gsn_csm_xy(wks,latitude_model(:),var1_zmn(:),res)
@@ -1033,6 +1172,7 @@ print("dims of lat "+dimsizes(latitude)+"  dims of lat_model "+dimsizes(latitude
  res@xyLineColors=colors(3)
  res@xyDashPattern="0"
  plot2e=gsn_csm_xy(wks,latitude_model(:),var1u_zmn(:),res)
+end if
 
  overlay(plot2a,plot2c)
  overlay(plot2a,plot2d)
