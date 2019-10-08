@@ -9,10 +9,13 @@
 ;
 ; in general the tau levels in misr are:
 ; 0.15,0.8,2.45,6.5,16.2,41.5,100.
+
+; the dimensions of clmisr are: 
+; clmisr(time, tau, alt16, lat, lon) ;
 ;
 ; model data will need to be pp'ed with the script misr_pp_yrlowcl.s
 ;
-; levi silvers							oct 2016
+; levi silvers							oct 2019
 ;***********************************************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -22,14 +25,27 @@ begin
 ;***********************************************************************************
 ; read in netCDF file
 ;***********************************************************************************
-dirin="/work/Levi.Silvers/moddata/misr_am4g10r8_taugt0p3/"
+;dirin="/work/Levi.Silvers/moddata/misr_am4g10r8_taugt0p3/"
+dirin="/Users/silvers/data/cfmip_clouds/"
 ;infile="/archive/Levi.Silvers/awg/ulm_201505/c96L32_am4h6_2000climo_cosp/gfdl.ncrc2-intel-prod-openmp/pp/atmos_month_misr/av/monthly_5yr/atmos_month_misr_mtime_under3km_tau_mn_final.nc"
-infile=dirin+"atmos_month_misr_mtime_under3km_tau_mn_final.nc"
-maintitle="MISR cloud fraction am4g10r8 below 3km (tau>0.3)"
+;infile=dirin+"atmos_month_misr_mtime_under3km_tau_mn_final.nc"
+infile=dirin+"clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_199701-200212.nc"
+maintitle="MISR cloud fraction over all heights"
   a = addfile(infile,"r")
 print("infile is: "+infile)
+var2read="clmisr"
 ;  t = a->misr_7(0,0,:,:)                                
-  t = a->misr_vint(0,0,:,:)                                
+  cfrac_thin = a->$var2read$(:,1:2,0,:,:) ; for thin clouds      
+  cfrac = a->$var2read$(:,3:6,:,:,:) ; for thicker clouds      
+  cfrac_tmn=dim_avg_n(cfrac,0)
+print("dimensions of cfrac_tmn are: "+dimsizes(cfrac_tmn))
+  cfrac_tmn_totz=dim_sum_n(cfrac_tmn,1)
+  cfrac_tmn_totz_thick=dim_sum_n(cfrac_tmn_totz,0)
+  cfrac_plot=cfrac_tmn_totz_thick
+print("dimensions of cfrac are: "+dimsizes(cfrac))
+print("dimensions of cfrac_tmn_totz are: "+dimsizes(cfrac_tmn_totz))
+print("dimensions of cfrac_plot are: "+dimsizes(cfrac_plot))
+print("max/min of cfrac is: "+max(cfrac)+"  "+min(cfrac))                         
 ;***********************************************************************************
 ; create plot
 ;***********************************************************************************
@@ -38,7 +54,7 @@ print("infile is: "+infile)
 my_levels1 = (/0,10,15,20,30,35,40,45,50,55,60,65,70,75,80/)
 my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/)
 
-  wks = gsn_open_wks("ps","proj")          ; send graphics to ps file
+  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   gsn_define_colormap(wks,"WhBlGrYeRe")
 
@@ -73,6 +89,6 @@ my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/)
   res@tiMainString       = maintitle  ; add a title
   res@tiMainFontHeightF  = .018                               ; font height
 
-  contour = gsn_csm_contour_map(wks,t,res)  ; create the plot
+  contour = gsn_csm_contour_map(wks,cfrac_plot,res)  ; create the plot
 end
 
