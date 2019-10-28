@@ -172,14 +172,6 @@ latitude_model=data->lat(:)
 
 var1@_FillValue = -1.e+30
 
-;; if using older calipso data source...
-;var1cal = data4->$varname1$(:,:)                                
-;var1calscale=100*var1cal
-;var2cal = data5->$varname2$(:,:)                                
-;var2calscale=100*var2cal
-;var3cal = data6->$varname3$(:,:)                                
-;var3calscale=100*var3cal
-
 ; if using calipso data between 200701-201612
 var1cal = data_calobs->$varname1$(0,:,:) ; low                               
 var1calscale=100*var1cal
@@ -309,19 +301,19 @@ print("======================================")
 
 ;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
-lat  = data->lat
-rad  = 4.0*atan(1.0)/180.0
-clat = cos(lat*rad)
-;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
-
-field1_weighted_ave     = wgt_areaave(var1,clat,1.0,0)
-field2_weighted_ave     = wgt_areaave(var2,clat,1.0,0)
-field3_weighted_ave     = wgt_areaave(var3,clat,1.0,0)
+  lat  = data->lat
+  rad  = 4.0*atan(1.0)/180.0
+  clat = cos(lat*rad)
+  ;field1_test = where(field1.gt.-900., field1,default_fillvalue("float"))
+  
+  field1_weighted_ave     = wgt_areaave(var1,clat,1.0,0)
+  field2_weighted_ave     = wgt_areaave(var2,clat,1.0,0)
+  field3_weighted_ave     = wgt_areaave(var3,clat,1.0,0)
 
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ;
-rad2p5x2p5 = 4.0*atan(1.0)/180.0
-clat_2p5x2p5 = cos(LAT_REG_2p5x2p5*rad2p5x2p5)
+  rad2p5x2p5 = 4.0*atan(1.0)/180.0
+  clat_2p5x2p5 = cos(LAT_REG_2p5x2p5*rad2p5x2p5)
 print("dims of NLAT2p5x2p5: "+dimsizes(NLAT2p5x2p5))
 print("dims of LAT_REG_2p5x2p5: "+dimsizes(LAT_REG_2p5x2p5)+" dims of var1_90x180 are: "+dimsizes(var1_90x180))
 print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
@@ -329,14 +321,14 @@ print("dims of clat: "+dimsizes(clat)+" dims of var1 are: "+dimsizes(var1))
 ;print("And the values of lat are: "+lat)
 
 print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
-var1_90x180@_FillValue = -9.39863e+29
+  var1_90x180@_FillValue = -9.39863e+29
 
-var1_90x180 = where(var1_90x180.lt.0.0,var1@_FillValue,var1_90x180)
+  var1_90x180 = where(var1_90x180.lt.0.0,var1@_FillValue,var1_90x180)
 print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
-field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_90x180,clat_2p5x2p5,1.0,0)
-field2_2p5x2p5_weighted_ave  = wgt_areaave(var2_90x180,clat_2p5x2p5,1.0,0)
-field3_2p5x2p5_weighted_ave  = wgt_areaave(var3_90x180,clat_2p5x2p5,1.0,0)
-;field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_test,clat_2p5x2p5,1.0,0)
+  field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_90x180,clat_2p5x2p5,1.0,0)
+  field2_2p5x2p5_weighted_ave  = wgt_areaave(var2_90x180,clat_2p5x2p5,1.0,0)
+  field3_2p5x2p5_weighted_ave  = wgt_areaave(var3_90x180,clat_2p5x2p5,1.0,0)
+  ;field1_2p5x2p5_weighted_ave  = wgt_areaave(var1_test,clat_2p5x2p5,1.0,0)
 
 ;---------------------------------------------------------------------
 ; compute latitude weighted mean values for the 2p5x2p5 data both calipso and am4
@@ -508,36 +500,6 @@ print("is FillValue defined here?")
 dummy@FillValue=4.82843e+27
 print("fill value of dummy is: "+dummy@FillValue)
 print("is FillValue defined here?")
-
-sumx=0.0
-;printVarSummary(sumx)
-sumw=0.0
-kmsg_c=0
-do n=0,ny-1
-  do m=0,mx-1
-    if (.not.ismissing(dummy(n,m))) then
-      sumx=sumx+dummy(n,m)*dum_lat(n)
-      sumw=sumw+dum_lat(n)
-    else
-      kmsg_c = kmsg_c +1
-;      print("missing value is="+dummy(n,m))
-    end if
-  end do
-end do
-
-xave_b=sumx/sumw
-print("xave_b="+xave_b+"            kmsg_c="+kmsg_c)
-
-wgty=conform(dummy,dum_lat,0)
-wgtx=conform(dummy,1,-1)
-
-x_ave = sum(dummy*wgty*wgtx)/sum(wgty*wgtx)
-print("[A] sum(dummy*wgty*wgtx)/sum(wgty*wgtx)="+x_ave+"          not correct")
-
-WGTX = where(ismissing(dummy),0.0,1.0)
-WGTY = where(ismissing(dummy),0.0,wgty)
-x_ave = sum(dummy*wgty*wgtx)/sum(WGTX*WGTY)
-print("[B] sum(dummy*wgty*wgtx)/sum(WGTY*WGTX)="+x_ave)  
 
 ;***********************************************************************************
 ; create plot
