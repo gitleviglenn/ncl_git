@@ -1,5 +1,5 @@
 ;***********************************************************************************
-; calip2p5_lowmedhigh.ncl
+; calip2p5_lowmedhigh_cfmip.ncl
 ;***********************************************************************************
 ;
 ; plot global cloud fraction for low, med, and high clouds from CALIPSO simulator
