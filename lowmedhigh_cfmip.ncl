@@ -2,7 +2,7 @@
 ; lowmedhigh_cfmip.ncl
 ;***********************************************************************************
 ;
-; plot global cloud fraction for low, med, and high clouds from CALIPSO simulator
+; plot cloud frac for low, med, and high clouds from CALIPSO am4 simulator and obs
 ;
 ; the calipso observations are on a 2.5x2.5 degree grid so the model output is 
 ; interpolated to a 2x2 degree grid before being plotted
@@ -35,8 +35,6 @@ begin
 ; read in netCDF file
 ;***********************************************************************************
 ; variable to read: 
-  ;varname1="cltlidarradar"
-  ;varname1="tot_cld_amt" 
   varname1="cllcalipso"
   varname2="clmcalipso"
   varname3="clhcalipso"
@@ -45,7 +43,7 @@ begin
   path_obs="/net2/Levi.Silvers/data_calipso/"
   
   ; path on archive
-  ;path_on_archive="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"
+  path_on_archive="/archive/Levi.Silvers/CMIP6/cfmip_clouds/"
   ; path to data on mac
   path_on_mac="/Users/silvers/data/cfmip_clouds/"
   ;
@@ -106,10 +104,15 @@ begin
 
   infile_h=path_to_data+filetoread_amm4_h
   data_h = addfile(infile_h,"r")
+
 print("infile for test is: "+infile_h)
+
   var_full_h=data_h->$varname3$(:,:,:)
+
 print("dimenstions of test shovels: "+dimsizes(var_full_h))
+
   var_h=dim_avg_n(var_full_h,0)
+
 print("dimenstions of test shovels: "+dimsizes(var_h))
 ;-------------------------------------------------------------------------------------------- 
 
@@ -124,7 +127,7 @@ print("dimenstions of test shovels: "+dimsizes(var_h))
   PI=acos(-1.)
   
   ; amip data from model
-  data = addfile(infile1,"r")    ; low clouds
+  data  = addfile(infile1,"r")   ; low clouds
   data2 = addfile(infile2,"r")   ; mid level clouds
   data3 = addfile(infile3,"r")   ; high clouds
   ; from obs
@@ -165,7 +168,7 @@ print("heck with this varnew: "+dimsizes(var3))
   
   var1@_FillValue = -1.e+30
   
-  ; if using calipso data between 200701-201612
+  ; if using calipso data between 200701-201612 rescale it by 100.
   var1cal = data_calobs->$varname1$(0,:,:) ; low                               
   var1calscale=100*var1cal
   var2cal = data_calobs->$varname2$(0,:,:)                                
@@ -173,12 +176,12 @@ print("heck with this varnew: "+dimsizes(var3))
   var3cal = data_calobs->$varname3$(0,:,:)                                
   var3calscale=100*var3cal
   latitude=data_calobs->latitude(:)
-printVarSummary(latitude)
 
   var1cal@_FillValue = 1.e+20
   var2cal@_FillValue = 1.e+20
   var3cal@_FillValue = 1.e+20
-  
+
+; attach meta data to calipso observations  
   var1calscale!0="lat"
   var1calscale&lat=var1cal&latitude
   var1calscale!1="lon"
@@ -195,20 +198,15 @@ printVarSummary(latitude)
   var3calscale&lon=var1cal&longitude
 
 print("======================================")
-print("max of var1calscale: "+max(var1calscale))
+print("max of var1calscale(calipso obs btwn 200701-201612: "+max(var1calscale))
 print("min of var1calscale: "+min(var1calscale))
 print("max of var2calscale: "+max(var2calscale))
 print("min of var2calscale: "+min(var2calscale))
 print("max of var3calscale: "+max(var3calscale))
 print("min of var3calscale: "+min(var3calscale))
-print("-------------------")
-
-print("maximum minimum of calipso data are: "+max(var1calscale)+"  "+min(var1calscale))
-
 print("======================================")
 print("dimensions of model data: "+dimsizes(var1))
 print("-------------------")
-
 print("dimensions of calipso data: "+dimsizes(var1calscale))
 print("======================================")
 
@@ -217,14 +215,13 @@ print("======================================")
 
 ;------------------------------------------------------------
 ; the calipso data and am4 data are not on the same grid...
-
-  var_to_interpolate=var1
-  var2_to_interpolate=var2
-  var3_to_interpolate=var3
-
 ;*************************************************************
 ; perform conservative remapping of am4 data to 2.5x2.5 grid
 ;*************************************************************
+
+  var_to_interpolate  =var1
+  var2_to_interpolate =var2
+  var3_to_interpolate =var3
 
   var_to_interpolate!0="lat"
   var_to_interpolate&lat=var1&lat
@@ -346,7 +343,6 @@ print("??????????????????min value of var1_90x180 is: "+min(var1_90x180))
   var3_90x180_weighted_ave  = wgt_areaave(var3_90x180,clat_cobs,1.0,0)
   var3_mask = where(var3calscale.eq.var3calscale@_FillValue,var3calscale@_FillValue,var3_90x180)
   var3_masked_weighted_ave  = wgt_areaave(var3_mask,clat_cobs,1.0,0)
-  
   
   ; calipso observations
   field4_weighted_ave     = wgt_areaave(var1calscale,clat_cobs,1.0,0)
@@ -515,8 +511,9 @@ if (figurenumber .lt. 2) then
 else if (figurenumber .lt. 3) then
 else if (figurenumber .lt. 4) then
   ; ------------------------------------------------------------------------------------
-  ; read in additional data from other experiments
-  
+  ; define paths, addfile and read in additional data from other experiments
+ 
+  ; experiment 'a' 
     expname="amip-p4K"
     ;title_lg2="amip p4K"
     ;filetoread_amp4_l="cllcalipso_CFmon_GFDL-CM4_amip-p4K_r1i1p1f1_gr1_197901-201412.nc"
@@ -524,7 +521,12 @@ else if (figurenumber .lt. 4) then
     infile1a_m=path_to_data+filetoread_amp4_m
     infile1a_h=path_to_data+filetoread_amp4_h
     ;infile1a="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/amip-p4K-a/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
-    
+    data_1a_l = addfile(infile1a_l,"r")
+    data_1a_m = addfile(infile1a_m,"r")
+    data_1a_h = addfile(infile1a_h,"r")
+  print("what is this file name>? "+infile1a_m)
+
+  ; experiment 'b'    
     ;expname="amip-future4K"
     expname="amip-m4K"
     ;title_lg3="amip future4K"
@@ -534,30 +536,25 @@ else if (figurenumber .lt. 4) then
     infile1b_m=path_to_data+filetoread_amm4_m
     infile1b_h=path_to_data+filetoread_amm4_h
     ;infile1b="/archive/Oar.Gfdl.Mgrp-account/CMIP6/CM4/CFMIP/warsaw_201803/CM4_amip_future4K/gfdl.ncrc4-intel-prod-openmp/pp/atmos_cmip/av/monthly_36yr/atmos_cmip.1979-2014.tmn2.nc"
-    
-    data_1a_l = addfile(infile1a_l,"r")
-    data_1a_m = addfile(infile1a_m,"r")
-    data_1a_h = addfile(infile1a_h,"r")
     data_1b_l = addfile(infile1b_l,"r")
     data_1b_m = addfile(infile1b_m,"r")
     data_1b_h = addfile(infile1b_h,"r")
   
-  print("what is this file name>? "+infile1a_m)
-  
-    var1a_full = data_1a_l->$varname1$(:,:,:) ; low                               
+  ; read data
+    var1a_full = data_1a_l->$varname1$(:,:,:) ; low clouds from exp a
     var1a=dim_avg_n(var1a_full,0)
-    var1b_full = data_1b_l->$varname1$(:,:,:)                                
+    var1b_full = data_1b_l->$varname1$(:,:,:) ; low clouds from exp b
     var1b=dim_avg_n(var1b_full,0)
-    var2a_full = data_1a_m->$varname2$(:,:,:) ; mid                               
+
+    var2a_full = data_1a_m->$varname2$(:,:,:) ; mid clouds                               
     var2a=dim_avg_n(var2a_full,0)
     var2b_full = data_1b_m->$varname2$(:,:,:)                                
     var2b=dim_avg_n(var2b_full,0)
+
     var3a_full = data_1a_h->$varname3$(:,:,:)                                
     var3a=dim_avg_n(var3a_full,0)
-    var3b_full = data_1b_h->$varname3$(:,:,:) ; high                               
+    var3b_full = data_1b_h->$varname3$(:,:,:) ; high clouds                              
     var3b=dim_avg_n(var3b_full,0)
-  
-  print("dimsizes of var1a are: "+dimsizes(var1a))
   
   ; the dimensions appear to get overwritten when the dim_avg_n function is used
     var1a!0="lat"
@@ -655,10 +652,12 @@ else if (figurenumber .lt. 4) then
      interpolated_var3b = area_conserve_remap_Wrap (var3b_to_interpolate&lon, var3b_to_interpolate&lat, var3b_to_interpolate,LON_REG_2p5x2p5, LAT_REG_2p5x2p5, opt)
 ;*************************************************************
 
+; variable s
     var1s_90x180=interpolated_var1
     var2s_90x180=interpolated_var2
     var3s_90x180=interpolated_var3
-    
+   
+; attach meta data to 's' variables  
     var1s_90x180!0="lat"
     var1s_90x180&lat=var1cal&latitude
     var1s_90x180!1="lon"
@@ -673,11 +672,13 @@ else if (figurenumber .lt. 4) then
     var3s_90x180&lat=var1cal&latitude
     var3s_90x180!1="lon"
     var3s_90x180&lon=var1cal&longitude
-    
+   
+; variable u 
     var1u_90x180=interpolated_var1b
     var2u_90x180=interpolated_var2b
     var3u_90x180=interpolated_var3b
     
+; attach meta data to 's' variables  
     var1u_90x180!0="lat"
     var1u_90x180&lat=var1cal&latitude
     var1u_90x180!1="lon"
@@ -880,7 +881,6 @@ else if (figurenumber .lt. 4) then
     lgres@lgPerimOn            = False
    
    ; draw panel with white space added
-    ;labels = (/"string1","string2","string3","string4"/)
     legend  = gsn_create_legend (wks, 4, labels, lgres)
     resP                 = True
     resP@amJust = "BottomRight"
