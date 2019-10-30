@@ -8,8 +8,8 @@
 ; interpolated to a 2x2 degree grid before being plotted
 ;
 ; control parameters in this script: 
-; figurenumber
-; plotbias
+; figurenumber--> set what type of figure to plot, global maps or zonal means
+; plotbias-->     set wheter to plot absolute values or bias values
 ;
 ; figurenumber is a switch that deterimines which of 3 figures will be output
 ; figurenumber 3  plots cloud fraction as a function of latitude for 
