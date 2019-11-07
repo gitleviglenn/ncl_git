@@ -72,8 +72,9 @@ begin
   filetoread_4xCO2_l="cllcalipso_CFmon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
  
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-; read data from files 
+; define experiment paths and read data from files 
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+; paths and names
   ;expname="amip"
   infile_l=path_to_data+filetoread_amip_l
   infile_m=path_to_data+filetoread_amip_m
@@ -82,47 +83,107 @@ begin
   infile1_l=path_to_data+filetoread_amp4_l
   infile1_m=path_to_data+filetoread_amp4_m
   infile1_h=path_to_data+filetoread_amp4_h
-  ;expname="amip-p4K"
+  ;expname="amip-m4K"
   infile2_l=path_to_data+filetoread_amm4_l
   infile2_m=path_to_data+filetoread_amm4_m
   infile2_h=path_to_data+filetoread_amm4_h
+  ;expname="historical coupled"
+  infile3_l=path_to_data+filetoread_his_l
+  infile3_m=path_to_data+filetoread_his_m
+  infile3_h=path_to_data+filetoread_his_h
+  ;expname="abrupt 4xCO2 coupled"
+  infile4_l=path_to_data+filetoread_4xCO2_l
+  infile4_m=path_to_data+filetoread_4xCO2_m
+  infile4_h=path_to_data+filetoread_4xCO2_h
 ;
+; read data
+
+; amip
   data_l = addfile(infile_l,"r")
   data_m = addfile(infile_m,"r")
   data_h = addfile(infile_h,"r")
 
+  var_l_full = data_l->$varname1$(:,:,:) ; low clouds from exp a
+  var_l_tmn=dim_avg_n(var_l_full,0) ; average over time
+  var_m_full = data_m->$varname2$(:,:,:) ; low clouds from exp a
+  var_m_tmn=dim_avg_n(var_m_full,0) ; average over time
+  var_h_full = data_h->$varname3$(:,:,:) ; low clouds from exp a
+  var_h_tmn=dim_avg_n(var_h_full,0) ; average over time
+
+  var_l_ztmn=dim_avg_n(var_l_tmn,1)
+  var_m_ztmn=dim_avg_n(var_m_tmn,1)
+  var_h_ztmn=dim_avg_n(var_h_tmn,1)
+
+print("dimsizes of amip data are: "+dimsizes(var_l_full))
+
+; amip-p4K
   data_1_l = addfile(infile1_l,"r")
   data_1_m = addfile(infile1_m,"r")
   data_1_h = addfile(infile1_h,"r")
 print("what is this file name>? "+infile1_m)
 
-  ; read data
-
   ; read latitude dimensions from model
   latitude=data_1_l->lat(:)
 
-    var_l_full = data_l->$varname1$(:,:,:) ; low clouds from exp a
-    var_m_full = data_m->$varname2$(:,:,:) ; low clouds from exp a
-    var_h_full = data_h->$varname3$(:,:,:) ; low clouds from exp a
-print("dimsizes of amip data are: "+dimsizes(var_l_full))
-
-    var1_l_full = data_1_l->$varname1$(:,:,:) ; low clouds from exp a
+  var1_l_full = data_1_l->$varname1$(:,:,:) ; low clouds from exp a
 print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
-    var1_l_tmn=dim_avg_n(var1_l_full,0) ; average over time
-    var1_m_full = data_1_m->$varname2$(:,:,:) ; mid clouds from exp a
-    var1_m_tmn=dim_avg_n(var1_m_full,0)
-    var1_h_full = data_1_h->$varname3$(:,:,:) ; high clouds from exp a
-    var1_h_tmn=dim_avg_n(var1_h_full,0)
+  var1_l_tmn=dim_avg_n(var1_l_full,0) ; average over time
+  var1_m_full = data_1_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var1_m_tmn=dim_avg_n(var1_m_full,0)
+  var1_h_full = data_1_h->$varname3$(:,:,:) ; high clouds from exp a
+  var1_h_tmn=dim_avg_n(var1_h_full,0)
 
-  ; the dimensions appear to get overwritten when the dim_avg_n function is used
-  ;  var1_l_tmn!0="lat"
-  ;  var1_l_tmn&lat=var1_l_full&lat
-  ;  var1_l_tmn!1="lon"
-  ;  var1_l_tmn&lon=var1_l_full&lon
+  var1_l_ztmn=dim_avg_n(var1_l_tmn,1)
+  var1_m_ztmn=dim_avg_n(var1_m_tmn,1)
+  var1_h_ztmn=dim_avg_n(var1_h_tmn,1)
 
-    var1_l_ztmn=dim_avg_n(var1_l_tmn,1)
-    var1_m_ztmn=dim_avg_n(var1_m_tmn,1)
-    var1_h_ztmn=dim_avg_n(var1_h_tmn,1)
+; amip-m4K
+  data_2_l = addfile(infile2_l,"r")
+  data_2_m = addfile(infile2_m,"r")
+  data_2_h = addfile(infile2_h,"r")
+
+  var2_l_full = data_2_l->$varname1$(:,:,:) ; low clouds from exp a
+  var2_l_tmn=dim_avg_n(var2_l_full,0) ; average over time
+  var2_m_full = data_2_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var2_m_tmn=dim_avg_n(var2_m_full,0)
+  var2_h_full = data_2_h->$varname3$(:,:,:) ; high clouds from exp a
+  var2_h_tmn=dim_avg_n(var2_h_full,0)
+
+  var2_l_ztmn=dim_avg_n(var2_l_tmn,1)
+  var2_m_ztmn=dim_avg_n(var2_m_tmn,1)
+  var2_h_ztmn=dim_avg_n(var2_h_tmn,1)
+
+; historical  (eventually I probably want to compare only with the amip years...)
+  data_3_l = addfile(infile3_l,"r")
+  data_3_m = addfile(infile3_m,"r")
+  data_3_h = addfile(infile3_h,"r")
+
+  var3_l_full = data_3_l->$varname1$(:,:,:) ; low clouds from exp a
+  var3_l_tmn=dim_avg_n(var3_l_full,0) ; average over time
+  var3_m_full = data_3_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var3_m_tmn=dim_avg_n(var3_m_full,0)
+  var3_h_full = data_3_h->$varname3$(:,:,:) ; high clouds from exp a
+  var3_h_tmn=dim_avg_n(var3_h_full,0)
+
+  var3_l_ztmn=dim_avg_n(var3_l_tmn,1)
+  var3_m_ztmn=dim_avg_n(var3_m_tmn,1)
+  var3_h_ztmn=dim_avg_n(var3_h_tmn,1)
+
+; abrupt 4xCO2
+  data_4_l = addfile(infile4_l,"r")
+  data_4_m = addfile(infile4_m,"r")
+  data_4_h = addfile(infile4_h,"r")
+
+  var4_l_full = data_4_l->$varname1$(:,:,:) ; low clouds from exp a
+  var4_l_tmn=dim_avg_n(var4_l_full,0) ; average over time
+  var4_m_full = data_4_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var4_m_tmn=dim_avg_n(var4_m_full,0)
+  var4_h_full = data_4_h->$varname3$(:,:,:) ; high clouds from exp a
+  var4_h_tmn=dim_avg_n(var4_h_full,0)
+
+  var4_l_ztmn=dim_avg_n(var4_l_tmn,1)
+  var4_m_ztmn=dim_avg_n(var4_m_tmn,1)
+  var4_h_ztmn=dim_avg_n(var4_h_tmn,1)
 
 ;*************************************************************
     wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
@@ -157,62 +218,79 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
     res@tmXBLabels = (/-60,-30,0,30,60/)
     res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
 
-    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue"/) 
-    lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(0)/)
-    lgres@lgDashIndexes = (/"0","0","0","0"/)
+    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4"/) 
+    lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(4),colors(5)/)
+    lgres@lgDashIndexes = (/"0","0","0","0","0"/)
 
-    title_lg1="stop"
-    title_lg2="over"
-    title_lg3="out"
-    labels = (/title_lg1,title_lg2,title_lg3,"Observations"/) ; bottom to top
+    title_lg0="amip"
+    title_lg1="amip +4K"
+    title_lg2="amip -4K"
+    title_lg3="historical"
+    title_lg4="abrupt 4xCO2"
+    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_lg4/) ; bottom to top
 
     res@gsnDraw         = False
     res@gsnFrame         = False
   
-      res@trYMinF = 15
-      res@trYMaxF = 55
-      res@xyLineColors=colors(0)
-      plot0a=gsn_csm_xy(wks,latitude(:),var1_h_ztmn(:),res)
-;      plot0a=gsn_csm_xy(wks,latitude(:),var3calscale_zmn(:),res)
-;      res@xyLineColors=colors(1)
-;      plot0b=gsn_csm_xy(wks,latitude(:),var3_90x180_zmn(:),res)
-;      res@xyLineColors=colors(2)
-;      plot0c=gsn_csm_xy(wks,latitude(:),var3s_90x180_zmn(:),res)
-;      res@xyLineColors=colors(3)
-;      plot0d=gsn_csm_xy(wks,latitude(:),var3u_90x180_zmn(:),res)
+    res@trYMinF = 15
+    res@trYMaxF = 55
+    res@xyLineColors=colors(1)
+    plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
+    res@xyLineColors=colors(2)
+    plot0b=gsn_csm_xy(wks,latitude(:),var1_h_ztmn(:),res)
+    res@xyLineColors=colors(3)
+    plot0c=gsn_csm_xy(wks,latitude(:),var2_h_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot0d=gsn_csm_xy(wks,latitude(:),var3_h_ztmn(:),res)
+    res@xyLineColors=colors(5)
+    plot0e=gsn_csm_xy(wks,latitude(:),var4_h_ztmn(:),res)
+
+    overlay(plot0a,plot0b)
+    overlay(plot0a,plot0c)
+    overlay(plot0a,plot0d)
+    overlay(plot0a,plot0e)
 
     plot(0)=plot0a
 
-      res@trYMinF = 0
-      res@trYMaxF = 40
-      res@tiMainString = "Mid-Level Cloud Fraction"
-      res@xyLineColors=colors(0)
-      plot1a=gsn_csm_xy(wks,latitude(:),var1_m_ztmn(:),res)
-;      plot1a=gsn_csm_xy(wks,latitude(:),var2calscale_zmn(:),res)
-;      res@xyLineColors=colors(1)
-;      plot1b=gsn_csm_xy(wks,latitude(:),var2_90x180_zmn(:),res)
-;      res@xyLineColors=colors(2)
-;      plot1c=gsn_csm_xy(wks,latitude(:),var2s_90x180_zmn(:),res)
-;      res@xyLineColors=colors(3)
-;      plot1d=gsn_csm_xy(wks,latitude(:),var2u_90x180_zmn(:),res)
+    res@trYMinF = 0
+    res@trYMaxF = 40
+    res@tiMainString = "Mid-Level Cloud Fraction"
+    res@xyLineColors=colors(1)
+    plot1a=gsn_csm_xy(wks,latitude(:),var_m_ztmn(:),res)
+    res@xyLineColors=colors(2)
+    plot1b=gsn_csm_xy(wks,latitude(:),var1_m_ztmn(:),res)
+    res@xyLineColors=colors(3)
+    plot1c=gsn_csm_xy(wks,latitude(:),var2_m_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot1d=gsn_csm_xy(wks,latitude(:),var3_m_ztmn(:),res)
+    res@xyLineColors=colors(5)
+    plot1e=gsn_csm_xy(wks,latitude(:),var4_m_ztmn(:),res)
+
+    overlay(plot1a,plot1b)
+    overlay(plot1a,plot1c)
+    overlay(plot1a,plot1d)
+    overlay(plot1a,plot1e)
 
     plot(1)=plot1a
 
-      res@trYMinF = 5 
-      res@trYMaxF = 70 
-      res@xyLineColors=colors(0)
-      res@tiMainString = "Low-Level Cloud Fraction"
-      ;plot2a=gsn_csm_xy(wks,latitude(:),var1calscale_zmn(:),res)
-      plot2a=gsn_csm_xy(wks,latitude(:),var1_l_ztmn(:),res)
-      ;res@xyLineColors=colors(1)
-      ;res@xyDashPattern="0"
-      ;plot2c=gsn_csm_xy(wks,latitude_model(:),var1_zmn(:),res)
-      ;res@xyLineColors=colors(2)
-      ;res@xyDashPattern="0"
-      ;plot2d=gsn_csm_xy(wks,latitude_model(:),var1s_zmn(:),res)
-      ;res@xyLineColors=colors(3)
-      ;res@xyDashPattern="0"
-      ;plot2e=gsn_csm_xy(wks,latitude_model(:),var1u_zmn(:),res)
+    res@trYMinF = 5 
+    res@trYMaxF = 70 
+    res@xyLineColors=colors(1)
+    res@tiMainString = "Low-Level Cloud Fraction"
+    plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
+    res@xyLineColors=colors(2)
+    plot2b=gsn_csm_xy(wks,latitude(:),var1_l_ztmn(:),res)
+    res@xyLineColors=colors(3)
+    plot2c=gsn_csm_xy(wks,latitude(:),var2_l_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot2d=gsn_csm_xy(wks,latitude(:),var3_l_ztmn(:),res)
+    res@xyLineColors=colors(5)
+    plot2e=gsn_csm_xy(wks,latitude(:),var4_l_ztmn(:),res)
+
+    overlay(plot2a,plot2b)
+    overlay(plot2a,plot2c)
+    overlay(plot2a,plot2d)
+    overlay(plot2a,plot2e)
 
     plot(2)=plot2a
 
@@ -221,7 +299,6 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
     lgres                      = True
     lgres@xyLabelMode            = "Custom"
     lgres@xyLineLabelFontHeightF = 0.020                ; font height
-    ;lgres@lgLineColors         = (/"black","darkgoldenrod","darkolivegreen3","chocolate"/)
     lgres@lgItemType           = "Lines"
     lgres@lgLabelFontHeightF   = .07
     lgres@vpWidthF             = 0.3        ; width of legend
@@ -229,11 +306,10 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
     lgres@lgLineThicknessF     = lthick
     lgres@lgPerimThicknessF    = 2.0
     lgres@lgMonoDashIndex      = False 
-    ;lgres@lgDashIndexes          = (/"0","0","0","0"/)
     lgres@lgPerimOn            = False
    
    ; draw panel with white space added
-    legend  = gsn_create_legend (wks, 4, labels, lgres)
+    legend  = gsn_create_legend (wks, 5, labels, lgres)
     resP                 = True
     resP@amJust = "BottomRight"
     ;resP@amParallelPosF   = 0.42    ; Move legend to right
