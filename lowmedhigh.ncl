@@ -99,6 +99,7 @@ begin
 ; read data
 
 ; amip
+print("amip data is: "+infile_l)
   data_l = addfile(infile_l,"r")
   data_m = addfile(infile_m,"r")
   data_h = addfile(infile_h,"r")
@@ -117,6 +118,7 @@ begin
 print("dimsizes of amip data are: "+dimsizes(var_l_full))
 
 ; amip-p4K
+print("amip +4K data is: "+infile1_l)
   data_1_l = addfile(infile1_l,"r")
   data_1_m = addfile(infile1_m,"r")
   data_1_h = addfile(infile1_h,"r")
@@ -138,6 +140,7 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
   var1_h_ztmn=dim_avg_n(var1_h_tmn,1)
 
 ; amip-m4K
+print("amip -4K data is: "+infile2_l)
   data_2_l = addfile(infile2_l,"r")
   data_2_m = addfile(infile2_m,"r")
   data_2_h = addfile(infile2_h,"r")
@@ -186,6 +189,38 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
   var4_h_ztmn=dim_avg_n(var4_h_tmn,1)
 
 ;*************************************************************
+
+; compute bias of cloud fields relative to a particular control exp.
+
+;cont_exp=amip (var_l_ztmn, var_m_ztmn, var_h_ztmn)
+  cont_l=var_l_ztmn
+  cont_m=var_m_ztmn
+  cont_h=var_h_ztmn
+  
+  plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
+  if (plotbias .gt. 0) then
+    var_l_ztmn=var_l_ztmn-cont_l
+    var_m_ztmn=var_m_ztmn-cont_m
+    var_h_ztmn=var_h_ztmn-cont_h
+
+    var1_l_ztmn=var1_l_ztmn-cont_l
+    var1_m_ztmn=var1_m_ztmn-cont_m
+    var1_h_ztmn=var1_h_ztmn-cont_h
+    
+    var2_l_ztmn=var2_l_ztmn-cont_l
+    var2_m_ztmn=var2_m_ztmn-cont_m
+    var2_h_ztmn=var2_h_ztmn-cont_h
+    
+    var3_l_ztmn=var3_l_ztmn-cont_l
+    var3_m_ztmn=var3_m_ztmn-cont_m
+    var3_h_ztmn=var3_h_ztmn-cont_h
+    
+    var4_l_ztmn=var4_l_ztmn-cont_l
+    var4_m_ztmn=var4_m_ztmn-cont_m
+    var4_h_ztmn=var4_h_ztmn-cont_h
+  end if
+
+;*************************************************************
     wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
     plot = new(3,graphic)
   
@@ -232,8 +267,13 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
     res@gsnDraw         = False
     res@gsnFrame         = False
   
-    res@trYMinF = 15
-    res@trYMaxF = 55
+    if (plotbias .gt. 0) then
+      res@trYMinF = -10
+      res@trYMaxF = 10 
+    else
+      res@trYMinF = 15
+      res@trYMaxF = 55
+    end if
     res@xyLineColors=colors(1)
     plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
     res@xyLineColors=colors(2)
@@ -252,8 +292,13 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
 
     plot(0)=plot0a
 
-    res@trYMinF = 0
-    res@trYMaxF = 40
+    if (plotbias .gt. 0) then
+      res@trYMinF = -10
+      res@trYMaxF = 10 
+    else
+      res@trYMinF = 0
+      res@trYMaxF = 40
+    end if
     res@tiMainString = "Mid-Level Cloud Fraction"
     res@xyLineColors=colors(1)
     plot1a=gsn_csm_xy(wks,latitude(:),var_m_ztmn(:),res)
@@ -273,8 +318,13 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
 
     plot(1)=plot1a
 
-    res@trYMinF = 5 
-    res@trYMaxF = 70 
+    if (plotbias .gt. 0) then
+      res@trYMinF = -10
+      res@trYMaxF = 10 
+    else
+      res@trYMinF = 5 
+      res@trYMaxF = 70 
+    end if
     res@xyLineColors=colors(1)
     res@tiMainString = "Low-Level Cloud Fraction"
     plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
