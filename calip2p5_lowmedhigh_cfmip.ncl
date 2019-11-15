@@ -517,7 +517,7 @@ my_colors_rev = (/64,61,58,55,52,49,46,43,40,37,34,30,26,22,18,12/) ; 16 --> low
 my_colors_posneg = (/19,25,31,37,43,49,55,61,71,77,83,89,96,102,108,114/) ; 16
 
 
-figurenumber = 3 ; 1 is default and plots 9 panel figure
+figurenumber = 1 ; 1 is default and plots 9 panel figure
                  ; 2 plots the 3 panel figure of zonal means
                  ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
                  ; 4 plots the 3 panel figure of zonal means with a linear cosine axis
