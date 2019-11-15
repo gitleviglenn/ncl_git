@@ -49,15 +49,19 @@ print("infile for misr observations is: "+infile_obs)
   var2read="clmisr"
   var_obs="clMISR"
 
+  cfrac_total  = a->$var2read$(:,:,:,:,:) ; for thin clouds (0.3:1.3) 
 ;
+print("dimsizes of am4 incoming data is: "+dimsizes(cfrac_total))
   cfrac_thin  = a->$var2read$(:,1:2,:,:,:) ; for thin clouds (0.3:1.3) 
-  cfrac_thick = a->$var2read$(:,3:5,:,:,:) ; for thicker clouds (3.6:60)      
+  cfrac_thick = a->$var2read$(:,3:4,:,:,:) ; for thicker clouds (3.6:60)      
+
 ;
 
   cfrac_misr_thin  = m_obs->$var_obs$(0,1:2,:,:,:) ; for thin clouds      
   ;cfrac_misr_thick = m_obs->$var_obs$(0,3:5,:,:,:) ; for thicker clouds      
-  cfrac_misr_thick = m_obs->$var_obs$(0,1:2,:,:,:) ; for thicker clouds      
-
+  cfrac_misr_thick = m_obs->$var_obs$(0,3:4,:,:,:) ; for thicker clouds      
+;  cfrac_misr_all = m_obs->$var_obs$(:,:,:,:,:) ; for thicker clouds      
+;print("dimsizes of full misr obs: "+dimsizes(cfrac_misr_all))
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ; compute averages and sums
 
@@ -82,6 +86,14 @@ print("dimensions of am4 cfrac sum over z time and tau are: "+dimsizes(cfrac_tmn
 print("dimensions of misr cfrac sum over z and tau are: "+dimsizes(cfrac_thin_misr))
 
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+;***********************************************************************************
+; reorient the dimensions of the misr observations a bit
+;printVarSummary(cfrac_thin_misr)
+;cfrac_thin_misr=lonPivot(cfrac_thin_misr,0.5)
+;cfrac_thin_misr=cfrac_thin_misr(::-1,:)
+;printVarSummary(cfrac_thin_misr)
+
 ;***********************************************************************************
 ; interpolate gfdl data to a 180x360 degree grid
 print("Beginning Interpolation")
@@ -122,6 +134,8 @@ print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;;***********************************************************************************
 ;; reassign interpolated variable
 ;
+  printVarSummary(LON_1x1)
+  cfrac_plot_am4_thin   = interpolated_var
 ;  cfrac_plot_am4_thin   = new(2,float)
 ;  printVarSummary(cfrac_plot_am4_thin)
 ;  cfrac_plot_am4_thin!0="lat"
@@ -130,10 +144,11 @@ print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;  cfrac_plot_am4_thin&lat=cfrac_thin&lon
 ;
 ;  cfrac_plot_am4_thin   = interpolated_var
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-;print("dims of interpolated_var : "+dimsizes(interpolated_var))
-;print("dims of cfrac_plot_am4_thin after interpolation: "+dimsizes(interpolated_var))
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+print("dims of interpolated_var : "+dimsizes(interpolated_var))
+print("dims of cfrac_plot_am4_thin: "+dimsizes(cfrac_plot_am4_thin))
+print("dims of cfrac_plot_am4_thin after interpolation: "+dimsizes(interpolated_var))
+print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
 ;
 ;
 ;***********************************************************************************
@@ -177,10 +192,10 @@ print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;;***********************************************************************************
 ;; reassign interpolated variable
 ;
-;  cfrac_plot_am4_thick  = interpolated_var
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
-;print("dims of cfrac_plot_am4_thick after interpolation: "+dimsizes(cfrac_plot_am4_thick))
-;print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+  cfrac_plot_am4_thick   = interpolated_var
+print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
+print("dims of cfrac_plot_am4_thick after interpolation: "+dimsizes(cfrac_plot_am4_thick))
+print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
 ;
 ;  cfrac_plot_misr_thin  = cfrac_thin_misr
 ;  cfrac_plot_misr_thick = cfrac_thick_misr
@@ -237,19 +252,56 @@ print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;;print("dimensions of cfrac_plot_thin are: "+dimsizes(cfrac_plot_thin))
 ;;print("max/min of cfrac is: "+max(cfrac)+"  "+min(cfrac))                         
 ;
+;***********************************************************************************
+; reorient the dimensions of the misr observations a bit
+printVarSummary(cfrac_thin_misr)
+cfrac_thin_misr=lonPivot(cfrac_thin_misr,0.5)
+cfrac_thin_misr=cfrac_thin_misr(::-1,:)
+printVarSummary(cfrac_thin_misr)
+;;*****************************************
+; cfrac_plot_am4_thick
+;printVarSummary(cfrac_thick_misr)
+;printVarSummary(cfrac_plot_am4_thick)
+;print("long misr: "+cfrac_thick_misr->lon+" long am4: "+cfrac_plot_am4_thick->lon)
+
+cfrac_am4_thin_oc=where(cfrac_thin_misr.eq.cfrac_thin_misr@_FillValue,cfrac_thin_misr@_FillValue,cfrac_plot_am4_thin)
+
+cfrac_am4_thick_oc=where(cfrac_thin_misr.eq.cfrac_thin_misr@_FillValue,cfrac_thin_misr@_FillValue,cfrac_plot_am4_thick)
+
+  cfrac_am4_thin_oc!0="lat"
+  cfrac_am4_thin_oc&lat=LAT_1x1
+  cfrac_am4_thin_oc!1="lon"
+  cfrac_am4_thin_oc&lon=LON_1x1
+
+  cfrac_am4_thick_oc!0="lat"
+  cfrac_am4_thick_oc&lat=LAT_1x1
+  cfrac_am4_thick_oc!1="lon"
+  cfrac_am4_thick_oc&lon=LON_1x1
+;
 ;;***********************************************************************************
 ;; compute global mean values and biases
-;  lat  = a->lat
-;  rad  = 4.0*atan(1.0)/180.0
-;  clat = cos(lat*rad)
+  lat  = a->lat ; get latitude from am4 data
+  rad  = 4.0*atan(1.0)/180.0
+  clat = cos(lat*rad)
 ;
-;  am4_cfmisr_weighted_ave     = wgt_areaave(interpolated_var,clat,1.0,1)
-;  obs_cfmisr_th_weighted_ave     = wgt_areaave(cfrac_thin_misr,clat,1.0,1)
-;  obs_cfmisr_tck_weighted_ave     = wgt_areaave(cfrac_thick_misr,clat,1.0,1)
+
+printVarSummary(cfrac_thin_misr)
+print("dimensions of the latitude used for weighted mean are: "+dimsizes(lat))
+print("dimensions of interpolated am4 data are: "+dimsizes(interpolated_var))
+print("dimensions of cfrac_thin_misr data are: "+dimsizes(cfrac_thin_misr))
+  am4_cfmisr_thin_weighted_ave    = wgt_areaave(cfrac_plot_am4_thin,clat,1.0,1)
+  am4_cfmisr_thin_oc_whted_ave    = wgt_areaave(cfrac_am4_thin_oc,clat,1.0,0)
+  am4_cfmisr_thick_weighted_ave   = wgt_areaave(cfrac_plot_am4_thick,clat,1.0,1)
+  am4_cfmisr_thick_oc_whted_ave   = wgt_areaave(cfrac_am4_thick_oc,clat,1.0,0)
+  obs_cfmisr_th_weighted_ave      = wgt_areaave(cfrac_thin_misr,clat,1.0,0)
+  obs_cfmisr_tck_weighted_ave     = wgt_areaave(cfrac_thick_misr,clat,1.0,0)
 ;
-;print("weighted average of cm4 data: "+am4_cfmisr_weighted_ave)
-;print("weighted average of thin misr clouds: "+obs_cfmisr_th_weighted_ave)
-;print("weighted average of thick misr clouds: "+obs_cfmisr_tck_weighted_ave)
+print("weighted average of thin cm4 data: "+am4_cfmisr_thin_weighted_ave)
+print("weighted average of thin cm4 oc data: "+am4_cfmisr_thin_oc_whted_ave)
+print("weighted average of thick cm4 data: "+am4_cfmisr_thick_weighted_ave)
+print("weighted average of thick cm4 oc data: "+am4_cfmisr_thick_oc_whted_ave)
+print("weighted average of thin misr clouds: "+obs_cfmisr_th_weighted_ave)
+print("weighted average of thick misr clouds: "+obs_cfmisr_tck_weighted_ave)
 ;;***********************************************************************************
 
 ;***********************************************************************************
@@ -300,19 +352,22 @@ print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 
   res@lbLabelFontHeightF  = 0.015           ; label bar font height
 
-  res@tiMainString       = "AM4 MISR sim thick (tau 3.6:60)"; add a title
+  res@tiMainString       = "AM4 MISR sim thick (tau 3.6:23)"; add a title
   res@tiMainFontHeightF  = .018                               ; font height
 
   ;plot(0) = gsn_csm_contour_map(wks,cfrac_plot_am4_thick,res)  ; create the plot
-  plot(0) = gsn_csm_contour_map(wks,cfrac_tmn_totz_thick,res)  ; create the plot
+  ;plot(0) = gsn_csm_contour_map(wks,cfrac_tmn_totz_thick,res)  ; create the plot
+  plot(0) = gsn_csm_contour_map(wks,cfrac_am4_thick_oc,res)  ; create the plot
 print("dimensions of am4 cfrac sum over z time and tau are: "+dimsizes(cfrac_tmn_totz_thin))
 print("dimensions of misr cfrac sum over z and tau are: "+dimsizes(cfrac_thin_misr))
 
 
   res@tiMainString       = "AM4 MISR sim thin (tau 0.3:3.6)"; add a title
-  plot(1) = gsn_csm_contour_map(wks,cfrac_tmn_totz_thin,res)  ; create the plot
+  ;plot(1) = gsn_csm_contour_map(wks,cfrac_tmn_totz_thin,res)  ; create the plot
+  plot(1) = gsn_csm_contour_map(wks,cfrac_am4_thin_oc,res)  ; create the plot
+;  am4_cfmisr_thin_oc_whted_ave    = wgt_areaave(cfrac_am4_thin_oc,clat,1.0,0)
   ;plot(2) = gsn_csm_contour_map(wks,cfrac_plot_misr_thick,res)  ; create the plot
-  res@tiMainString       = "MISR thick (tau 3.6:60)"; add a title
+  res@tiMainString       = "MISR thick (tau 3.6:23)"; add a title
   plot(2) = gsn_csm_contour_map(wks,cfrac_thick_misr,res)  ; create the plot
   ;plot(3) = gsn_csm_contour_map(wks,cfrac_plot_misr_thin,res)  ; create the plot
   res@tiMainString       = "MISR thin (tau 0.3:3.6)"; add a title
