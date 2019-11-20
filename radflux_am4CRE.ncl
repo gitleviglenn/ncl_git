@@ -287,6 +287,31 @@ cre_net_h2_historical!0="lat"
 cre_net_h2_historical&lat=h2_rsut_historical&lat
 ;
 ;;-------------------------------------------------------------------------
+; for 1pctCO2 
+;-------------------------------------------------------------------------
+filename="rsut_Amon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+infile1=path+filename
+filename="rsutcs_Amon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+infile2=path+filename
+filename="rlut_Amon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+infile3=path+filename
+filename="rlutcs_Amon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+infile4=path+filename
+filename="rsdt_Amon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+infile5=path+filename
+;
+;; read data
+add_rsut_1pctCO2=addfile(infile1,"r")
+abr2_rsut_1pctCO2=add_rsut_1pctCO2->rsut(:,:,:)
+add_rsutcs_1pctCO2=addfile(infile2,"r")
+abr2_rsutcs_1pctCO2=add_rsutcs_1pctCO2->rsutcs(:,:,:)
+add_rlut_1pctCO2=addfile(infile3,"r")
+abr2_rlut_1pctCO2=add_rlut_1pctCO2->rlut(:,:,:)
+add_rlutcs_1pctCO2=addfile(infile4,"r")
+abr2_rlutcs_1pctCO2=add_rlutcs_1pctCO2->rlutcs(:,:,:)
+add_rsdt_1pctCO2=addfile(infile5,"r")
+abr2_rsdt_1pctCO2=add_rsdt_1pctCO2->rsdt(:,:,:)
+;;-------------------------------------------------------------------------
 ; for abrupt 4xCO2 
 ;-------------------------------------------------------------------------
 filename="rsut_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"

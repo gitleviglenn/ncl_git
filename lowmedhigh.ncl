@@ -12,6 +12,10 @@
 ;***********************************************************************************
 begin
 ;
+plotwarm=0  ; plotwarm = 0 corresponds to the figure with all experiments
+;            1 plot a figure with only warming experiments
+plotbias=0  ; plotbias = 0 is default and corresponds to plotting climatology
+;
 ; variables to read: 
   varname1="cllcalipso"
   varname2="clmcalipso"
@@ -21,6 +25,30 @@ begin
   ;
   path_to_data=path_on_mac
 ;***********************************************************************************
+
+  ;  observations from CALIPSO
+  path_obs="/Users/silvers/data/SatData/CALIPSO/"
+infile_calobs=path_obs+"MapLowMidHigh330m_200701-201612_avg_CFMIP2.5_sat_2.9_tmmean.nc"
+data_calobs = addfile(infile_calobs,"r")
+print("infile calipso obs is: "+infile_calobs)
+  ; if using calipso data between 200701-201612 rescale it by 100.
+  var1cal = data_calobs->$varname1$(0,:,:) ; low
+  var1calscale=100*var1cal
+  var2cal = data_calobs->$varname2$(0,:,:)
+  var2calscale=100*var2cal
+  var3cal = data_calobs->$varname3$(0,:,:)
+  var3calscale=100*var3cal
+  latitude_calip=data_calobs->latitude(:)
+
+  var1calscale@_FillValue = 1.e+20
+  var2calscale@_FillValue = 1.e+20
+  var3calscale@_FillValue = 1.e+20
+
+  ; compute zonal mean 
+  var3calscale_zmn=dim_avg_n(var3calscale,1)
+  var2calscale_zmn=dim_avg_n(var2calscale,1)
+  var1calscale_zmn=dim_avg_n(var1calscale,1)
+;-=-=-=-=-=-=-=-
 
   ;  aqua control
   filetoread_aqh="clhcalipso_CFmon_GFDL-CM4_aqua-control_r1i1p1f1_gr1_198001-198912.nc"
@@ -71,6 +99,15 @@ begin
   filetoread_4xCO2_m="clmcalipso_CFmon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
   filetoread_4xCO2_l="cllcalipso_CFmon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
  
+  ; 1pctCO2 coupled experiment
+  filetoread_1pctCO2a_h="clhcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_000101-010012.nc"
+  filetoread_1pctCO2a_m="clmcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_000101-010012.nc"
+  filetoread_1pctCO2a_l="cllcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_000101-010012.nc"
+
+  filetoread_1pctCO2_h="clhcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+  filetoread_1pctCO2_m="clmcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+  filetoread_1pctCO2_l="cllcalipso_CFmon_GFDL-CM4_1pctCO2_r1i1p1f1_gr1_010101-015012.nc"
+
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; define experiment paths and read data from files 
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -95,6 +132,10 @@ begin
   infile4_l=path_to_data+filetoread_4xCO2_l
   infile4_m=path_to_data+filetoread_4xCO2_m
   infile4_h=path_to_data+filetoread_4xCO2_h
+  ;expname="abrupt 4xCO2 coupled"
+  infile5_l=path_to_data+filetoread_1pctCO2_l
+  infile5_m=path_to_data+filetoread_1pctCO2_m
+  infile5_h=path_to_data+filetoread_1pctCO2_h
 ;
 ; read data
 
@@ -161,12 +202,16 @@ print("amip -4K data is: "+infile2_l)
   data_3_m = addfile(infile3_m,"r")
   data_3_h = addfile(infile3_h,"r")
 
-  var3_l_full = data_3_l->$varname1$(:,:,:) ; low clouds from exp a
+  var3_l_full = data_3_l->$varname1$(360::,:,:) ; low clouds from exp a
+  ;var3_l_full = data_3_l->$varname1$(360:361,:,:) ; low clouds from exp a
   var3_l_tmn=dim_avg_n(var3_l_full,0) ; average over time
-  var3_m_full = data_3_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var3_m_full = data_3_m->$varname2$(360::,:,:) ; mid clouds from exp a
+  ;var3_m_full = data_3_m->$varname2$(360:361,:,:) ; mid clouds from exp a
   var3_m_tmn=dim_avg_n(var3_m_full,0)
-  var3_h_full = data_3_h->$varname3$(:,:,:) ; high clouds from exp a
-  var3_h_tmn=dim_avg_n(var3_h_full,0)
+  var3_h_full = data_3_h->$varname3$(360::,:,:) ; high clouds from exp a
+  ;var3_h_full = data_3_h->$varname3$(360:361,:,:) ; high clouds from exp a
+ ;printVarSummary(var3_h_full)
+  var3_h_tmn=dim_avg_n(var3_h_full,0) ; 780 time steps...
 
   var3_l_ztmn=dim_avg_n(var3_l_tmn,1)
   var3_m_ztmn=dim_avg_n(var3_m_tmn,1)
@@ -188,6 +233,22 @@ print("amip -4K data is: "+infile2_l)
   var4_m_ztmn=dim_avg_n(var4_m_tmn,1)
   var4_h_ztmn=dim_avg_n(var4_h_tmn,1)
 
+; abrupt 1pctCO2
+  data_5_l = addfile(infile5_l,"r")
+  data_5_m = addfile(infile5_m,"r")
+  data_5_h = addfile(infile5_h,"r")
+
+  var5_l_full = data_5_l->$varname1$(:,:,:) ; low clouds from exp a
+  var5_l_tmn=dim_avg_n(var5_l_full,0) ; average over time
+  var5_m_full = data_5_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var5_m_tmn=dim_avg_n(var5_m_full,0)
+  var5_h_full = data_5_h->$varname3$(:,:,:) ; high clouds from exp a
+  var5_h_tmn=dim_avg_n(var5_h_full,0)
+
+  var5_l_ztmn=dim_avg_n(var5_l_tmn,1)
+  var5_m_ztmn=dim_avg_n(var5_m_tmn,1)
+  var5_h_ztmn=dim_avg_n(var5_h_tmn,1)
+
 ;*************************************************************
 
 ; compute bias of cloud fields relative to a particular control exp.
@@ -197,7 +258,7 @@ print("amip -4K data is: "+infile2_l)
   cont_m=var_m_ztmn
   cont_h=var_h_ztmn
   
-  plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
+;  plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
   if (plotbias .gt. 0) then
     var_l_ztmn=var_l_ztmn-cont_l
     var_m_ztmn=var_m_ztmn-cont_m
@@ -218,6 +279,10 @@ print("amip -4K data is: "+infile2_l)
     var4_l_ztmn=var4_l_ztmn-cont_l
     var4_m_ztmn=var4_m_ztmn-cont_m
     var4_h_ztmn=var4_h_ztmn-cont_h
+    
+    var5_l_ztmn=var5_l_ztmn-cont_l
+    var5_m_ztmn=var5_m_ztmn-cont_m
+    var5_h_ztmn=var5_h_ztmn-cont_h
   end if
 
 ;*************************************************************
@@ -253,16 +318,30 @@ print("amip -4K data is: "+infile2_l)
     res@tmXBLabels = (/-60,-30,0,30,60/)
     res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
 
-    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4"/) 
-    lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(4),colors(5)/)
-    lgres@lgDashIndexes = (/"0","0","0","0","0"/)
+    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
+    ;lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(4),colors(5),colors(6)/)
+    ;lgres@lgDashIndexes = (/"0","0","0","0","0","0"/)
 
     title_lg0="amip"
     title_lg1="amip +4K"
     title_lg2="amip -4K"
     title_lg3="historical"
     title_lg4="abrupt 4xCO2"
-    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_lg4/) ; bottom to top
+    title_lg5="1pctCO2"
+    title_obs="CALIPSO"
+
+if (plotwarm .lt. 1) then
+    lgres@lgLineColors  = (/colors(1),colors(4),colors(0)/)
+    ;lgres@lgDashIndexes = (/"0","0","0","0","0","0"/)
+    lgres@lgDashIndexes = (/"0","0","0"/)
+;    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_lg4,title_obs/) ; bottom to top
+;    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_obs/) ; bottom to top
+    labels = (/title_lg0,title_lg3,title_obs/) ; bottom to top
+else ; warming experiments plotted
+    lgres@lgLineColors  = (/colors(1),colors(2),colors(5),colors(6)/)
+    lgres@lgDashIndexes = (/"0","0","0","0"/)
+    labels = (/title_lg0,title_lg1,title_lg4,title_lg5/) ; bottom to top
+end if
 
     res@gsnDraw         = False
     res@gsnFrame         = False
@@ -274,6 +353,8 @@ print("amip -4K data is: "+infile2_l)
       res@trYMinF = 15
       res@trYMaxF = 55
     end if
+    res@xyLineColors=colors(0)
+    plot0obs=gsn_csm_xy(wks,latitude_calip(:),var3calscale_zmn(:),res)
     res@xyLineColors=colors(1)
     plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
     res@xyLineColors=colors(2)
@@ -284,13 +365,19 @@ print("amip -4K data is: "+infile2_l)
     plot0d=gsn_csm_xy(wks,latitude(:),var3_h_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot0e=gsn_csm_xy(wks,latitude(:),var4_h_ztmn(:),res)
+    res@xyLineColors=colors(6)
+    plot0f=gsn_csm_xy(wks,latitude(:),var5_h_ztmn(:),res)
 
-    overlay(plot0a,plot0b)
-    overlay(plot0a,plot0c)
+;    overlay(plot0a,plot0b)
+    overlay(plot0a,plot0obs)
+;    overlay(plot0a,plot0c)
     overlay(plot0a,plot0d)
-    overlay(plot0a,plot0e)
+    ;overlay(plot0a,plot0e)
+    ;overlay(plot0a,plot0f)
 
+if (plotwarm .lt. 1) then
     plot(0)=plot0a
+end if
 
     if (plotbias .gt. 0) then
       res@trYMinF = -10
@@ -300,6 +387,8 @@ print("amip -4K data is: "+infile2_l)
       res@trYMaxF = 40
     end if
     res@tiMainString = "Mid-Level Cloud Fraction"
+    res@xyLineColors=colors(0)
+    plot1obs=gsn_csm_xy(wks,latitude_calip(:),var2calscale_zmn(:),res)
     res@xyLineColors=colors(1)
     plot1a=gsn_csm_xy(wks,latitude(:),var_m_ztmn(:),res)
     res@xyLineColors=colors(2)
@@ -310,13 +399,19 @@ print("amip -4K data is: "+infile2_l)
     plot1d=gsn_csm_xy(wks,latitude(:),var3_m_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot1e=gsn_csm_xy(wks,latitude(:),var4_m_ztmn(:),res)
+    res@xyLineColors=colors(6)
+    plot1f=gsn_csm_xy(wks,latitude(:),var5_m_ztmn(:),res)
 
-    overlay(plot1a,plot1b)
-    overlay(plot1a,plot1c)
+;    overlay(plot1a,plot1b)
+    overlay(plot1a,plot1obs)
+;    overlay(plot1a,plot1c)
     overlay(plot1a,plot1d)
-    overlay(plot1a,plot1e)
+    ;overlay(plot1a,plot1e)
+    ;overlay(plot1a,plot1f)
 
+if (plotwarm .lt. 1) then
     plot(1)=plot1a
+end if
 
     if (plotbias .gt. 0) then
       res@trYMinF = -10
@@ -325,6 +420,8 @@ print("amip -4K data is: "+infile2_l)
       res@trYMinF = 5 
       res@trYMaxF = 70 
     end if
+    res@xyLineColors=colors(0)
+    plot2obs=gsn_csm_xy(wks,latitude_calip(:),var1calscale_zmn(:),res)
     res@xyLineColors=colors(1)
     res@tiMainString = "Low-Level Cloud Fraction"
     plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
@@ -336,17 +433,82 @@ print("amip -4K data is: "+infile2_l)
     plot2d=gsn_csm_xy(wks,latitude(:),var3_l_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot2e=gsn_csm_xy(wks,latitude(:),var4_l_ztmn(:),res)
+    res@xyLineColors=colors(6)
+    plot2f=gsn_csm_xy(wks,latitude(:),var5_l_ztmn(:),res)
 
-    overlay(plot2a,plot2b)
-    overlay(plot2a,plot2c)
+;    overlay(plot2a,plot2b)
+    overlay(plot2a,plot2obs)
+;    overlay(plot2a,plot2c)
     overlay(plot2a,plot2d)
-    overlay(plot2a,plot2e)
+    ;overlay(plot2a,plot2e)
+    ;overlay(plot2a,plot2f)
 
+if (plotwarm .lt. 1) then
     plot(2)=plot2a
+end if
 
-  ;       add a legend
+; make a warming plot....
+
+if (plotwarm .gt. 0) then
+
+  ;for top panel
+  res@tiMainString = "Upper-Level Cloud Fraction"
+  if (plotbias .gt. 0) then
+    res@trYMinF = -10
+    res@trYMaxF = 10 
+  else
+    res@trYMinF = 15
+    res@trYMaxF = 55
+  end if
+
+  res@xyLineColors=colors(1)
+  plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
+  overlay(plot0a,plot0b)
+  overlay(plot0a,plot0e)
+  overlay(plot0a,plot0f)
+  plot(0)=plot0a
+
+  ;for middle panel
+  res@tiMainString = "Mid-Level Cloud Fraction"
+  if (plotbias .gt. 0) then
+    res@trYMinF = -10
+    res@trYMaxF = 10 
+  else
+    res@trYMinF = 0
+    res@trYMaxF = 40
+  end if
+  
+  res@xyLineColors=colors(1)
+  plot1a=gsn_csm_xy(wks,latitude(:),var_m_ztmn(:),res)
+  overlay(plot1a,plot1b)
+  overlay(plot1a,plot1e)
+  overlay(plot1a,plot1f)
+  plot(1)=plot1a
+
+  res@tiMainString = "Low-Level Cloud Fraction"
+  if (plotbias .gt. 0) then
+    res@trYMinF = -10
+    res@trYMaxF = 10 
+  else
+    res@trYMinF = 5 
+    res@trYMaxF = 70 
+  end if
+
+  res@xyLineColors=colors(1)
+  plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
+  overlay(plot2a,plot2b)
+  overlay(plot2a,plot2e)
+  overlay(plot2a,plot2f)
+  plot(2)=plot2a
+
+  lgres@lgLineColors  = (/colors(1),colors(2),colors(5),colors(6)/)
+  lgres@lgDashIndexes = (/"0","0","0","0"/)
+end if
+
+
+; add a legend
  
-    lgres                      = True
+;    lgres                      = True
     lgres@xyLabelMode            = "Custom"
     lgres@xyLineLabelFontHeightF = 0.020                ; font height
     lgres@lgItemType           = "Lines"
@@ -359,7 +521,12 @@ print("amip -4K data is: "+infile2_l)
     lgres@lgPerimOn            = False
    
    ; draw panel with white space added
-    legend  = gsn_create_legend (wks, 5, labels, lgres)
+  if (plotwarm .gt. 0) then ; warming experiments
+    legend  = gsn_create_legend (wks, 4, labels, lgres)
+  else ; all experiments
+    ;legend  = gsn_create_legend (wks, 5, labels, lgres)
+    legend  = gsn_create_legend (wks, 3, labels, lgres)
+  end if
     resP                 = True
     resP@amJust = "BottomRight"
     ;resP@amParallelPosF   = 0.42    ; Move legend to right

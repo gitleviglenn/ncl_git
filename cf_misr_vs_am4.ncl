@@ -1,26 +1,35 @@
 ;***********************************************************************************
-; glb_cf_misr.ncl
+; cf_misr_vs_am4.ncl
 ;***********************************************************************************
 ;
 ; plot global cloud fraction as computed with the misr cosp tool.
 ;
-; example here is for clouds below 3km with tau .gt. 0.3
+; example here is for clouds with tau .gt. 0.3
 ; for reference see Fig 9 of Marchand et al. 2010 JGR
 ;
 ; in general the tau levels in misr are:
 ; 0.15,0.8,2.45,6.5,16.2,41.5,100.
 ; but they are usually grouped in the histograms as: 
 ; 0 0.3 1.3 3.6 9.4 23 60
-
+;
 ; the dimensions of clmisr are: 
 ; clmisr(time, tau, alt16, lat, lon) ;
 ;
 ; data from gfdl is on a 180x288 grid while observational data from 
 ; misr is on a 180x360 grid so we need to interpolate the gfdl data to 180x360
 ;
+; the longitude dimensions for the am4 data and the misr observations are not
+; lined up with each other.  
+
+; to shift the long dims to start at 0.5 use: lonPivot(cfrac_thin_misr,0.5)
+; to flib the latitude dim use:               cfrac_thin_misr(::-1,:)
+;
+; alt16 = 0, 250, 750, 1250, 1750, 2250, 2750, 3500, 4500, 6000, 
+;         8000, 10000, 12000, 14500, 16000, 18000 ;
+;
 ; model data will need to be pp'ed with the script misr_pp_yrlowcl.s
 ;
-; levi silvers							oct 2019
+; levi silvers							nov 2019
 ;***********************************************************************************
 ; These files are loaded by default in NCL V6.2.0 and newer
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -51,15 +60,20 @@ print("infile for misr observations is: "+infile_obs)
 
   cfrac_total  = a->$var2read$(:,:,:,:,:) ; for thin clouds (0.3:1.3) 
 ;
+; tau limits
+; height limits (recall there are 16 levels)
+z_bot=0
+z_top=15
+
 print("dimsizes of am4 incoming data is: "+dimsizes(cfrac_total))
-  cfrac_thin  = a->$var2read$(:,1:2,:,:,:) ; for thin clouds (0.3:1.3) 
-  cfrac_thick = a->$var2read$(:,3:4,:,:,:) ; for thicker clouds (3.6:60)      
+  cfrac_thin  = a->$var2read$(:,1:2,z_bot:z_top,:,:) ; for thin clouds (0.3:1.3) 
+  cfrac_thick = a->$var2read$(:,3:4,z_bot:z_top,:,:) ; for thicker clouds (3.6:60)      
 
 ;
 
-  cfrac_misr_thin  = m_obs->$var_obs$(0,1:2,:,:,:) ; for thin clouds      
+  cfrac_misr_thin  = m_obs->$var_obs$(0,1:2,z_bot:z_top,:,:) ; for thin clouds      
   ;cfrac_misr_thick = m_obs->$var_obs$(0,3:5,:,:,:) ; for thicker clouds      
-  cfrac_misr_thick = m_obs->$var_obs$(0,3:4,:,:,:) ; for thicker clouds      
+  cfrac_misr_thick = m_obs->$var_obs$(0,3:4,z_bot:z_top,:,:) ; for thicker clouds      
 ;  cfrac_misr_all = m_obs->$var_obs$(:,:,:,:,:) ; for thicker clouds      
 ;print("dimsizes of full misr obs: "+dimsizes(cfrac_misr_all))
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -314,8 +328,8 @@ print("weighted average of thick misr clouds: "+obs_cfmisr_tck_weighted_ave)
 ;  my_colors = (/25,28,35,41,46,53,59,65,69,75,79,85,91,95,97,101/) ; 16
   my_colors = (/30,37,44,51,58,65,72,79,86,93,100/) ; 11
 
-  ;wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
-  wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
+  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+  ;wks = gsn_open_wks("newPDF","testplot")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   gsn_define_colormap(wks,"MPL_YlGnBu")
