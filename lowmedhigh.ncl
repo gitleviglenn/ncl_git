@@ -12,9 +12,9 @@
 ;***********************************************************************************
 begin
 ;
-plotwarm=0  ; plotwarm = 0 corresponds to the figure with all experiments
+plotwarm=1  ; plotwarm = 0 corresponds to the figure with all experiments
 ;            1 plot a figure with only warming experiments
-plotbias=0  ; plotbias = 0 is default and corresponds to plotting climatology
+plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
 ;
 ; variables to read: 
   varname1="cllcalipso"
@@ -233,7 +233,7 @@ print("amip -4K data is: "+infile2_l)
   var4_m_ztmn=dim_avg_n(var4_m_tmn,1)
   var4_h_ztmn=dim_avg_n(var4_h_tmn,1)
 
-; abrupt 1pctCO2
+; ramp 1pctCO2
   data_5_l = addfile(infile5_l,"r")
   data_5_m = addfile(infile5_m,"r")
   data_5_h = addfile(infile5_h,"r")
@@ -498,6 +498,7 @@ if (plotwarm .gt. 0) then
   plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
   overlay(plot2a,plot2b)
   overlay(plot2a,plot2e)
+  overlay(plot2a,plot2d) ; i think this is the historical exp
   overlay(plot2a,plot2f)
   plot(2)=plot2a
 
