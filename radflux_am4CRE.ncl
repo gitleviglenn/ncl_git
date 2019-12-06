@@ -11,6 +11,18 @@ begin
 
 path="/Users/silvers/data/cfmip_toafluxes/"
 
+everything = 0 ; switch defining which profiles are plotted
+
+; years for the abrupt and ramp warming experiments
+early="000101-010012"
+late="010101-015012"
+
+; years for the historical experiment
+firsthalf="185001-194912"
+seconhalf="195001-201412"
+
+hist_yrs=seconhalf
+warm_yrs=late
 ;-------------------------------------------------------------------------
 ;-------------------------------------------------------------------------
 ; for amip 
@@ -239,15 +251,15 @@ cre_net_amip_future4K&lat=amip_rsut_future4K&lat
 ;;-------------------------------------------------------------------------
 ; for historical
 ;-------------------------------------------------------------------------
-filename="rsut_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+filename="rsut_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile1=path+filename
-filename="rsutcs_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+filename="rsutcs_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile2=path+filename
-filename="rlut_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+filename="rlut_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile3=path+filename
-filename="rlutcs_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+filename="rlutcs_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile4=path+filename
-filename="rsdt_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+filename="rsdt_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile5=path+filename
 ;
 ;; read data
@@ -314,15 +326,15 @@ abr2_rsdt_1pctCO2=add_rsdt_1pctCO2->rsdt(:,:,:)
 ;;-------------------------------------------------------------------------
 ; for abrupt 4xCO2 
 ;-------------------------------------------------------------------------
-filename="rsut_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
+filename="rsut_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_"+warm_yrs+".nc"
 infile1=path+filename
-filename="rsutcs_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
+filename="rsutcs_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_"+warm_yrs+".nc"
 infile2=path+filename
-filename="rlut_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
+filename="rlut_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_"+warm_yrs+".nc"
 infile3=path+filename
-filename="rlutcs_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
+filename="rlutcs_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_"+warm_yrs+".nc"
 infile4=path+filename
-filename="rsdt_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_010101-015012.nc"
+filename="rsdt_Amon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_"+warm_yrs+".nc"
 infile5=path+filename
 ;
 ;; read data
@@ -554,7 +566,8 @@ cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
   res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
 
 ; here is where the colors, line styles, and string names are defined 
-  colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4","gold"/) 
+ ; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4","gold"/) 
+   colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4","gold"/) 
 ;  colors = (/"LawnGreen","black","SteelBlue","GoldenRod","Black"/);,"OrangeRed"/) 
   ;colors = (/"black","darkgoldenrod","darkolivegreen3","chocolate"/) 
   ;colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue"/) 
@@ -569,8 +582,13 @@ cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
  res@gsnDraw         = False
  res@gsnFrame         = False
 
+if (everything .ge. 1) then ; plot the whole shebang
  res@trYMinF = -70 
  res@trYMaxF = 110 
+else
+ res@trYMinF = -10 
+ res@trYMaxF = 50 
+end if
  res@xyLineColors=colors(3)
  res@xyDashPattern="0"
  plot0a=gsn_csm_xy(wks,latitude(:),cre_net_amip_m4K(:),res)
@@ -615,79 +633,69 @@ cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
  plot4c=gsn_csm_xy(wks,latitude(:),cre_olr_aqua_p4K(:),res)
 
  res@xyDashPattern="0"
- res@xyLineColors=colors(5)
+ res@xyLineColors=colors(4)
  plot5a=gsn_csm_xy(wks,latitude(:),cre_net_h2_historical(:),res)
  res@xyDashPattern="16"
- res@xyLineColors=colors(5)
+ res@xyLineColors=colors(4)
  plot5b=gsn_csm_xy(wks,latitude(:),cre_sw_h2_historical(:),res)
- res@xyLineColors=colors(5)
+ res@xyLineColors=colors(4)
  plot5c=gsn_csm_xy(wks,latitude(:),cre_olr_h2_historical(:),res)
 
  res@xyDashPattern="0"
- res@xyLineColors=colors(6)
+ res@xyLineColors=colors(5)
  plot6a=gsn_csm_xy(wks,latitude(:),cre_net_abr2(:),res)
  res@xyDashPattern="16"
- res@xyLineColors=colors(6)
+ res@xyLineColors=colors(5)
  plot6b=gsn_csm_xy(wks,latitude(:),cre_sw_abr2(:),res)
- res@xyLineColors=colors(6)
+ res@xyLineColors=colors(5)
  plot6c=gsn_csm_xy(wks,latitude(:),cre_olr_abr2(:),res)
 
- net_cre_amip       =dim_avg_n(cre_net_amip,0)
- print("net cre amip = "+net_cre_amip)
- net_cre_amip_p4K   =dim_avg_n(cre_net_amip_p4K,0)
- print("net cre amip p4K = "+net_cre_amip_p4K)
- net_cre_amip_m4K   =dim_avg_n(cre_net_amip_m4K,0)
- print("net cre amip m4K = "+net_cre_amip_m4K)
+;everything = 0
+if (everything .ge. 1) then ; plot the whole shebang
+ ; overlay the profiles to plot
+ ; amip -4K
+  overlay(plot0a,plot0b)
+  overlay(plot0a,plot0c)
+ 
+ ; amip
+  overlay(plot0a,plot1a)
+  overlay(plot0a,plot1b)
+  overlay(plot0a,plot1c)
+ 
+ ; amip +4K
+  overlay(plot0a,plot2a)
+  overlay(plot0a,plot2b)
+  overlay(plot0a,plot2c)
+ 
+ ; aqua 
+  overlay(plot0a,plot3a)
+  overlay(plot0a,plot3b)
+  overlay(plot0a,plot3c)
+ 
+ ; aqua +4K
+  overlay(plot0a,plot4a)
+  overlay(plot0a,plot4b)
+  overlay(plot0a,plot4c)
+ 
+ ; historical 2
+  overlay(plot0a,plot5a)
+  overlay(plot0a,plot5b)
+  overlay(plot0a,plot5c)
+ 
+ ; abrupt 4xCO2 2
+  overlay(plot0a,plot6a)
+  overlay(plot0a,plot6b)
+  overlay(plot0a,plot6c)
+ 
+  plot(0)=plot0a
+ 
+else
+  overlay(plot1a,plot5a)
+  overlay(plot1a,plot6a)
+  plot(0)=plot1a
+end if
 
- amip_cre_fb_a=(net_cre_amip_p4K-net_cre_amip)/4
- amip_cre_fb_b=(net_cre_amip-net_cre_amip_m4K)/4
- print("amip cre fb a: "+amip_cre_fb_a)
- print("amip cre fb b: "+amip_cre_fb_b)
-
- net_cre_aqua   =dim_avg_n(cre_net_aqua,0)
- print("net cre aqua = "+net_cre_aqua)
- net_cre_aquap4K=dim_avg_n(cre_net_aqua_p4K,0)
- print("net cre aqua+4K = "+net_cre_aquap4K)
-
- aqua_cre_fb=(net_cre_aquap4K-net_cre_aqua)/4
- print("net cre aqua: "+aqua_cre_fb)
-
-; amip -4K
- overlay(plot0a,plot0b)
- overlay(plot0a,plot0c)
-
-; amip
- overlay(plot0a,plot1a)
- overlay(plot0a,plot1b)
- overlay(plot0a,plot1c)
-
-; amip +4K
- overlay(plot0a,plot2a)
- overlay(plot0a,plot2b)
- overlay(plot0a,plot2c)
-
-; aqua 
- overlay(plot0a,plot3a)
- overlay(plot0a,plot3b)
- overlay(plot0a,plot3c)
-
-; aqua +4K
- overlay(plot0a,plot4a)
- overlay(plot0a,plot4b)
- overlay(plot0a,plot4c)
-
-; historical 2
- overlay(plot0a,plot5a)
- overlay(plot0a,plot5b)
- overlay(plot0a,plot5c)
-
-; abrupt 4xCO2 2
- overlay(plot0a,plot6a)
- overlay(plot0a,plot6b)
- overlay(plot0a,plot6c)
-
- plot(0)=plot0a
-
+;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=-=-=-=-=-=-=-=-=-
 ;       add a legend
 
  lgres                      = True
@@ -716,6 +724,28 @@ cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
  annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
  
  gsn_panel(wks,plot,(/1,1/),resP)
+
+; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
+; compute average cre values and print to screen
+ net_cre_amip             = dim_avg_n(cre_net_amip,0)
+ print("net cre amip      = "+net_cre_amip)
+ net_cre_amip_p4K         = dim_avg_n(cre_net_amip_p4K,0)
+ print("net cre amip p4K  = "+net_cre_amip_p4K)
+ net_cre_amip_m4K         = dim_avg_n(cre_net_amip_m4K,0)
+ print("net cre amip m4K  = "+net_cre_amip_m4K)
+
+ net_cre_aqua   =dim_avg_n(cre_net_aqua,0)
+ print("net cre aqua = "+net_cre_aqua)
+ net_cre_aquap4K=dim_avg_n(cre_net_aqua_p4K,0)
+ print("net cre aqua+4K = "+net_cre_aquap4K)
+
+; compute the cre feedback values and print to screen
+ amip_cre_fb_a =(net_cre_amip_p4K-net_cre_amip)/4
+ print("amip cre fb a: "+amip_cre_fb_a)
+ amip_cre_fb_b =(net_cre_amip-net_cre_amip_m4K)/4
+ print("amip cre fb b: "+amip_cre_fb_b)
+ aqua_cre_fb=(net_cre_aquap4K-net_cre_aqua)/4
+ print("net cre aqua: "+aqua_cre_fb)
 
 ;-------------------------------------------------------------------------
 end
