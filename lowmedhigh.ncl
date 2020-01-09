@@ -12,9 +12,10 @@
 ;***********************************************************************************
 begin
 ;
-plotwarm=1  ; plotwarm = 0 corresponds to the figure with all experiments
+plotwarm=0  ; plotwarm = 0 corresponds to either the figure with historical experis
+;                        or to a figure with all experiments
 ;            1 plot a figure with only warming experiments
-plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
+plotbias=0  ; plotbias = 0 is default and corresponds to plotting climatology
 ;
 ; variables to read: 
   varname1="cllcalipso"
@@ -24,6 +25,16 @@ plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
   path_on_mac="/Users/silvers/data/cfmip_clouds/"
   ;
   path_to_data=path_on_mac
+
+; title for legend labels
+    title_lg0="amip"
+    title_lg1="amip +4K"
+    title_lg2="amip -4K"
+    title_lg3="historical"
+    title_lg4="abrupt 4xCO2"
+    title_lg5="1pctCO2"
+    title_lg6="amip +future4K"
+    title_obs="CALIPSO"
 ;***********************************************************************************
 
   ;  observations from CALIPSO
@@ -84,11 +95,21 @@ print("infile calipso obs is: "+infile_calobs)
   filetoread_amm4_h="clhcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
   filetoread_amm4_m="clmcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
   filetoread_amm4_l="cllcalipso_CFmon_GFDL-CM4_amip-m4K_r1i1p1f1_gr1_197901-201412.nc"
+  
+  ; amip future 4K experiment
+  filetoread_amfu_h="clhcalipso_CFmon_GFDL-CM4_amip-future4K_r1i1p1f1_gr1_197901-201412.nc"
+  filetoread_amfu_m="clmcalipso_CFmon_GFDL-CM4_amip-future4K_r1i1p1f1_gr1_197901-201412.nc"
+  filetoread_amfu_l="cllcalipso_CFmon_GFDL-CM4_amip-future4K_r1i1p1f1_gr1_197901-201412.nc"
 
   ; historical coupled experiment
+  ; second chunk of years (780 months)
   filetoread_his_h="clhcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
   filetoread_his_m="clmcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
   filetoread_his_l="cllcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_195001-201412.nc"
+  ; first chunk of years (1200 months) in the historical experiment
+  filetoread_his_early_h="clhcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_185001-194912.nc"
+  filetoread_his_early_m="clmcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_185001-194912.nc"
+  filetoread_his_early_l="cllcalipso_CFmon_GFDL-CM4_historical_r1i1p1f1_gr1_185001-194912.nc"
 
   ; 4xCO2 abrupt coupled experiment
   filetoread_4xCO2a_h="clhcalipso_CFmon_GFDL-CM4_abrupt-4xCO2_r1i1p1f1_gr1_000101-010012.nc"
@@ -124,10 +145,17 @@ print("infile calipso obs is: "+infile_calobs)
   infile2_l=path_to_data+filetoread_amm4_l
   infile2_m=path_to_data+filetoread_amm4_m
   infile2_h=path_to_data+filetoread_amm4_h
+  ;expname="amip-future4K"
+  infile6_l=path_to_data+filetoread_amfu_l
+  infile6_m=path_to_data+filetoread_amfu_m
+  infile6_h=path_to_data+filetoread_amfu_h
   ;expname="historical coupled"
   infile3_l=path_to_data+filetoread_his_l
   infile3_m=path_to_data+filetoread_his_m
   infile3_h=path_to_data+filetoread_his_h
+  infile3_e_l=path_to_data+filetoread_his_early_l
+  infile3_e_m=path_to_data+filetoread_his_early_m
+  infile3_e_h=path_to_data+filetoread_his_early_h
   ;expname="abrupt 4xCO2 coupled"
   infile4_l=path_to_data+filetoread_4xCO2_l
   infile4_m=path_to_data+filetoread_4xCO2_m
@@ -140,10 +168,24 @@ print("infile calipso obs is: "+infile_calobs)
 ; read data
 
 ; amip
+  endi=431
+;  starti=endi-120 ; if only plotting 10 years
+  starti=0
 print("amip data is: "+infile_l)
   data_l = addfile(infile_l,"r")
   data_m = addfile(infile_m,"r")
   data_h = addfile(infile_h,"r")
+
+  var_l_10yr = data_l->$varname1$(starti:endi,:,:) ; low clouds from exp a
+  var_l_tmn=dim_avg_n(var_l_10yr,0) ; average over time
+  var_m_10yr = data_m->$varname2$(starti:endi,:,:) ; low clouds from exp a
+  var_m_tmn=dim_avg_n(var_m_10yr,0) ; average over time
+  var_h_10yr = data_h->$varname3$(starti:endi,:,:) ; low clouds from exp a
+  var_h_tmn=dim_avg_n(var_h_10yr,0) ; average over time
+
+  var_l_ztmn=dim_avg_n(var_l_tmn,1)
+  var_m_ztmn=dim_avg_n(var_m_tmn,1)
+  var_h_ztmn=dim_avg_n(var_h_tmn,1)
 
   var_l_full = data_l->$varname1$(:,:,:) ; low clouds from exp a
   var_l_tmn=dim_avg_n(var_l_full,0) ; average over time
@@ -152,9 +194,9 @@ print("amip data is: "+infile_l)
   var_h_full = data_h->$varname3$(:,:,:) ; low clouds from exp a
   var_h_tmn=dim_avg_n(var_h_full,0) ; average over time
 
-  var_l_ztmn=dim_avg_n(var_l_tmn,1)
-  var_m_ztmn=dim_avg_n(var_m_tmn,1)
-  var_h_ztmn=dim_avg_n(var_h_tmn,1)
+  var_l_full_ztmn=dim_avg_n(var_l_tmn,1)
+  var_m_full_ztmn=dim_avg_n(var_m_tmn,1)
+  var_h_full_ztmn=dim_avg_n(var_h_tmn,1)
 
 print("dimsizes of amip data are: "+dimsizes(var_l_full))
 
@@ -180,6 +222,23 @@ print("dimsizes of amip p4k data are: "+dimsizes(var1_l_full))
   var1_m_ztmn=dim_avg_n(var1_m_tmn,1)
   var1_h_ztmn=dim_avg_n(var1_h_tmn,1)
 
+; amip-future4K
+print("future-4K data is: "+infile6_l)
+  data_6_l = addfile(infile6_l,"r")
+  data_6_m = addfile(infile6_m,"r")
+  data_6_h = addfile(infile6_h,"r")
+
+  var6_l_full = data_6_l->$varname1$(:,:,:) ; low clouds from exp a
+  var6_l_tmn=dim_avg_n(var6_l_full,0) ; average over time
+  var6_m_full = data_6_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var6_m_tmn=dim_avg_n(var6_m_full,0)
+  var6_h_full = data_6_h->$varname3$(:,:,:) ; high clouds from exp a
+  var6_h_tmn=dim_avg_n(var6_h_full,0)
+
+  var6_l_ztmn=dim_avg_n(var6_l_tmn,1)
+  var6_m_ztmn=dim_avg_n(var6_m_tmn,1)
+  var6_h_ztmn=dim_avg_n(var6_h_tmn,1)
+
 ; amip-m4K
 print("amip -4K data is: "+infile2_l)
   data_2_l = addfile(infile2_l,"r")
@@ -201,21 +260,54 @@ print("amip -4K data is: "+infile2_l)
   data_3_l = addfile(infile3_l,"r")
   data_3_m = addfile(infile3_m,"r")
   data_3_h = addfile(infile3_h,"r")
+  data_3_e_l = addfile(infile3_e_l,"r")
+  data_3_e_m = addfile(infile3_e_m,"r")
+  data_3_e_h = addfile(infile3_e_h,"r")
 
-  var3_l_full = data_3_l->$varname1$(360::,:,:) ; low clouds from exp a
-  ;var3_l_full = data_3_l->$varname1$(360:361,:,:) ; low clouds from exp a
-  var3_l_tmn=dim_avg_n(var3_l_full,0) ; average over time
-  var3_m_full = data_3_m->$varname2$(360::,:,:) ; mid clouds from exp a
-  ;var3_m_full = data_3_m->$varname2$(360:361,:,:) ; mid clouds from exp a
-  var3_m_tmn=dim_avg_n(var3_m_full,0)
-  var3_h_full = data_3_h->$varname3$(360::,:,:) ; high clouds from exp a
-  ;var3_h_full = data_3_h->$varname3$(360:361,:,:) ; high clouds from exp a
- ;printVarSummary(var3_h_full)
-  var3_h_tmn=dim_avg_n(var3_h_full,0) ; 780 time steps...
+; 120 months equal 10 years
+; period 1 (1850-1949) has 1200 months
+; period 2 (1950-2014) has 780 months
+  endi=779
+  ;starti=endi-120
+  var3_l_10yr = data_3_l->$varname1$(starti:endi,:,:) ; low clouds from exp a
+  ;var3_l_10yrfull = data_3_l->$varname1$(:,:,:) ; low clouds from exp a
+  ;print("dimensions of historical file: "+dimsizes(var3_l_10yrfull))
+  var3_l_tmn=dim_avg_n(var3_l_10yr,0) ; average over time
+  var3_m_10yr = data_3_m->$varname2$(starti:endi,:,:) ; mid clouds from exp a
+  var3_m_tmn=dim_avg_n(var3_m_10yr,0)
+  var3_h_10yr = data_3_h->$varname3$(starti:endi,:,:) ; high clouds from exp a
+ ;printVarSummary(var3_h_10yr)
+  var3_h_tmn=dim_avg_n(var3_h_10yr,0)
 
   var3_l_ztmn=dim_avg_n(var3_l_tmn,1)
   var3_m_ztmn=dim_avg_n(var3_m_tmn,1)
   var3_h_ztmn=dim_avg_n(var3_h_tmn,1)
+
+; historical long
+  var3_l_full = data_3_l->$varname1$(:,:,:) ; low clouds from exp a
+  var3_m_full = data_3_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var3_h_full = data_3_h->$varname3$(:,:,:) ; high clouds from exp a
+
+  var3_l_f_tmn=dim_avg_n(var3_l_full,0) ; average over time
+  var3_m_f_tmn=dim_avg_n(var3_m_full,0)
+  var3_h_f_tmn=dim_avg_n(var3_h_full,0)
+
+  var3_l_full_ztmn=dim_avg_n(var3_l_f_tmn,1)
+  var3_m_full_ztmn=dim_avg_n(var3_m_f_tmn,1)
+  var3_h_full_ztmn=dim_avg_n(var3_h_f_tmn,1)
+
+; historical early (1850-1949) 
+  var3_e_l_full = data_3_e_l->$varname1$(:,:,:) ; low clouds from exp a
+  var3_e_m_full = data_3_e_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var3_e_h_full = data_3_e_h->$varname3$(:,:,:) ; high clouds from exp a
+
+  var3_l_ef_tmn=dim_avg_n(var3_e_l_full,0) ; average over time
+  var3_m_ef_tmn=dim_avg_n(var3_e_m_full,0)
+  var3_h_ef_tmn=dim_avg_n(var3_e_h_full,0)
+
+  var3_l_efull_ztmn=dim_avg_n(var3_l_ef_tmn,1)
+  var3_m_efull_ztmn=dim_avg_n(var3_m_ef_tmn,1)
+  var3_h_efull_ztmn=dim_avg_n(var3_h_ef_tmn,1)
 
 ; abrupt 4xCO2
   data_4_l = addfile(infile4_l,"r")
@@ -264,6 +356,10 @@ print("amip -4K data is: "+infile2_l)
     var_m_ztmn=var_m_ztmn-cont_m
     var_h_ztmn=var_h_ztmn-cont_h
 
+    var_l_full_ztmn=var_l_full_ztmn-cont_l
+    var_m_full_ztmn=var_m_full_ztmn-cont_m
+    var_h_full_ztmn=var_h_full_ztmn-cont_h
+
     var1_l_ztmn=var1_l_ztmn-cont_l
     var1_m_ztmn=var1_m_ztmn-cont_m
     var1_h_ztmn=var1_h_ztmn-cont_h
@@ -276,6 +372,14 @@ print("amip -4K data is: "+infile2_l)
     var3_m_ztmn=var3_m_ztmn-cont_m
     var3_h_ztmn=var3_h_ztmn-cont_h
     
+    var3_l_full_ztmn=var3_l_full_ztmn-cont_l
+    var3_m_full_ztmn=var3_m_full_ztmn-cont_m
+    var3_h_full_ztmn=var3_h_full_ztmn-cont_h
+    
+    var3_l_efull_ztmn=var3_l_efull_ztmn-cont_l
+    var3_m_efull_ztmn=var3_m_efull_ztmn-cont_m
+    var3_h_efull_ztmn=var3_h_efull_ztmn-cont_h
+    
     var4_l_ztmn=var4_l_ztmn-cont_l
     var4_m_ztmn=var4_m_ztmn-cont_m
     var4_h_ztmn=var4_h_ztmn-cont_h
@@ -283,6 +387,10 @@ print("amip -4K data is: "+infile2_l)
     var5_l_ztmn=var5_l_ztmn-cont_l
     var5_m_ztmn=var5_m_ztmn-cont_m
     var5_h_ztmn=var5_h_ztmn-cont_h
+    
+    var6_l_ztmn=var6_l_ztmn-cont_l
+    var6_m_ztmn=var6_m_ztmn-cont_m
+    var6_h_ztmn=var6_h_ztmn-cont_h
   end if
 
 ;*************************************************************
@@ -318,29 +426,34 @@ print("amip -4K data is: "+infile2_l)
     res@tmXBLabels = (/-60,-30,0,30,60/)
     res@tmXBMinorValues =(/-80.,-70.,-50.,-40.,-20.,-10.,10.,20.,40.,50.,70.,80./)
 
-    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
+    colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/) 
     ;lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(4),colors(5),colors(6)/)
     ;lgres@lgDashIndexes = (/"0","0","0","0","0","0"/)
 
-    title_lg0="amip"
-    title_lg1="amip +4K"
-    title_lg2="amip -4K"
-    title_lg3="historical"
-    title_lg4="abrupt 4xCO2"
-    title_lg5="1pctCO2"
-    title_obs="CALIPSO"
+    ;title_lg0="amip"
+    ;title_lg1="amip +4K"
+    ;title_lg2="amip -4K"
+    ;title_lg3="historical"
+    ;title_lg4="abrupt 4xCO2"
+    ;title_lg5="1pctCO2"
+    ;title_lg6="amip +future4K"
+    ;title_obs="CALIPSO"
 
 if (plotwarm .lt. 1) then
-    lgres@lgLineColors  = (/colors(1),colors(4),colors(0)/)
+    ;lgres@lgLineColors  = (/colors(1),colors(4),colors(0)/) ; for amip, historical, CALIPSO
+    ;lgres@lgDashIndexes = (/"0","0","0"/)
+    ;labels = (/title_lg0,title_lg3,title_obs/) ; bottom to top
     ;lgres@lgDashIndexes = (/"0","0","0","0","0","0"/)
-    lgres@lgDashIndexes = (/"0","0","0"/)
+    lgres@lgLineColors  = (/colors(7),colors(3),colors(2),colors(1),colors(0)/) 
+    lgres@lgDashIndexes = (/"0","0","0","0","0"/)
 ;    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_lg4,title_obs/) ; bottom to top
 ;    labels = (/title_lg0,title_lg1,title_lg2,title_lg3,title_obs/) ; bottom to top
-    labels = (/title_lg0,title_lg3,title_obs/) ; bottom to top
+    ;labels = (/title_lg0,title_lg3,title_obs/) ; bottom to top
+    labels = (/title_lg6,title_lg2,title_lg1,title_lg0,title_obs/) ; bottom to top
 else ; warming experiments plotted
-    lgres@lgLineColors  = (/colors(1),colors(2),colors(5),colors(6)/)
-    lgres@lgDashIndexes = (/"0","0","0","0"/)
-    labels = (/title_lg0,title_lg1,title_lg4,title_lg5/) ; bottom to top
+    lgres@lgLineColors  = (/colors(1),colors(7),colors(2),colors(5),colors(6)/)
+    lgres@lgDashIndexes = (/"0","0","0","0","0"/)
+    labels = (/title_lg0,title_lg6,title_lg1,title_lg4,title_lg5/) ; bottom to top
 end if
 
     res@gsnDraw         = False
@@ -357,21 +470,33 @@ end if
     plot0obs=gsn_csm_xy(wks,latitude_calip(:),var3calscale_zmn(:),res)
     res@xyLineColors=colors(1)
     plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
+    res@xyLineColors=colors(1)
+    plot0a_f=gsn_csm_xy(wks,latitude(:),var_h_full_ztmn(:),res)
     res@xyLineColors=colors(2)
     plot0b=gsn_csm_xy(wks,latitude(:),var1_h_ztmn(:),res)
     res@xyLineColors=colors(3)
     plot0c=gsn_csm_xy(wks,latitude(:),var2_h_ztmn(:),res)
     res@xyLineColors=colors(4)
     plot0d=gsn_csm_xy(wks,latitude(:),var3_h_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot0d_f=gsn_csm_xy(wks,latitude(:),var3_h_full_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot0d_ef=gsn_csm_xy(wks,latitude(:),var3_h_efull_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot0e=gsn_csm_xy(wks,latitude(:),var4_h_ztmn(:),res)
     res@xyLineColors=colors(6)
     plot0f=gsn_csm_xy(wks,latitude(:),var5_h_ztmn(:),res)
+    res@xyLineColors=colors(7)
+    plot0g=gsn_csm_xy(wks,latitude(:),var6_h_ztmn(:),res)
 
-;    overlay(plot0a,plot0b)
-    overlay(plot0a,plot0obs)
-;    overlay(plot0a,plot0c)
-    overlay(plot0a,plot0d)
+    overlay(plot0a,plot0b)    ; amip p4K
+    overlay(plot0a,plot0obs)  ; plot0a is usually not the full amip period, but 2005-2014
+    overlay(plot0a,plot0c)    ; amip m4K
+    ;overlay(plot0a,plot0d)    ; 2005-2014 of historical, i think
+    ;overlay(plot0a,plot0d_f) ; 1950-2014
+    ;overlay(plot0a,plot0d_ef); 1850-1949
+    overlay(plot0a,plot0a_f) ; full amip period
+    overlay(plot0a,plot0g)    ; amip future 4K
     ;overlay(plot0a,plot0e)
     ;overlay(plot0a,plot0f)
 
@@ -391,22 +516,34 @@ end if
     plot1obs=gsn_csm_xy(wks,latitude_calip(:),var2calscale_zmn(:),res)
     res@xyLineColors=colors(1)
     plot1a=gsn_csm_xy(wks,latitude(:),var_m_ztmn(:),res)
+    res@xyLineColors=colors(1)
+    plot1a_f=gsn_csm_xy(wks,latitude(:),var_m_full_ztmn(:),res)
     res@xyLineColors=colors(2)
     plot1b=gsn_csm_xy(wks,latitude(:),var1_m_ztmn(:),res)
     res@xyLineColors=colors(3)
     plot1c=gsn_csm_xy(wks,latitude(:),var2_m_ztmn(:),res)
     res@xyLineColors=colors(4)
     plot1d=gsn_csm_xy(wks,latitude(:),var3_m_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot1d_f=gsn_csm_xy(wks,latitude(:),var3_m_full_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot1d_ef=gsn_csm_xy(wks,latitude(:),var3_m_efull_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot1e=gsn_csm_xy(wks,latitude(:),var4_m_ztmn(:),res)
     res@xyLineColors=colors(6)
     plot1f=gsn_csm_xy(wks,latitude(:),var5_m_ztmn(:),res)
+    res@xyLineColors=colors(7)
+    plot1g=gsn_csm_xy(wks,latitude(:),var6_m_ztmn(:),res)
 
-;    overlay(plot1a,plot1b)
+    overlay(plot1a,plot1b)  ; amip p4K
     overlay(plot1a,plot1obs)
-;    overlay(plot1a,plot1c)
-    overlay(plot1a,plot1d)
+    overlay(plot1a,plot1c)  ; amip m4k
+;    overlay(plot1a,plot1d)   ; 2005-2014
+    ;overlay(plot1a,plot1d_f)
+    ;overlay(plot1a,plot1d_ef)
+    overlay(plot1a,plot1a_f) ; full amip period
     ;overlay(plot1a,plot1e)
+    overlay(plot1a,plot1g)
     ;overlay(plot1a,plot1f)
 
 if (plotwarm .lt. 1) then
@@ -425,22 +562,32 @@ end if
     res@xyLineColors=colors(1)
     res@tiMainString = "Low-Level Cloud Fraction"
     plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
+    plot2a_f=gsn_csm_xy(wks,latitude(:),var_l_full_ztmn(:),res)
     res@xyLineColors=colors(2)
     plot2b=gsn_csm_xy(wks,latitude(:),var1_l_ztmn(:),res)
     res@xyLineColors=colors(3)
     plot2c=gsn_csm_xy(wks,latitude(:),var2_l_ztmn(:),res)
     res@xyLineColors=colors(4)
     plot2d=gsn_csm_xy(wks,latitude(:),var3_l_ztmn(:),res)
+    res@xyLineColors=colors(4)
+    plot2d_f=gsn_csm_xy(wks,latitude(:),var3_l_full_ztmn(:),res)
+    plot2d_ef=gsn_csm_xy(wks,latitude(:),var3_l_efull_ztmn(:),res)
     res@xyLineColors=colors(5)
     plot2e=gsn_csm_xy(wks,latitude(:),var4_l_ztmn(:),res)
     res@xyLineColors=colors(6)
     plot2f=gsn_csm_xy(wks,latitude(:),var5_l_ztmn(:),res)
+    res@xyLineColors=colors(7)
+    plot2g=gsn_csm_xy(wks,latitude(:),var6_l_ztmn(:),res)
 
-;    overlay(plot2a,plot2b)
+    overlay(plot2a,plot2b)
     overlay(plot2a,plot2obs)
-;    overlay(plot2a,plot2c)
-    overlay(plot2a,plot2d)
+    overlay(plot2a,plot2c)
+    ;overlay(plot2a,plot2d)    ; 2005-2014
+    ;overlay(plot2a,plot2d_f)
+    ;overlay(plot2a,plot2d_ef)
+    overlay(plot2a,plot2a_f)
     ;overlay(plot2a,plot2e)
+    overlay(plot2a,plot2g)
     ;overlay(plot2a,plot2f)
 
 if (plotwarm .lt. 1) then
@@ -463,9 +610,12 @@ if (plotwarm .gt. 0) then
 
   res@xyLineColors=colors(1)
   plot0a=gsn_csm_xy(wks,latitude(:),var_h_ztmn(:),res)
-  overlay(plot0a,plot0b)
+  overlay(plot0a,plot0b)  ; amip p4K
+;  overlay(plot0a,plot0c)  ; amip m4K
   overlay(plot0a,plot0e)
   overlay(plot0a,plot0f)
+  overlay(plot0a,plot0d)
+  overlay(plot0a,plot0g)  ; amip future 4K
   plot(0)=plot0a
 
   ;for middle panel
@@ -483,6 +633,8 @@ if (plotwarm .gt. 0) then
   overlay(plot1a,plot1b)
   overlay(plot1a,plot1e)
   overlay(plot1a,plot1f)
+  overlay(plot1a,plot1d)
+  overlay(plot1a,plot1g)
   plot(1)=plot1a
 
   res@tiMainString = "Low-Level Cloud Fraction"
@@ -498,12 +650,13 @@ if (plotwarm .gt. 0) then
   plot2a=gsn_csm_xy(wks,latitude(:),var_l_ztmn(:),res)
   overlay(plot2a,plot2b)
   overlay(plot2a,plot2e)
-  overlay(plot2a,plot2d) ; i think this is the historical exp
+  overlay(plot2a,plot2d) ; this is the historical exp
   overlay(plot2a,plot2f)
+  overlay(plot2a,plot2g)
   plot(2)=plot2a
 
-  lgres@lgLineColors  = (/colors(1),colors(2),colors(5),colors(6)/)
-  lgres@lgDashIndexes = (/"0","0","0","0"/)
+  lgres@lgLineColors  = (/colors(1),colors(7),colors(2),colors(5),colors(6)/)
+  lgres@lgDashIndexes = (/"0","0","0","0","0"/)
 end if
 
 
@@ -523,10 +676,10 @@ end if
    
    ; draw panel with white space added
   if (plotwarm .gt. 0) then ; warming experiments
-    legend  = gsn_create_legend (wks, 4, labels, lgres)
+    legend  = gsn_create_legend (wks, 5, labels, lgres)
   else ; all experiments
-    ;legend  = gsn_create_legend (wks, 5, labels, lgres)
-    legend  = gsn_create_legend (wks, 3, labels, lgres)
+    legend  = gsn_create_legend (wks, 5, labels, lgres)
+    ;legend  = gsn_create_legend (wks, 3, labels, lgres)
   end if
     resP                 = True
     resP@amJust = "BottomRight"
