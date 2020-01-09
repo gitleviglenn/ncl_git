@@ -11,6 +11,8 @@ begin
 
 path="/Users/silvers/data/cfmip_toafluxes/"
 
+path_obs="/Users/silvers/data/SatData/CERES/"
+
 everything = 0 ; switch defining which profiles are plotted
 
 ; years for the abrupt and ramp warming experiments
@@ -41,6 +43,13 @@ filename="atmos_cmip.197901-201412.rsdt.nc"
 infile5=path+filename
 
 print("infile1 is: "+infile1)
+
+; ceres data paths: 
+filename="CERES_EBAF-TOA_Ed2.8_Subset_200003-201607.nc"
+filename_4p1="CERES_EBAF_Ed4.1_Subset_200003-201809.nc"
+infile_obs=path_obs+filename
+infile_obs_4p1=path_obs+filename_4p1
+print("infile_obs is: "+infile_obs)
 
 ; read data
 add_rsut=addfile(infile1,"r")
@@ -85,6 +94,64 @@ cre_net_amip!0="lat"
 cre_net_amip&lat=amip_rsut&lat
 
 ;-------------------------------------------------------------------------
+;---------------------------------------------------------------------
+; ceres data read below
+;---------------------------------------------------------------------
+  crs = addfile(infile_obs,"r")
+varname1="toa_cre_sw_mon"
+varname2="toa_cre_lw_mon"
+varname3="toa_cre_net_mon"
+ceres_swcre = crs->$varname1$(:,:,:)
+ceres_lwcre = crs->$varname2$(:,:,:)
+ceres_netcre = crs->$varname3$(:,:,:)
+
+print("dims before averaging "+dimsizes(ceres_swcre))
+ceres_swcre_tmn  =dim_avg_n(ceres_swcre,0)
+ceres_lwcre_tmn  =dim_avg_n(ceres_lwcre,0)
+ceres_netcre_tmn =dim_avg_n(ceres_netcre,0)
+print("dims after averaging "+dimsizes(ceres_swcre_tmn))
+
+;
+  crs_4p1 = addfile(infile_obs_4p1,"r")
+varname1="toa_sw_all_mon"
+varname2="toa_sw_clr_t_mon"; what is the difference between the clr_t and clr_c vars?
+;varname2="toa_sw_clr_c_mon"; what is the difference between the clr_t and clr_c vars?
+varname3="toa_lw_all_mon"
+varname4="toa_lw_clr_t_mon"
+;varname4="toa_lw_clr_c_mon"
+ceres_sw_all = crs_4p1->$varname1$(:,:,:)
+ceres_sw_clr = crs_4p1->$varname2$(:,:,:)
+ceres_lw_all = crs_4p1->$varname3$(:,:,:)
+ceres_lw_clr = crs_4p1->$varname4$(:,:,:)
+
+ceres_lw_cre=-ceres_lw_all+ceres_lw_clr
+ceres_lw_cre_tmn=dim_avg_n(ceres_lw_cre,0)
+ceres_sw_cre=-ceres_sw_all+ceres_sw_clr
+ceres_sw_cre_tmn=dim_avg_n(ceres_sw_cre,0)
+
+ceres_2p8_cre=ceres_netcre_tmn
+;ceres_2p8_cre=ceres_lwcre_tmn+ceres_swcre_tmn
+ceres_4p1_cre=ceres_lw_cre_tmn+ceres_sw_cre_tmn
+
+; ceres data is at a higher resolution (180x360 than) so we need to interpolate 
+; CERES to the AM4 grid if we want to plot global maps
+
+ceres_2p8_cre_ztmn=dim_avg_n(ceres_2p8_cre,1)
+ceres_4p1_cre_ztmn=dim_avg_n(ceres_4p1_cre,1)
+
+; compute global mean values of the ceres data
+lat = crs->lat
+rad = 4.0*atan(1.0)/180.0
+clat = cos(lat*rad)
+
+ceres_2p8_ave=wgt_areaave(ceres_2p8_cre,clat,1.0,0)
+ceres_4p1_ave=wgt_areaave(ceres_4p1_cre,clat,1.0,0)
+
+print("mean of ceres 2p8: "+dim_avg_n(ceres_2p8_cre_ztmn,0))
+print("w mean of ceres 2p8: "+ceres_2p8_ave)
+print("mean of ceres 4p1: "+dim_avg_n(ceres_4p1_cre_ztmn,0))
+print("w mean of ceres 4p1: "+ceres_4p1_ave)
+;printVarSummary(var_to_interpolate)
 ;-------------------------------------------------------------------------
 ; for amip m4K
 ;-------------------------------------------------------------------------
@@ -323,6 +390,31 @@ add_rlutcs_1pctCO2=addfile(infile4,"r")
 abr2_rlutcs_1pctCO2=add_rlutcs_1pctCO2->rlutcs(:,:,:)
 add_rsdt_1pctCO2=addfile(infile5,"r")
 abr2_rsdt_1pctCO2=add_rsdt_1pctCO2->rsdt(:,:,:)
+
+;; average data
+abr2_rsut_1pctCO2_tmn=dim_avg_n(abr2_rsut_1pctCO2,0)
+abr2_rsut_1pctCO2_tzmn=dim_avg_n(abr2_rsut_1pctCO2_tmn,1)
+abr2_rsutcs_1pctCO2_tmn=dim_avg_n(abr2_rsutcs_1pctCO2,0)
+abr2_rsutcs_1pctCO2_tzmn=dim_avg_n(abr2_rsutcs_1pctCO2_tmn,1)
+abr2_rlut_1pctCO2_tmn=dim_avg_n(abr2_rlut_1pctCO2,0)
+abr2_rlut_1pctCO2_tzmn=dim_avg_n(abr2_rlut_1pctCO2_tmn,1)
+abr2_rlutcs_1pctCO2_tmn=dim_avg_n(abr2_rlutcs_1pctCO2,0)
+abr2_rlutcs_1pctCO2_tzmn=dim_avg_n(abr2_rlutcs_1pctCO2_tmn,1)
+abr2_rsdt_1pctCO2_tmn=dim_avg_n(abr2_rsdt_1pctCO2,0)
+abr2_rsdt_1pctCO2_tzmn=dim_avg_n(abr2_rsdt_1pctCO2_tmn,1)
+;
+;; calculate CRE: cloud radiative effect
+cre_olr_1pct=abr2_rlut_1pctCO2_tzmn-abr2_rlutcs_1pctCO2_tzmn
+cre_sw_1pct=abr2_rsut_1pctCO2_tzmn-abr2_rsutcs_1pctCO2_tzmn
+cre_net_1pct=cre_sw_1pct+cre_olr_1pct
+;
+cre_olr_1pct!0="lat"
+cre_olr_1pct&lat=abr2_rsut_1pctCO2&lat
+cre_sw_1pct!0="lat"
+cre_sw_1pct&lat=abr2_rsut_1pctCO2&lat
+cre_net_1pct!0="lat"
+cre_net_1pct&lat=abr2_rsut_1pctCO2&lat
+;
 ;;-------------------------------------------------------------------------
 ; for abrupt 4xCO2 
 ;-------------------------------------------------------------------------
@@ -529,6 +621,13 @@ cre_sw_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
 
 cre_net_aqua_p4K!0="lat"
 cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
+
+;-------------------------------------------------------------------------
+; compute bias of cre relative to a particular control exp.
+
+;cont_cre=ceres_2p8_cre_ztmn
+cont_cre=ceres_4p1_cre_ztmn
+
 ;-------------------------------------------------------------------------
 ; make plot
   ;wks   = gsn_open_wks ("newPDF","testplot")
@@ -567,12 +666,7 @@ cre_net_aqua_p4K&lat=amip_rsut_aqua_p4K&lat
 
 ; here is where the colors, line styles, and string names are defined 
  ; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4","gold"/) 
-   colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid4","darkslategray4","gold"/) 
-;  colors = (/"LawnGreen","black","SteelBlue","GoldenRod","Black"/);,"OrangeRed"/) 
-  ;colors = (/"black","darkgoldenrod","darkolivegreen3","chocolate"/) 
-  ;colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue"/) 
-  lgres@lgLineColors  = (/colors(1),colors(2),colors(3),colors(0)/)
-  lgres@lgDashIndexes = (/"0","0","0","0"/)
+   colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
   title_1="net CRE"
   title_2="sw CRE"
   title_3="lw CRE"
@@ -587,6 +681,7 @@ if (everything .ge. 1) then ; plot the whole shebang
  res@trYMaxF = 110 
 else
  res@trYMinF = -10 
+; res@trYMaxF = 20 
  res@trYMaxF = 50 
 end if
  res@xyLineColors=colors(3)
@@ -650,7 +745,34 @@ end if
  res@xyLineColors=colors(5)
  plot6c=gsn_csm_xy(wks,latitude(:),cre_olr_abr2(:),res)
 
-;everything = 0
+; for plot with fewer experiments plotted
+;;; compute bias
+; cre_net_amip          =cre_net_amip+cont_cre
+; cre_net_h2_historical =cre_net_h2_historical+cont_cre
+; cre_net_abr2          =cre_net_abr2+cont_cre
+; cre_net_1pct          =cre_net_1pct+cont_cre
+; ceres_2p8_cre_ztmn    =ceres_2p8_cre_ztmn-cont_cre
+; ceres_4p1_cre_ztmn    =ceres_4p1_cre_ztmn-cont_cre
+;
+ res@xyLineColors=colors(1)
+ res@xyDashPattern="0"
+ plot_alt_1=gsn_csm_xy(wks,latitude(:),cre_net_amip(:),res)
+ res@xyDashPattern="0"
+ res@xyLineColors=colors(4)
+ plot_alt_2=gsn_csm_xy(wks,latitude(:),cre_net_h2_historical(:),res)
+ res@xyDashPattern="0"
+ res@xyLineColors=colors(5)
+ plot_alt_3=gsn_csm_xy(wks,latitude(:),cre_net_abr2(:),res)
+ res@xyLineColors=colors(6)
+ plot_alt_4=gsn_csm_xy(wks,latitude(:),cre_net_1pct(:),res)
+ res@xyDashPattern="1"
+ res@xyLineColors=colors(0)
+ plot_alt_5=gsn_csm_xy(wks,latitude(:),-ceres_2p8_cre_ztmn(:),res)
+ res@xyDashPattern="0"
+ res@xyLineColors=colors(0)
+ plot_alt_6=gsn_csm_xy(wks,latitude(:),-ceres_4p1_cre_ztmn(:),res)
+
+
 if (everything .ge. 1) then ; plot the whole shebang
  ; overlay the profiles to plot
  ; amip -4K
@@ -690,9 +812,17 @@ if (everything .ge. 1) then ; plot the whole shebang
   plot(0)=plot0a
  
 else
-  overlay(plot1a,plot5a)
-  overlay(plot1a,plot6a)
-  plot(0)=plot1a
+;  overlay(plot1a,plot5a)
+;  overlay(plot1a,plot6a)
+;  overlay(plot1a,plot7)
+;  overlay(plot1a,plot7b)
+  ;plot(0)=plot1a
+  overlay(plot_alt_1,plot_alt_2)
+  overlay(plot_alt_1,plot_alt_3)
+  overlay(plot_alt_1,plot_alt_4)
+  overlay(plot_alt_1,plot_alt_5)
+  overlay(plot_alt_1,plot_alt_6)
+  plot(0)=plot_alt_1
 end if
 
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=--=--=-=-=-=-=-=-=-=-=-=-=-=-
@@ -713,8 +843,10 @@ end if
  lgres@lgPerimOn            = False
 
 ; draw panel with white space added
+if (everything .ge. 1) then ; plot the whole shebang
  ;labels = (/"string1","string2","string3","string4"/)
  legend  = gsn_create_legend (wks, 3, labels, lgres)
+ lgres@lgDashIndexes = (/"0","0","0","0"/)
  resP                 = True
  resP@amJust = "BottomRight"
  ;resP@amParallelPosF   = 0.42    ; Move legend to right
@@ -722,7 +854,21 @@ end if
  resP@amOrthogonalPosF = -0.85     ; Move legend down more negative moves higher
 
  annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
- 
+else
+ labels_b = (/"CERES-EBAF v2.8","CERES-EBAF v4.1","amip","historical","abrupt 4xCO2","1% CO2 Ramp"/)
+  ; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
+ lgres@lgLineColors         = (/colors(0),colors(0),colors(1),colors(4),colors(5),colors(6)/)
+ lgres@lgDashIndexes          = (/"1","0","0","0","0","0"/)
+ legend  = gsn_create_legend (wks, 6, labels_b, lgres)
+ resP                 = True
+ resP@amJust = "BottomRight"
+ resP@amParallelPosF   = -0.12    ; Move legend to right
+ ;resP@amOrthogonalPosF = -0.85     ; Move legend down more negative moves higher
+ resP@amOrthogonalPosF = 0.45     ; Move legend down more negative moves higher
+
+ annoid = gsn_add_annotation(plot_alt_1,legend,resP) ; add legend to plot
+end if 
+
  gsn_panel(wks,plot,(/1,1/),resP)
 
 ; -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
