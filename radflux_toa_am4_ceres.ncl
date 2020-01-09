@@ -36,7 +36,8 @@ begin
 ;;path_to8xdaily="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos_8xdaily_alt40/ts/3hr/5yr/"
 
 ;path="/archive/Levi.Silvers/awg/warsaw/c96L33_am4p0_cmip6Diag_cosp_sep1/gfdl.ncrc3-intel-prod-openmp/pp/atmos/av/annual_5yr/"
-path="/archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/"
+;path="/archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/"
+path="/Users/silvers/data/cfmip_toafluxes/"
 ;filename=".nc"
 filename="atmos_cmip.197901-201412.rlut.nc"
 infile1=path+filename
@@ -45,11 +46,12 @@ print("infile1 is: "+infile1)
 ; read in netCDF files 
 ; read in CERES-EBAF data
 ;path="/archive/Ming.Zhao/backup/readobs_data/"
-path="/archive/Levi.Silvers/data/ceres_ebaf/"
+;path="/archive/Levi.Silvers/data/ceres_ebaf/"
+path_obs="/Users/silvers/data/SatData/CERES/"
 filename="CERES_EBAF-TOA_Ed2.8_Subset_200003-201607.nc"
 filename_4p1="CERES_EBAF_Ed4.1_Subset_200003-201809.nc"
-infile_obs=path+filename
-infile_obs_4p1=path+filename_4p1
+infile_obs=path_obs+filename
+infile_obs_4p1=path_obs+filename_4p1
 print("infile_obs is: "+infile_obs)
 ;---------------------------------------------------------------------
 ; ceres data read below
@@ -60,10 +62,12 @@ varname2="toa_cre_lw_mon"
 varname3="toa_cre_net_mon"
 ceres_swcre = crs->$varname1$(:,:,:)
 ceres_lwcre = crs->$varname2$(:,:,:)
+ceres_cre =   crs->$varname3$(:,:,:)
 
 print("dims before averaging "+dimsizes(ceres_swcre))
 ceres_swcre_tmn=dim_avg_n(ceres_swcre,0)
 ceres_lwcre_tmn=dim_avg_n(ceres_lwcre,0)
+ceres_cre_tmn  =dim_avg_n(ceres_cre,0)
 print("dims after averaging "+dimsizes(ceres_swcre_tmn))
 
 ;
@@ -173,7 +177,7 @@ varname5="rlut"
 ;varname6="sw_cre"
 ;
 
-path="/archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/"
+;path="/archive/Levi.Silvers/CM4/warsaw_201803/CM4_amip/gfdl.ncrc4-intel16-prod-openmp/pp/"
 ;filename=".nc"
 years="atmos_cmip.197901-201412."
 infile1=path+years+varname1+".nc"
@@ -323,7 +327,7 @@ my_colors_20posneg = (/ 10,23,33,43,53,63,73,83,93,103,127,151,161,171,181,191,2
   res                   = True
   res@cnLinesOn            = False
   res@mpProjection      = "Robinson"       ; choose projection
-  res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
+  res@mpGridAndLimbOn   = False              ; turn on/off lat/lon lines
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 30.               ; spacing for lat lines
   res@mpGridLonSpacingF = 30.               ; spacing for lon lines
@@ -386,9 +390,25 @@ sw_bias&lat=cre_sw&lat
 sw_bias!1="lon"
 sw_bias&lon=cre_sw&lon
 
+var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
+;var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
+
+sw_cre_w_ave     = wgt_areaave(cre_sw,clat,1.0,1)
+sw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_swcre_tmn,clat,1.0,1)
+sw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_sw_cre_tmn,clat,1.0,1)
+lw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_lwcre_tmn,clat,1.0,1)
+lw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_lw_cre_tmn,clat,1.0,1)
+lw_cre_w_ave     = wgt_areaave(cre_olr,clat,1.0,1)
+
 lwbias_weighted_ave     = wgt_areaave(lw_bias,clat,1.0,1)
 swbias_weighted_ave     = wgt_areaave(sw_bias,clat,1.0,1)
 
+print("longwave cre = "+lw_cre_w_ave)
+print("ceres 2p8 longwave cre = "+lw_cre_ceres2p8_w_ave)
+print("ceres 4p1 longwave cre = "+lw_cre_ceres4p1_w_ave)
+print("shortwave cre = "+sw_cre_w_ave)
+print("ceres 2p8 shortwave cre = "+sw_cre_ceres2p8_w_ave)
+print("ceres 4p2 shortwave cre = "+sw_cre_ceres4p1_w_ave)
 print("longwave bias = "+lwbias_weighted_ave)
   lwbias_st=flt2string(decimalPlaces(lwbias_weighted_ave,1,True))
 print("shortwave bias = "+swbias_weighted_ave)
