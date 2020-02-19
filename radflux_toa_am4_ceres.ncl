@@ -164,6 +164,17 @@ latN=var_to_interpolate&lat(nlat-1)                 ; northern extent of input g
 
 ceres_lwcre_180x288=interpolated_var
 
+printVarSummary(ceres_lwcre_180x288)
+
+; total CRE
+ceres_cre_180x288=ceres_lwcre_180x288+ceres_swcre_180x288
+
+ceres_cre_180x288!0="lat"
+ceres_cre_180x288&lat=ceres_lwcre_180x288&LAT_am4
+ceres_cre_180x288!1="lon"
+ceres_cre_180x288&lon=ceres_lwcre_180x288&LON_am4
+
+
 ;---------------------------------------------------------------------
 ; am4 data read below
 ;---------------------------------------------------------------------
@@ -367,7 +378,8 @@ my_colors_20posneg = (/ 10,23,33,43,53,63,73,83,93,103,127,151,161,171,181,191,2
   ;res@cnLevels          = my_levels_olrcre
   ;res@cnFillColors      = my_colors_olrcre
   res@tiMainString       = "CERES-EBAF lw cre" 
-  contour6 = gsn_csm_contour_map(wks,ceres_lwcre_180x288,res)  ; create the plot
+;  contour6 = gsn_csm_contour_map(wks,ceres_lwcre_180x288,res)  ; create the plot
+  contour6 = gsn_csm_contour_map(wks,ceres_cre_180x288,res)  ; create the plot
   plot(0) = contour6
   res@gsnFrame         = False
   ;res@cnLevels          = my_levels_swcre
