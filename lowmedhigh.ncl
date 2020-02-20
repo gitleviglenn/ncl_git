@@ -12,10 +12,10 @@
 ;***********************************************************************************
 begin
 ;
-plotwarm=0  ; plotwarm = 0 corresponds to either the figure with historical experis
+plotwarm=1  ; plotwarm = 0 corresponds to either the figure with historical experis
 ;                        or to a figure with all experiments
 ;            1 plot a figure with only warming experiments
-plotbias=0  ; plotbias = 0 is default and corresponds to plotting climatology
+plotbias=1  ; plotbias = 0 is default and corresponds to plotting climatology
 ;
 ; variables to read: 
   varname1="cllcalipso"
@@ -160,10 +160,10 @@ print("infile calipso obs is: "+infile_calobs)
   infile4_l=path_to_data+filetoread_4xCO2_l
   infile4_m=path_to_data+filetoread_4xCO2_m
   infile4_h=path_to_data+filetoread_4xCO2_h
-  ;expname="abrupt 4xCO2 coupled"
-  infile5_l=path_to_data+filetoread_1pctCO2_l
-  infile5_m=path_to_data+filetoread_1pctCO2_m
-  infile5_h=path_to_data+filetoread_1pctCO2_h
+  ;expname="1pctCO2 coupled"
+  infile5_l=path_to_data+filetoread_1pctCO2a_l
+  infile5_m=path_to_data+filetoread_1pctCO2a_m
+  infile5_h=path_to_data+filetoread_1pctCO2a_h
 ;
 ; read data
 
@@ -326,20 +326,25 @@ print("amip -4K data is: "+infile2_l)
   var4_h_ztmn=dim_avg_n(var4_h_tmn,1)
 
 ; ramp 1pctCO2
+
+  startmon=840
+  endmon=1199
   data_5_l = addfile(infile5_l,"r")
   data_5_m = addfile(infile5_m,"r")
   data_5_h = addfile(infile5_h,"r")
 
-  var5_l_full = data_5_l->$varname1$(:,:,:) ; low clouds from exp a
+  var5_l_full = data_5_l->$varname1$(startmon:endmon,:,:) ; low clouds from exp a
   var5_l_tmn=dim_avg_n(var5_l_full,0) ; average over time
-  var5_m_full = data_5_m->$varname2$(:,:,:) ; mid clouds from exp a
+  var5_m_full = data_5_m->$varname2$(startmon:endmon,:,:) ; mid clouds from exp a
   var5_m_tmn=dim_avg_n(var5_m_full,0)
-  var5_h_full = data_5_h->$varname3$(:,:,:) ; high clouds from exp a
+  var5_h_full = data_5_h->$varname3$(startmon:endmon,:,:) ; high clouds from exp a
   var5_h_tmn=dim_avg_n(var5_h_full,0)
 
   var5_l_ztmn=dim_avg_n(var5_l_tmn,1)
   var5_m_ztmn=dim_avg_n(var5_m_tmn,1)
   var5_h_ztmn=dim_avg_n(var5_h_tmn,1)
+
+print("dimsizes of 1pctCO2 data are: "+dimsizes(var5_l_full))
 
 ;*************************************************************
 
@@ -625,7 +630,7 @@ if (plotwarm .gt. 0) then
     res@trYMaxF = 10 
   else
     res@trYMinF = 0
-    res@trYMaxF = 40
+    res@trYMaxF = 60
   end if
   
   res@xyLineColors=colors(1)
@@ -643,7 +648,7 @@ if (plotwarm .gt. 0) then
     res@trYMaxF = 10 
   else
     res@trYMinF = 5 
-    res@trYMaxF = 70 
+    res@trYMaxF = 90 
   end if
 
   res@xyLineColors=colors(1)

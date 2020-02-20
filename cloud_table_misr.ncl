@@ -75,10 +75,15 @@ ytitle="optical depth"
 ;;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
 
 filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
+;obs_filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
+
+obs_filein="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"
 
 infile = addfile(filein,"r")
+;obs_infile = addfile(obs_filein,"r")
 
   print("infile is: "+filein)
+;  print("observations infile is: "+obs_filein)
 
 tau=infile->tau(:)
   print("tau =: "+tau)
@@ -88,10 +93,12 @@ tau=infile->tau(:)
 
 varnames="misr_"+ispan(1,16,1)
 varname="clmisr"
+ob_varname="clMISR"
 
 fields=new((/7,16/),float)
 
 fields_full=infile->$varname$(:,:,:,:,:)
+obs_fields=obs_infile->$ob_varname$(:,:,:,90,90)
 
   print("overall max of fields is: "+max(fields_full))
   print("overall min of fields is: "+min(fields_full))
