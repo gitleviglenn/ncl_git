@@ -50,12 +50,14 @@ varname1="tot_cld_amt"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_modis/atmos_month_modis.0002-0011.alltmn.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.all.nc"
-infile="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn.nc"
+;infile="/archive/Levi.Silvers/data/c96L32_am4G12r18_2010climo_A_cosp/atmos_month_cospx/atmos_month_cospx.0002-0011.alltmn.nc"
 ;infile="/archive/Levi.Silvers/data/c96L32_am4G12r17_2010climo_A_cosp/atmos/atmos.0002-0011.all.nc"
+
 
 modelv="am4g12r18"
 
 infile_isccpdata="/net2/Levi.Silvers/data/isccpdata/cltisccp_7yr_tmn.nc"
+infile_isccpdata="/Users/silvers/data/SatData/ISCCP/cltisccp_7yr_tmn.nc"
   ;maintitle_isc="cltisccp obs 2001-2007"
   isccp_data = addfile(infile_isccpdata,"r")
 print("infile for isccp data is: "+infile_isccpdata)
