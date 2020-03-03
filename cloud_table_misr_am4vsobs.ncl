@@ -88,10 +88,6 @@ end
 
 begin
 
-;; open/reference desired file (use addfiles to reference multiple data file)
-toptitle="MISR AM4"
-xtitle="hieght (km)"
-ytitle="optical depth"
 ;
 ;;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
 
@@ -165,17 +161,18 @@ fields_patch=fields_tmn(:,:,61:120,:)
 ; global mean without cosine weighting
 fields_gmn_a=dim_avg_n(fields_tmn,2)
 fields_gmn  =dim_avg_n(fields_gmn_a,2)
+
 fields_obs_gmn_a=dim_avg_n(obs_fields_tmn,2)
 fields_obs_gmn  =dim_avg_n(fields_obs_gmn_a,2)
 
-; mean of tropics without cosine weighting
-fields_trm_a =dim_avg_n(fields_patch,2)
-fields_trm_am4   =dim_avg_n(fields_trm_a,2)
-
-  ;print("dimsizes of gmn_a are: "+dimsizes(fields_gmn_a))
-;fields_point=fields_patch(:,:,90,144)
-  print("=-=-=-=-=-=-=-")
-  print("dimsizes of fields_trm_am4 for AM4 are: "+dimsizes(fields_trm_am4))
+;; mean of tropics without cosine weighting
+;fields_trm_a =dim_avg_n(fields_patch,2)
+;fields_trm_am4   =dim_avg_n(fields_trm_a,2)
+;
+;  ;print("dimsizes of gmn_a are: "+dimsizes(fields_gmn_a))
+;;fields_point=fields_patch(:,:,90,144)
+;  print("=-=-=-=-=-=-=-")
+;  print("dimsizes of fields_trm_am4 for AM4 are: "+dimsizes(fields_trm_am4))
 
 fields_tmn!0          ="tau"
 fields_tmn&tau        =fields_full&tau
@@ -227,38 +224,33 @@ latN=tofloat(var_to_interpolate&lat(nlat-1))                 ; northern extent o
 print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;***********************************************************************************
 
-;cfrac_am4_thin_oc=where(cfrac_thin_misr.eq.cfrac_thin_misr@_FillValue,cfrac_thin_misr@_FillValue,cfrac_plot_am4_thin)
-
 fields_tmn_noland=where(obs_fields_tmn.eq.obs_fields_tmn@_FillValue,obs_fields_tmn@_FillValue,interpolated_var)
 
 copy_VarCoords(obs_fields_tmn,fields_tmn_noland)
 
 ;print("dimsizes of fields_tmn_noland: "+dimsizes(fields_tmn_noland))
-toplot=fields_tmn_noland
-;print("dimsizes of toplot: "+dimsizes(toplot))
 
 ;print(" do we have dims defined for obs_fields_tmn? ") ;--> yes
-;printVarSummary(obs_fields_tmn)
-
-;print(" copying metadata to toplot ")
-copy_VarCoords(obs_fields_tmn,toplot)
-;
+printVarSummary(obs_fields_tmn)
+printVarSummary(fields_tmn_noland)
 
 ;;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
+;;---------------------------------------------------------------------
 lat  = infile->lat
 rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
-  print("(((((((((((((")
-  print("dimsizes of clat are: "+dimsizes(clat))
+;  print("(((((((((((((")
+;  print("dimsizes of clat are: "+dimsizes(clat))
 ;  print(clat)
-  print(")))))))))))))")
-  print("dimsizes of fields_gmn are: "+dimsizes(fields_tmn))
+;  print(")))))))))))))")
+;  print("dimsizes of fields_gmn are: "+dimsizes(fields_tmn))
 ;;
-field_wave_am4     = wgt_areaave(fields_tmn,clat,1.0,1)
-field_wave_am4_0   = wgt_areaave(fields_tmn,clat,1.0,0)
-field_wave_misr    = wgt_areaave(obs_fields_tmn,clat,1.0,1)
-field_wave_misr_0  = wgt_areaave(obs_fields_tmn,clat,1.0,0)
+;field_wave_am4     = wgt_areaave(fields_tmn,clat,1.0,1)
+field_wave_am4   = wgt_areaave(fields_tmn,clat,1.0,0)
+field_wave_am4_nl  = wgt_areaave(fields_tmn_noland,clat,1.0,0)
+;field_wave_misr    = wgt_areaave(obs_fields_tmn,clat,1.0,1)
+field_wave_misr  = wgt_areaave(obs_fields_tmn,clat,1.0,0)
 ;;
 ; using 0 instead of 1 as the last parameter of wgt_areaave ave is calculated with 
 ; available non-missing data. 
@@ -266,35 +258,128 @@ field_wave_misr_0  = wgt_areaave(obs_fields_tmn,clat,1.0,0)
 ;  print("global mean of field_wave_am4 with 1 is: "+field_wave_am4)
 ;  print("global mean of field_wave_am4 with 0 is: "+field_wave_am4_0)
 ;  print("global mean of field_wave_misr with 1 is: "+field_wave_misr)
-;  print("global mean of field_wave_misr with 0 is: "+field_wave_misr_0)
 ;  print("***************)")
 ;---------------------------------------------------------------------
+; grab a particular region of the data, and that same regions lat array
+; and use this to create a cosine weighted mean for a non-global region
+
+fields_pm30    =obs_fields_tmn(:,:,60:119,:)
+fields_am4_pm30=fields_tmn_noland(:,:,60:119,:)
+pm30lat        =clat(60:119)
+
+fields_nh30t60 =obs_fields_tmn(:,:,120:149,:)
+fields_am4_nh30t60 =fields_tmn_noland(:,:,120:149,:)
+nhlat30to60    =clat(120:149)
+fields_sh30t60 =obs_fields_tmn(:,:,30:59,:)
+fields_am4_sh30t60 =fields_tmn_noland(:,:,30:59,:)
+shlat30to60    =clat(30:59)
+
+fields_nh30t90 =obs_fields_tmn(:,:,120:179,:)
+fields_am4_nh30t90 =fields_tmn_noland(:,:,120:179,:)
+nhlat30to90    =clat(120:179)
+fields_sh30t90 =obs_fields_tmn(:,:,0:59,:)
+fields_am4_sh30t90 =fields_tmn_noland(:,:,0:59,:)
+shlat30to90    =clat(0:59)
+
+; computed weighted means
+field_obs_gmn       = wgt_areaave(obs_fields_tmn,clat,1.0,0)
+field_gmn_am4       = wgt_areaave(fields_tmn_noland,clat,1.0,0)
+
+;field_wave_pm30_misr = wgt_areaave(fields_pm30,pm30lat,1.0,0)
+field_obs_pm30       = wgt_areaave(fields_pm30,pm30lat,1.0,0)
+field_am4_pm30       = wgt_areaave(fields_am4_pm30,pm30lat,1.0,0)
+
+field_obs_sh30t90 = wgt_areaave(fields_sh30t90,shlat30to90,1.0,0)
+field_obs_nh30t90 = wgt_areaave(fields_nh30t90,nhlat30to90,1.0,0)
+field_am4_sh30t90 = wgt_areaave(fields_am4_sh30t90,shlat30to90,1.0,0)
+field_am4_nh30t90 = wgt_areaave(fields_am4_nh30t90,nhlat30to90,1.0,0)
+
+;field_wave_sh_misr = wgt_areaave(fields_sh30t90,shlat30to90,1.0,0)
+;field_wave_nh_misr = wgt_areaave(fields_nh30t90,nhlat30to90,1.0,0)
+
+field_obs_sh30t60 = wgt_areaave(fields_sh30t60,shlat30to60,1.0,0)
+field_obs_nh30t60 = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
+field_am4_sh30t60 = wgt_areaave(fields_am4_sh30t60,shlat30to60,1.0,0)
+field_am4_nh30t60 = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
+
+;field_wave_sh_30t60misr = wgt_areaave(fields_sh30t60,shlat30to60,1.0,0)
+;field_wave_nh_30t60misr = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
+
+; dimensions are 7x16
+print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
 ;--------------------------------
 ;
-;fields=fields_point
 
 ; try a patch for observations
-delete(fields_trm_a)
-delete(fields_patch)
-fields_patch =new((/7,16,60,360/),float)
-fields_patch=obs_fields_tmn(:,:,61:120,:)
-; mean of tropics without cosine weighting
-fields_trm_a =dim_avg_n(fields_patch,2)
-fields_trm_misr   =dim_avg_n(fields_trm_a,2)
-  print("dimsizes of trm for obs are: "+dimsizes(fields_trm_misr))
-  print("=-=-=-=-=-=-=-")
+;delete(fields_trm_a)
+;delete(fields_patch)
+;fields_patch =new((/7,16,60,360/),float)
 
-;--------------------------------
+;; select a region of globe...
+;fields_patch=obs_fields_tmn(:,:,61:120,:)
+
+;; mean of tropics without cosine weighting
+;fields_trm_a      =dim_avg_n(fields_patch,2)
+;fields_trm_misr   =dim_avg_n(fields_trm_a,2)
+;  print("dimsizes of trm for obs are: "+dimsizes(fields_trm_misr))
+;  print("=-=-=-=-=-=-=-")
+
+;-----------------------------------------------------------------
 ; determine which regions will be tabulated.  save the desired 
 ; arrays to fields and fields_obs
-;fields=fields_gmn
-;fields_obs=fields_obs_gmn
-fields=fields_trm_am4
-fields_obs=fields_trm_misr
+;-----------------------------------------------------------------
+; global domain
+fields     =field_gmn_am4
+fields_obs =field_obs_gmn
+
+print("sum of global am4 cloud fraction: "+sum(fields))
+print("sum of global misr cloud fraction: "+sum(fields_obs))
+
+; tropics: plus/minus 30
+;print("dimensions of lhs are: "+dimsizes(fields))
+;print("dimensions of rhs are: "+dimsizes(field_am4_pm30))
+fields     =field_am4_pm30
+fields_obs =field_obs_pm30
+
+print("sum of pm30 am4 cloud fraction: "+sum(fields))
+print("sum of pm30 misr cloud fraction: "+sum(fields_obs))
+
+; higher latitudes
+fields     =field_am4_nh30t90
+fields_obs =field_obs_nh30t90
+
+print("sum of 30 to 90 am4 cloud fraction: "+sum(fields))
+print("sum of 30 to 90 misr cloud fraction: "+sum(fields_obs))
+
+; mid-latitudes
+fields     =field_am4_nh30t60
+fields_obs =field_obs_nh30t60
+
+print("sum of 30 to 60 am4 cloud fraction: "+sum(fields))
+print("sum of 30 to 60 misr cloud fraction: "+sum(fields_obs))
+
+;titleRight="MISR SH"
+;titleLeft ="MISR NH"
+titleRight="MISR pm 30"
+titleLeft ="AM4 pm 30"
+
+print("sum of tabulated am4 cloud fraction: "+sum(fields))
+print("sum of tabulated misr cloud fraction: "+sum(fields_obs))
+
+; higher latitudes
+;fields     =field_wave_nh_misr
+;fields_obs =field_wave_sh_misr
+
   print("dimsizes of fields are:"+dimsizes(fields))
   ;print(fields(:,10))
   ;printVarSummary(fields_obs)
-;--------------------------------
+
+;titleRight="MISR SH"
+;titleLeft ="MISR NH"
+titleRight="MISR pm 30"
+titleLeft ="AM4 pm 30"
+;-----------------------------------------------------------------
+;-----------------------------------------------------------------
 
 
 ; name the dimensions of the newly created arrays
@@ -335,6 +420,9 @@ cf_array_obs =cf_array_obs(::-1,:)
 ;  print("-----------------------------")
 
 
+;-----------------------------------------------------------
+; save data for tables to text_values and text_obs
+;-----------------------------------------------------------
 
 ; for data from aM4
 cf_array=where(cf_array.le.0.001,0.0,cf_array)
@@ -342,8 +430,10 @@ cf_array=decimalPlaces(cf_array,1,True)
 ; for observations
 cf_array_obs=where(cf_array_obs.le.0.001,0.0,cf_array_obs)
 cf_array_obs=decimalPlaces(cf_array_obs,1,True)
+
 text_values=""+cf_array
 text_obs_values=""+cf_array_obs
+;-----------------------------------------------------------
 ;
 ncols=7
 nrows=16
@@ -412,6 +502,10 @@ obs_cols_for_txt = where(obs_cols_for_vals.eq."Navy".or.obs_cols_for_vals.eq."Me
 ;;;-----------------------------------------------------------------------------
 ;; Start the graphics.
 ;
+
+xtitle="hieght (km)"
+ytitle="optical depth"
+;
   wks = gsn_open_wks("newPDF","testplot")
   gsn_define_colormap(wks,colors)
 ;
@@ -469,8 +563,7 @@ obs_cols_for_txt = where(obs_cols_for_vals.eq."Navy".or.obs_cols_for_vals.eq."Me
   resb@tmXTOn                  = False
 
 ; Main title
-  ;resb@tiMainString            = file_base
-  resb@tiMainString            = toptitle
+  resb@tiMainString            = titleLeft
   
   blank = gsn_csm_blank_plot(wks,resb)
 ;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
@@ -542,7 +635,7 @@ obs_cols_for_txt = where(obs_cols_for_vals.eq."Navy".or.obs_cols_for_vals.eq."Me
 ;  resb@tmXTOn                  = False
 
 ; Main title
-  resb@tiMainString            = "MISR Obs"
+  resb@tiMainString            = titleRight
 
   blank = gsn_csm_blank_plot(wks,resb)
   add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
