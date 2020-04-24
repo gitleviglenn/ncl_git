@@ -8,6 +8,9 @@
 ; as cloud top height (km) vs. tau using output from
 ; the misr simulator
 ;
+; there is also code at the end that when uncommented can 
+; produce global maps...
+;
 ; should we be using a land mask to block out AM4's land 
 ; points?  This was done with the global script cf_misr_vs_am4.ncl
 ; but in that script, the am4 data was interpolated to the same grid
@@ -309,75 +312,84 @@ field_am4_nh30t60 = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
 print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
 ;--------------------------------
 ;
-
-; try a patch for observations
-;delete(fields_trm_a)
-;delete(fields_patch)
-;fields_patch =new((/7,16,60,360/),float)
-
-;; select a region of globe...
-;fields_patch=obs_fields_tmn(:,:,61:120,:)
-
-;; mean of tropics without cosine weighting
-;fields_trm_a      =dim_avg_n(fields_patch,2)
-;fields_trm_misr   =dim_avg_n(fields_trm_a,2)
-;  print("dimsizes of trm for obs are: "+dimsizes(fields_trm_misr))
-;  print("=-=-=-=-=-=-=-")
-
 ;-----------------------------------------------------------------
 ; determine which regions will be tabulated.  save the desired 
 ; arrays to fields and fields_obs
 ;-----------------------------------------------------------------
 ; global domain
-fields     =field_gmn_am4
-fields_obs =field_obs_gmn
+;fields     =field_gmn_am4
+;fields_obs =field_obs_gmn
 
-print("sum of global am4 cloud fraction: "+sum(fields))
-print("sum of global misr cloud fraction: "+sum(fields_obs))
+print("sum of global am4 cloud fraction: "+sum(field_gmn_am4))
+print("sum of global misr cloud fraction: "+sum(field_obs_gmn))
 
 ; tropics: plus/minus 30
-;print("dimensions of lhs are: "+dimsizes(fields))
-;print("dimensions of rhs are: "+dimsizes(field_am4_pm30))
-fields     =field_am4_pm30
-fields_obs =field_obs_pm30
+;fields     =field_am4_pm30
+;fields_obs =field_obs_pm30
 
-print("sum of pm30 am4 cloud fraction: "+sum(fields))
-print("sum of pm30 misr cloud fraction: "+sum(fields_obs))
+print("sum of pm30 am4 cloud fraction: "+sum(field_am4_pm30))
+print("sum of pm30 misr cloud fraction: "+sum(field_obs_pm30))
 
 ; higher latitudes
-fields     =field_am4_nh30t90
-fields_obs =field_obs_nh30t90
+;fields     =field_am4_nh30t90
+;fields_obs =field_obs_nh30t90
 
-print("sum of 30 to 90 am4 cloud fraction: "+sum(fields))
-print("sum of 30 to 90 misr cloud fraction: "+sum(fields_obs))
+print("sum of NH 30 to 90 am4 cloud fraction: "+sum(field_am4_nh30t90))
+print("sum of NH 30 to 90 misr cloud fraction: "+sum(field_obs_nh30t90))
+
+print("sum of SH 30 to 90 am4 cloud fraction: "+sum(field_am4_sh30t90))
+print("sum of SH 30 to 90 misr cloud fraction: "+sum(field_obs_sh30t90))
 
 ; mid-latitudes
-fields     =field_am4_nh30t60
-fields_obs =field_obs_nh30t60
+;fields     =field_am4_nh30t60
+;fields_obs =field_obs_nh30t60
 
-print("sum of 30 to 60 am4 cloud fraction: "+sum(fields))
-print("sum of 30 to 60 misr cloud fraction: "+sum(fields_obs))
+print("sum of NH 30 to 60 am4 cloud fraction: "+sum(field_am4_nh30t60))
+print("sum of NH 30 to 60 misr cloud fraction: "+sum(field_obs_nh30t60))
 
-;titleRight="MISR SH"
-;titleLeft ="MISR NH"
-titleRight="MISR pm 30"
-titleLeft ="AM4 pm 30"
+print("sum of SH 30 to 60 am4 cloud fraction: "+sum(field_am4_sh30t60))
+print("sum of SH 30 to 60 misr cloud fraction: "+sum(field_obs_sh30t60))
 
-print("sum of tabulated am4 cloud fraction: "+sum(fields))
-print("sum of tabulated misr cloud fraction: "+sum(fields_obs))
+;;titleRight="MISR SH"
+;;titleLeft ="MISR NH"
+;titleRight="MISR pm 30"
+;titleLeft ="AM4 pm 30"
+;
+;print("sum of tabulated am4 cloud fraction: "+sum(fields))
+;print("sum of tabulated misr cloud fraction: "+sum(fields_obs))
 
 ; higher latitudes
 ;fields     =field_wave_nh_misr
 ;fields_obs =field_wave_sh_misr
 
-  print("dimsizes of fields are:"+dimsizes(fields))
-  ;print(fields(:,10))
-  ;printVarSummary(fields_obs)
+;  print("dimsizes of fields are:"+dimsizes(fields))
+;print(fields(:,10))
+;printVarSummary(fields_obs)
 
-;titleRight="MISR SH"
-;titleLeft ="MISR NH"
-titleRight="MISR pm 30"
-titleLeft ="AM4 pm 30"
+; define which region to tabulate and set titles...
+
+;fields     = field_gmn_am4
+;fields_obs = field_obs_gmn
+;titleRight="MISR: Global mn"
+;titleLeft ="AM4: Global mn"
+
+fields     = field_am4_pm30
+fields_obs = field_obs_pm30
+titleRight="MISR: 30S to 30N"
+titleLeft ="AM4: 30S to 30N"
+
+;fields     = field_am4_nh30t60
+;fields_obs = field_obs_nh30t60
+;titleRight="MISR: 30 to 60 NH"
+;titleLeft ="AM4: 30 to 60 NH"
+
+;fields     = field_am4_sh30t60
+;fields_obs = field_obs_sh30t60
+;titleRight="MISR: 30 to 60 SH"
+;titleLeft ="AM4: 30 to 60 SH"
+
+
+
 ;-----------------------------------------------------------------
 ;-----------------------------------------------------------------
 
@@ -506,7 +518,8 @@ obs_cols_for_txt = where(obs_cols_for_vals.eq."Navy".or.obs_cols_for_vals.eq."Me
 xtitle="hieght (km)"
 ytitle="optical depth"
 ;
-  wks = gsn_open_wks("newPDF","testplot")
+  ;wks = gsn_open_wks("newPDF","testplot")
+  wks = gsn_open_wks("eps","testplot")
   gsn_define_colormap(wks,colors)
 ;
 ;  ;
@@ -521,22 +534,31 @@ ytitle="optical depth"
 ;  print("text values are: "+text_values)
 ;  print("text values from observations are: "+text_obs_values)
 ;;;-----------------------------------------------------------------------------
-; first table
+; lower table
 ;;;-----------------------------------------------------------------------------
   resb                         = True
   resb@gsnDraw                 = False
   resb@gsnFrame                = False
 
-  resb@vpYF                    = 0.92
-  resb@vpXF                    = 0.10
-  resb@vpHeightF               = 0.45 ; 0.85
+;  resb@vpYF                    = 0.95
+;  resb@vpXF                    = 0.13
+;  resb@vpHeightF               = 0.4 ; 0.85
+;  resb@vpWidthF                = 0.35 ; 0.75
+
+  ;resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
+  resb@vpYF                    = 0.47  ; specifies the location of top edge of view object
+  ;resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
+  resb@vpXF                    = 0.13  ; specifies the location of the left edge of view object
+  resb@vpHeightF               = 0.4 ; 0.85
   resb@vpWidthF                = 0.35 ; 0.75
 
 ; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
   resb@tmXBMode                = "Explicit"
-  resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
-  print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
+  ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
+  resb@tmXBValues              = fspan(col_width,1.,ncols)
+  ;print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
   ncol_labels=(/0.15,0.80,2.45,6.50,16.2,41.5,100./)
+  ncol_labels_b=(/" "," "," "," "," "," "," "/)
   ;nrow_labels=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,7.0,9.0,11.0,13.0,15.0,17.0/)
   nrow_labels=(/0.25,0.75,1.25,1.75,2.25,2.75,3.5,4.5,6.0,8.0,10.0,12.0,14.5,16.0,18.0/)
 ; alt16 = 0, 250, 750, 1250, 1750, 2250, 2750, 3500, 4500, 6000, 8000, 10000,
@@ -548,6 +570,8 @@ ytitle="optical depth"
   resb@tmYLMode                = "Explicit"
   resb@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
   resb@tmYLLabels              = nrow_labels
+  resb@tiYAxisString           = "km"
+  resb@tiXAxisString           = "Tau "
 ;
 ; The Y labels need to be reversed, because the label in the first
 ; row in the ASCII file is associated with the top of the plot.
@@ -585,7 +609,7 @@ ytitle="optical depth"
 
 ; Set up resources for table
   rest               = True
-  ;rest@tiXAxisString    = xtitle
+  rest@tiXAxisString    = xtitle
   ;rest@tiYAxisString    = ytitle
   rest@gsLineColor   = -1                ; No border lines
   rest@gsFillColor   = cols_for_vals     ; Each cell of table
@@ -596,49 +620,35 @@ ytitle="optical depth"
   gsn_table(wks,ncr_flip,x,y,text_values,rest)    ; Draw table
 
 ;;;-----------------------------------------------------------------------------
-; second table
+; upper table
 ;;;-----------------------------------------------------------------------------
-;  resb                         = True
-;  resb@gsnDraw                 = False
-;  resb@gsnFrame                = False
 
-  resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
-  resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
-  resb@vpHeightF               = 0.45 ; 0.85
+  resb@vpYF                    = 0.95
+  resb@vpXF                    = 0.13
+  resb@vpHeightF               = 0.4 ; 0.85
   resb@vpWidthF                = 0.35 ; 0.75
 
+  ;;resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
+  ;resb@vpYF                    = 0.48  ; specifies the location of top edge of view object
+  ;;resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
+  ;resb@vpXF                    = 0.13  ; specifies the location of the left edge of view object
+  ;resb@vpHeightF               = 0.4 ; 0.85
+  ;resb@vpWidthF                = 0.35 ; 0.75
+  resb@tiYAxisString           = "km"
+  resb@tiXAxisString           = ""
+
 ;; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-;  resb@tmXBMode                = "Explicit"
-;  resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
-;  print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
-;  ncol_labels=(/0.15,0.80,2.45,6.50,16.2,41.5,100./)
    nrow_st_labels=(/" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "/)
-;  resb@tmXBLabels              = ncol_labels
-;  resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
 ;
 ;; Explicitly label Y axis.
   resb@tmYLMode                = "Explicit"
-;  resb@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
-;;  resb@tmYLValues =(/" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "/)
-;  resb@tmYLLabels              = nrow_st_labels
-;;
-;; The Y labels need to be reversed, because the label in the first
-;; row in the ASCII file is associated with the top of the plot.
-;  ;resb@tmYLLabels              = nrow_labels(::-1)
-;  resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
-;
-;; Rotate the X axis labels 90 degrees.
-;  resb@tmXBLabelJust           = "CenterRight"
-;
-;; Turn off right and top tickmarks
-;  resb@tmYROn                  = False
-;  resb@tmXTOn                  = False
+;  resb@tmXBLabels              = ncol_labels_b
 
 ; Main title
   resb@tiMainString            = titleRight
 
   blank = gsn_csm_blank_plot(wks,resb)
-  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
+;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
   draw(blank)                                 ; Draw tickmarks and labelbar
 ;
   getvalues blank
@@ -663,7 +673,10 @@ ytitle="optical depth"
 
   gsn_table(wks,ncr_flip,x,y,text_obs_values,rest)    ; Draw table
 
+;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; block of code to plot maps
+; DO NOT DELETE!!!
+;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 ;if(plot_map) then
 ;; test plotting...
