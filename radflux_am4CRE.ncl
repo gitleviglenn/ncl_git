@@ -28,6 +28,8 @@ everything = 0 ; switch defining which profiles are plotted
 ; 1 plots the shortwave, longwave, and net CRE for amip and aqua
 ; 2 plots CRE Feedback figure showing aqua and amip-based warming experiments
 
+plotbias = 0 ; default is 0; for plotbias=1, a bias is plotted 
+
 ; years for the abrupt and ramp warming experiments
 early="000101-010012"
 late="010101-015012"
@@ -82,23 +84,79 @@ amip_rlutcs=add_rlutcs->rlutcs(:,:,:)
 add_rsdt=addfile(infile5,"r")
 amip_rsdt=add_rsdt->rsdt(:,:,:)
 
+;-------------------------------------------------------------------------
+; piControl
+;-------------------------------------------------------------------------
+
+; define filenames
+filename="rsut_Amon_GFDL-CM4_piControl_r1i1p1f1_gr1_025101-035012.nc"
+infile_pic_1=path+filename
+;filename="atmos_cmip.197901-201412.rsutcs.nc"
+filename="rsutcs_Amon_GFDL-CM4_piControl_r1i1p1f1_gr1_025101-035012.nc"
+infile_pic_2=path+filename
+filename="rlut_Amon_GFDL-CM4_piControl_r1i1p1f1_gr1_025101-035012.nc"
+;filename="atmos_cmip.197901-201412.rlut.nc"
+infile_pic_3=path+filename
+filename="rlutcs_Amon_GFDL-CM4_piControl_r1i1p1f1_gr1_025101-035012.nc"
+;filename="atmos_cmip.197901-201412.rlutcs.nc"
+infile_pic_4=path+filename
+filename="rsdt_Amon_GFDL-CM4_piControl_r1i1p1f1_gr1_025101-035012.nc"
+;filename="atmos_cmip.197901-201412.rsdt.nc"
+infile_pic_5=path+filename
+
+; read data
+add_rsut=addfile(infile_pic_1,"r")
+pic_rsut=add_rsut->rsut(:,:,:)
+add_rsutcs=addfile(infile_pic_2,"r")
+pic_rsutcs=add_rsutcs->rsutcs(:,:,:)
+add_rlut=addfile(infile_pic_3,"r")
+pic_rlut=add_rlut->rlut(:,:,:)
+add_rlutcs=addfile(infile_pic_4,"r")
+pic_rlutcs=add_rlutcs->rlutcs(:,:,:)
+add_rsdt=addfile(infile_pic_5,"r")
+pic_rsdt=add_rsdt->rsdt(:,:,:)
+
+;-------------------------------------------------------------------------
+
+
 latitude=add_rsut->lat(:)
 
-; average data
+;----------- average data
 amip_rsut_tmn=dim_avg_n(amip_rsut,0)
 amip_rsut_tzmn=dim_avg_n(amip_rsut_tmn,1)
+
 amip_rsutcs_tmn=dim_avg_n(amip_rsutcs,0)
 amip_rsutcs_tzmn=dim_avg_n(amip_rsutcs_tmn,1)
+
 amip_rlut_tmn=dim_avg_n(amip_rlut,0)
 amip_rlut_tzmn=dim_avg_n(amip_rlut_tmn,1)
+
 amip_rlutcs_tmn=dim_avg_n(amip_rlutcs,0)
 amip_rlutcs_tzmn=dim_avg_n(amip_rlutcs_tmn,1)
+
 amip_rsdt_tmn=dim_avg_n(amip_rsdt,0)
 amip_rsdt_tzmn=dim_avg_n(amip_rsdt_tmn,1)
 
-print("dimensions of amip_rsut are: "+dimsizes(amip_rsut))
+pic_rsut_tmn=dim_avg_n(pic_rsut,0)
+pic_rsut_tzmn=dim_avg_n(pic_rsut_tmn,1)
 
-; calculate CRE: cloud radiative effect
+pic_rsutcs_tmn=dim_avg_n(pic_rsutcs,0)
+pic_rsutcs_tzmn=dim_avg_n(pic_rsutcs_tmn,1)
+
+pic_rlut_tmn=dim_avg_n(pic_rlut,0)
+pic_rlut_tzmn=dim_avg_n(pic_rlut_tmn,1)
+
+pic_rlutcs_tmn=dim_avg_n(pic_rlutcs,0)
+pic_rlutcs_tzmn=dim_avg_n(pic_rlutcs_tmn,1)
+
+pic_rsdt_tmn=dim_avg_n(pic_rsdt,0)
+pic_rsdt_tzmn=dim_avg_n(pic_rsdt_tmn,1)
+
+print("dimensions of amip_rsut are: "+dimsizes(amip_rsut))
+print("dimensions of pic_rsut are:  "+dimsizes(pic_rsut))
+
+;------------ calculate CRE: cloud radiative effect
+; for amip
 cre_lw_amip=amip_rlut_tzmn-amip_rlutcs_tzmn
 cre_sw_amip=amip_rsut_tzmn-amip_rsutcs_tzmn
 cre_net_amip=cre_sw_amip+cre_lw_amip
@@ -130,6 +188,40 @@ cre_net_amip_tmn!0="lat"
 cre_net_amip_tmn&lat=amip_rsut&lat
 cre_net_amip_tmn!1="lon"
 cre_net_amip_tmn&lon=amip_rsut&lon
+
+; for pic
+cre_lw_pic=pic_rlut_tzmn-pic_rlutcs_tzmn
+cre_sw_pic=pic_rsut_tzmn-pic_rsutcs_tzmn
+cre_net_pic=cre_sw_pic+cre_lw_pic
+
+cre_lw_pic_tmn =pic_rlut_tmn-pic_rlutcs_tmn
+cre_sw_pic_tmn  =pic_rsut_tmn-pic_rsutcs_tmn
+cre_net_pic_tmn =cre_sw_pic_tmn+cre_lw_pic_tmn
+
+cre_lw_pic!0="lat"
+cre_lw_pic&lat=pic_rsut&lat
+
+cre_sw_pic!0="lat"
+cre_sw_pic&lat=pic_rsut&lat
+
+cre_net_pic!0="lat"
+cre_net_pic&lat=pic_rsut&lat
+
+cre_lw_pic_tmn!0="lat"
+cre_lw_pic_tmn&lat=pic_rsut&lat
+cre_lw_pic_tmn!1="lon"
+cre_lw_pic_tmn&lon=pic_rsut&lon
+
+cre_sw_pic_tmn!0="lat"
+cre_sw_pic_tmn&lat=pic_rsut&lat
+cre_sw_pic_tmn!1="lon"
+cre_sw_pic_tmn&lon=pic_rsut&lon
+
+cre_net_pic_tmn!0="lat"
+cre_net_pic_tmn&lat=pic_rsut&lat
+cre_net_pic_tmn!1="lon"
+cre_net_pic_tmn&lon=pic_rsut&lon
+
 ;-------------------------------------------------------------------------
 ;---------------------------------------------------------------------
 ; ceres data read below
@@ -712,9 +804,10 @@ cre_net_aqua_p4K_tmn&lon=amip_rsut_aqua&lon
 ; compute bias of cre relative to a particular control exp.
 ;-------------------------------------------------------------------------
 
+; control CRE:
 ;cont_cre=ceres_2p8_cre_ztmn
-cont_cre=ceres_4p1_cre_ztmn
-
+;cont_cre=ceres_4p1_cre_ztmn
+cont_cre=-cre_net_pic 
 ;-------------------------------------------------------------------------
 ; compute CRE feedbacks....
 ;-------------------------------------------------------------------------
@@ -854,7 +947,8 @@ amip_b=amip_cre_fb_p4K*clat_am4/180
  
   res@tiMainFont = 21
   res@tiMainFontHeightF = fontsize
-  res@tiYAxisString  = "[W/m2K]" 
+  ;res@tiYAxisString  = "[W/m2K]" 
+  ;res@tiYAxisString  = "[W/m2]" 
   res@tiYAxisFont    = 21
   res@tiYAxisFontHeightF = fontsize 
   res@tiXAxisString  = "Latitude"
@@ -888,21 +982,30 @@ amip_b=amip_cre_fb_p4K*clat_am4/180
 
 if (everything .ge. 2) then ; plot amip based feedback of CRE
  res@tiMainString = "SW CRE Feedback"
+ res@tiYAxisString  = "[W/m2K]" 
  ;res@trYMinF = -1
  ;res@trYMaxF = 2 
  res@trYMinF = -4
  res@trYMaxF = 1 
 else if (everything .ge. 1) then ; plot the whole shebang
  res@tiMainString = "CRE "
+ res@tiYAxisString  = "[W/m2]" 
  res@trYMinF = -70 
  res@trYMaxF = 110 
 else
  res@tiMainString = "Cloud Radiative Effect "
+ res@tiYAxisString  = "[W/m2]" 
  res@trYMinF = -50 
 ; res@trYMaxF = 20 
  res@trYMaxF = 10 
 end if
 end if
+if (plotbias .ge. 0) then ; plot the cre feedback
+ res@tiMainString = "Cloud Radiative Effect bias"
+ res@trYMinF = -20 
+ res@trYMaxF = 10 
+end if
+
  res@xyLineColors=colors(3)
  res@xyDashPattern="0"
  plot0a=gsn_csm_xy(wks,latitude(:),cre_net_amip_m4K(:),res)
@@ -964,14 +1067,15 @@ end if
  res@xyLineColors=colors(5)
  plot6c=gsn_csm_xy(wks,latitude(:),cre_lw_abr2(:),res)
 
-; for plot with fewer experiments plotted
 ;;; compute bias
-; cre_net_amip          =cre_net_amip+cont_cre
-; cre_net_h2_historical =cre_net_h2_historical+cont_cre
-; cre_net_abr2          =cre_net_abr2+cont_cre
-; cre_net_1pct          =cre_net_1pct+cont_cre
-; ceres_2p8_cre_ztmn    =ceres_2p8_cre_ztmn-cont_cre
-; ceres_4p1_cre_ztmn    =ceres_4p1_cre_ztmn-cont_cre
+if (plotbias .ge. 0) then ; plot the cre feedback
+ cre_net_amip          =cre_net_amip+cont_cre
+ cre_net_h2_historical =cre_net_h2_historical+cont_cre
+ cre_net_abr2          =cre_net_abr2+cont_cre
+ cre_net_1pct          =cre_net_1pct+cont_cre
+ ceres_2p8_cre_ztmn    =ceres_2p8_cre_ztmn-cont_cre
+ ceres_4p1_cre_ztmn    =ceres_4p1_cre_ztmn-cont_cre
+end if
 ;
  res@xyLineColors=colors(1)
  res@xyDashPattern="0"
