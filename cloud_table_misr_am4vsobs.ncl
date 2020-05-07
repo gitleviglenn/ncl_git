@@ -94,19 +94,22 @@ begin
 ;
 ;;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
 
+filein=systemfunc("ls /Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_*nc")
 ;filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
-filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_200301-200812.nc"
+;filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_200301-200812.nc"
 obs_filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
 
 obs_filein="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"
 
-infile     = addfile(filein,"r")
+;infile     = addfile(filein,"r")
+infile     = addfiles(filein,"r")
 obs_infile = addfile(obs_filein,"r")
 
   print("infile is: "+filein)
   print("observations infile is: "+obs_filein)
 
-tau=infile->tau(:)
+;tau=infile->tau(:)
+tau=infile[:]->tau(:)
   print("tau =: "+tau)
 
 tau_obs=obs_infile->tau(:)
@@ -121,7 +124,8 @@ ob_varname="clMISR"
 
 fields=new((/7,16/),float)
 
-fields_full     =infile->$varname$(:,:,:,:,:)
+;fields_full     =infile->$varname$(:,:,:,:,:)
+fields_full     =infile[:]->$varname$(:,:,:,:,:)
 obs_fields_tmn  =obs_infile->$ob_varname$(0,1:7,:,:,:)
 t_full          =obs_infile->$ob_varname$(0,:,:,:,:)
 obs_fields_pnt  =obs_infile->$ob_varname$(0,1,3,:,:)
@@ -240,7 +244,7 @@ printVarSummary(fields_tmn_noland)
 ;;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
 ;;---------------------------------------------------------------------
-lat  = infile->lat
+lat  = infile[0]->lat
 rad  = 4.0*atan(1.0)/180.0
 clat = cos(lat*rad)
 ;  print("(((((((((((((")
