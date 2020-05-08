@@ -40,6 +40,24 @@ seconhalf="195001-201412"
 
 hist_yrs=seconhalf
 warm_yrs=late
+;
+;  David has recommended that we use the years 1996-2015 for the historical 
+;  and amip experiments to exclude some of the volcanic activity from the 
+;  early 90's.  He doesn't have confidence in the GCMs ability to deal with
+;  that period.  
+;  The coupled runs from CMIP6 only extend through december of 2014, so 
+;  we are likely looking at jan 1996 through dec 2014.  19 years, or 228 months.
+;
+;  as originally written, the historical files over the later periods cover 65 
+;  years, which is 780 months. i want to grab the last 228 of them.  
+lastmonth=779
+timeper=228
+firstmonth=lastmonth-timeper-1  
+;
+; since amip starts in 1979, the range is different...
+; 432 months
+lastmonth_amip = 431
+firstmonth_amip=lastmonth_amip-timeper-1  
 ;-------------------------------------------------------------------------
 ; define variables borrowed from the matlab scripts: 
 delT_amip_fut = 4.6816
@@ -74,15 +92,15 @@ print("infile_obs is: "+infile_obs)
 
 ; read data
 add_rsut=addfile(infile1,"r")
-amip_rsut=add_rsut->rsut(:,:,:)
+amip_rsut=add_rsut->rsut(firstmonth_amip:lastmonth_amip,:,:)
 add_rsutcs=addfile(infile2,"r")
-amip_rsutcs=add_rsutcs->rsutcs(:,:,:)
+amip_rsutcs=add_rsutcs->rsutcs(firstmonth_amip:lastmonth_amip,:,:)
 add_rlut=addfile(infile3,"r")
-amip_rlut=add_rlut->rlut(:,:,:)
+amip_rlut=add_rlut->rlut(firstmonth_amip:lastmonth_amip,:,:)
 add_rlutcs=addfile(infile4,"r")
-amip_rlutcs=add_rlutcs->rlutcs(:,:,:)
+amip_rlutcs=add_rlutcs->rlutcs(firstmonth_amip:lastmonth_amip,:,:)
 add_rsdt=addfile(infile5,"r")
-amip_rsdt=add_rsdt->rsdt(:,:,:)
+amip_rsdt=add_rsdt->rsdt(firstmonth_amip:lastmonth_amip,:,:)
 
 ;-------------------------------------------------------------------------
 ; piControl
@@ -518,17 +536,22 @@ infile4=path+filename
 filename="rsdt_Amon_GFDL-CM4_historical_r1i1p1f1_gr1_"+hist_yrs+".nc"
 infile5=path+filename
 ;
+;
 ;; read data
 add_rsut_historical=addfile(infile1,"r")
-h2_rsut_historical=add_rsut_historical->rsut(:,:,:)
+h2_rsut_historical=add_rsut_historical->rsut(firstmonth:lastmonth,:,:)
 add_rsutcs_historical=addfile(infile2,"r")
-h2_rsutcs_historical=add_rsutcs_historical->rsutcs(:,:,:)
+h2_rsutcs_historical=add_rsutcs_historical->rsutcs(firstmonth:lastmonth,:,:)
 add_rlut_historical=addfile(infile3,"r")
-h2_rlut_historical=add_rlut_historical->rlut(:,:,:)
+h2_rlut_historical=add_rlut_historical->rlut(firstmonth:lastmonth,:,:)
 add_rlutcs_historical=addfile(infile4,"r")
-h2_rlutcs_historical=add_rlutcs_historical->rlutcs(:,:,:)
+h2_rlutcs_historical=add_rlutcs_historical->rlutcs(firstmonth:lastmonth,:,:)
 add_rsdt_historical=addfile(infile5,"r")
-h2_rsdt_historical=add_rsdt_historical->rsdt(:,:,:)
+h2_rsdt_historical=add_rsdt_historical->rsdt(firstmonth:lastmonth,:,:)
+;
+;print("!@#$Q$#^#$^%&$^*")
+;print("one of the historical files is: "+infile2)
+;print("!@#$Q$#^#$^%&$^*")
 ;
 ;; average data
 h2_rsut_historical_tmn=dim_avg_n(h2_rsut_historical,0)
@@ -1069,9 +1092,9 @@ end if
 
 ;;; compute bias
 if (plotbias .ge. 0) then ; plot the cre feedback
- cre_net_amip          =cre_net_amip+cont_cre
- cre_net_h2_historical =cre_net_h2_historical+cont_cre
- cre_net_abr2          =cre_net_abr2+cont_cre
+ cre_net_amip          =(cre_net_amip+cont_cre)/0.76
+ cre_net_h2_historical =(cre_net_h2_historical+cont_cre)/0.8
+ cre_net_abr2          =(cre_net_abr2+cont_cre)/3.99
  cre_net_1pct          =cre_net_1pct+cont_cre
  ceres_2p8_cre_ztmn    =ceres_2p8_cre_ztmn-cont_cre
  ceres_4p1_cre_ztmn    =ceres_4p1_cre_ztmn-cont_cre
@@ -1249,45 +1272,49 @@ end if
  lgres@lgPerimOn            = False
 
 ; draw panel with white space added
-if (everything .ge. 2) then
- print("everything is greather than 2")
- legend  = gsn_create_legend (wks, 4, labels_cre, lgres)
- lgres@lgLineColors         = (/colors_cre(7),colors_cre(2),colors_cre(3),colors_cre(8)/)
- lgres@lgDashIndexes = (/"0","0","0","0"/)
- legend  = gsn_create_legend (wks, 4, labels_cre, lgres)
- resP                 = True
- resP@amJust = "BottomRight"
- ;resP@amParallelPosF   = 0.42    ; Move legend to right
- ;resP@amOrthogonalPosF = -0.1     ; Move legend down more negative moves higher
- resP@amParallelPosF   = 0.32    ; Move legend to right
- resP@amOrthogonalPosF = 0.35     ; Move legend down more negative moves higher
- annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
-else if(everything .ge. 1) then ; plot the whole shebang
- legend  = gsn_create_legend (wks, 3, labels, lgres)
- lgres@lgDashIndexes = (/"0","0","0","0"/)
- resP                 = True
- resP@amJust = "BottomRight"
- ;resP@amParallelPosF   = 0.42    ; Move legend to right
- resP@amParallelPosF   = -0.12    ; Move legend to right
- resP@amOrthogonalPosF = -0.85     ; Move legend down more negative moves higher
- annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
-else    ; plot only ceres-ebaf, amip, historical, abrupt 4xCO2, and 1% CO2 ramp
-; labels_b = (/"CERES-EBAF v2.8","CERES-EBAF v4.1","amip","historical","abrupt 4xCO2","1% CO2 Ramp"/)
- labels_b = (/"amip","historical","abrupt 4xCO2","1% CO2 Ramp","CERES-EBAF v2.8","CERES-EBAF v4.1"/)
-  ; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
- ;lgres@lgLineColors         = (/colors(0),colors(0),colors(1),colors(4),colors(5),colors(6)/)
- lgres@lgLineColors         = (/colors(1),colors(4),colors(5),colors(6),colors(0),colors(0)/)
- lgres@lgDashIndexes          = (/"0","0","0","0","1","0"/)
- legend  = gsn_create_legend (wks, 6, labels_b, lgres)
- resP                 = True
- resP@amJust = "BottomRight"
- resP@amParallelPosF   = -0.08    ; Move legend to right
- resP@amOrthogonalPosF = -0.05     ; Move legend down more negative moves higher
- ;resP@amParallelPosF   = -0.12    ; Move legend to right
- ;resP@amOrthogonalPosF = 0.45     ; Move legend down more negative moves higher
-
- annoid = gsn_add_annotation(plot_alt_1,legend,resP) ; add legend to plot
-end if 
+if (plotbias .ge. 0) then ; plot the cre feedback
+  if (everything .ge. 2) then
+   print("everything is greather than 2")
+   legend  = gsn_create_legend (wks, 4, labels_cre, lgres)
+   lgres@lgLineColors         = (/colors_cre(7),colors_cre(2),colors_cre(3),colors_cre(8)/)
+   lgres@lgDashIndexes = (/"0","0","0","0"/)
+   legend  = gsn_create_legend (wks, 4, labels_cre, lgres)
+   resP                 = True
+   resP@amJust = "BottomRight"
+   ;resP@amParallelPosF   = 0.42    ; Move legend to right
+   ;resP@amOrthogonalPosF = -0.1     ; Move legend down more negative moves higher
+   resP@amParallelPosF   = 0.32    ; Move legend to right
+   resP@amOrthogonalPosF = 0.35     ; Move legend down more negative moves higher
+   annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
+  else if(everything .ge. 1) then ; plot the whole shebang
+   legend  = gsn_create_legend (wks, 3, labels, lgres)
+   lgres@lgDashIndexes = (/"0","0","0","0"/)
+   resP                 = True
+   resP@amJust = "BottomRight"
+   ;resP@amParallelPosF   = 0.42    ; Move legend to right
+   resP@amParallelPosF   = -0.12    ; Move legend to right
+   resP@amOrthogonalPosF = -0.85     ; Move legend down more negative moves higher
+   annoid = gsn_add_annotation(plot0a,legend,resP) ; add legend to plot
+  else    ; plot only ceres-ebaf, amip, historical, abrupt 4xCO2, and 1% CO2 ramp
+  ; labels_b = (/"CERES-EBAF v2.8","CERES-EBAF v4.1","amip","historical","abrupt 4xCO2","1% CO2 Ramp"/)
+   labels_b = (/"amip","historical","abrupt 4xCO2","1% CO2 Ramp","CERES-EBAF v2.8","CERES-EBAF v4.1"/)
+    ; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3"/) 
+   ;lgres@lgLineColors         = (/colors(0),colors(0),colors(1),colors(4),colors(5),colors(6)/)
+   lgres@lgLineColors         = (/colors(1),colors(4),colors(5),colors(6),colors(0),colors(0)/)
+   lgres@lgDashIndexes          = (/"0","0","0","0","1","0"/)
+   legend  = gsn_create_legend (wks, 6, labels_b, lgres)
+   resP                 = True
+   resP@amJust = "BottomRight"
+   resP@amParallelPosF   = -0.08    ; Move legend to right
+   resP@amOrthogonalPosF = -0.05     ; Move legend down more negative moves higher
+   ;resP@amParallelPosF   = -0.12    ; Move legend to right
+   ;resP@amOrthogonalPosF = 0.45     ; Move legend down more negative moves higher
+  
+   annoid = gsn_add_annotation(plot_alt_1,legend,resP) ; add legend to plot
+  end if 
+  end if
+  resP                 = True
+  annoid = gsn_add_annotation(plot_alt_1,legend,resP) ; add legend to plot
 end if
 
  gsn_panel(wks,plot,(/1,1/),resP)
