@@ -22,8 +22,8 @@ file_omega_5_305="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large305_2D_
 file_omega_6_305="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large305_2D_wap500.nc"
 
 print("begin adding files...")
-;timelength=720
-timelength=17280
+timelength=2880
+;timelength=17280
 endtime=26279
 startime=endtime-timelength+1
 
@@ -206,34 +206,61 @@ print("!@#$%@%^@#%$")
 ;;---------------------
 ;; make plots
 ;;---------------------
-;print("begin to make plots")
+print("begin to make plots")
+
+plot = new(1,"graphic")
+
+pdf_c5a=pdfx(c5a_5dmn,50,False)   
+pdf_c5b=pdfx(c5b_5dmn,50,False)   
+pdf_c5c=pdfx(c5c_5dmn,50,False)   
+pdf_c5a_morebins=pdfx(c5a_5dmn,50,False)   
 ;
-;plot = new(2,"graphic")
+pdf_c6a=pdfx(c6a_5dmn,50,False)   
+pdf_c6b=pdfx(c6b_5dmn,50,False)   
+pdf_c6c=pdfx(c6c_5dmn,50,False)   
+pdf_c6a_morebins=pdfx(c6a_5dmn,50,False)   
 ;
-;pdf_c5a=pdfx(c5a_5dmn,0,False)   
-;pdf_c5a_morebins=pdfx(c5a_5dmn,100,False)   
+; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/) 
+  colors = (/"black","orangered","orangered3","orangered4"/) 
+
 ;
-;pdf_c6a=pdfx(c6a_5dmn,0,False)   
-;pdf_c6a_morebins=pdfx(c6a_5dmn,100,False)   
-;
-;;printVarSummary(pdf_c5a)
-;
-;wks = gsn_open_wks("png","testplot")
-;
-;res                    = True
-;res@gsnDraw            = False
-;res@gsnFrame           = False
-;res@xyLineThicknessF   = 4
-;res@tiYAxisString      = "PDF (%)"
-;
-;res@gsnCenterString    = "default bins"
-;res@xyLineColors = "black"
-;plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
-;res@xyLineColors = "green"
-;plot0_b    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
-;overlay(plot0_a,plot0_b)
-;plot(0)=plot0_a
-;res@gsnCenterString    = "100 bins"
+wks = gsn_open_wks("png","testplot")
+
+res                    = True
+res@gsnDraw            = False
+res@gsnFrame           = False
+res@xyLineThicknessF   = 4
+res@tiYAxisString      = "PDF (%)"
+res@tiXAxisString      = "circulation regime (hPa/d)"
+
+res@trXMinF = -200.0
+res@trXMaxF = 100.0
+res@trYMinF = 0.0
+res@trYMaxF = 50.0
+
+res@gsnCenterString    = "default bins"
+res@xyLineColors = colors(1)
+res@xyDashPattern =  0
+plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
+res@xyLineColors = colors(2)
+plot0_b    =  gsn_csm_xy (wks,pdf_c5b@bin_center, pdf_c5b, res)
+res@xyLineColors = colors(3)
+plot0_c    =  gsn_csm_xy (wks,pdf_c5c@bin_center, pdf_c5c, res)
+res@xyLineColors = colors(1)
+res@xyDashPattern =  16
+plot0_d    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
+res@xyLineColors = colors(2)
+plot0_e    =  gsn_csm_xy (wks,pdf_c6b@bin_center, pdf_c6b, res)
+res@xyLineColors = colors(3)
+plot0_f    =  gsn_csm_xy (wks,pdf_c6c@bin_center, pdf_c6c, res)
+overlay(plot0_a,plot0_b)
+overlay(plot0_a,plot0_c)
+overlay(plot0_a,plot0_d)
+overlay(plot0_a,plot0_e)
+overlay(plot0_a,plot0_f)
+plot(0)=plot0_a
+
+;res@gsnCenterString    = "50 bins"
 ;res@xyLineColors = "black"
 ;plot1_a    =  gsn_csm_xy (wks,pdf_c5a_morebins@bin_center, pdf_c5a_morebins, res)
 ;res@xyLineColors = "green"
@@ -241,8 +268,8 @@ print("!@#$%@%^@#%$")
 ;overlay(plot1_a,plot1_b)
 ;plot(1)=plot1_a
 ;
-;resP    = True
-;resP@gsnPanelMainString  = "testing distractions"
-;gsn_panel(wks,plot,(/1,2/),resP)
+resP    = True
+resP@gsnPanelMainString  = "testing distractions"
+gsn_panel(wks,plot,(/1,1/),resP)
 
 end
