@@ -8,6 +8,13 @@
 ; glbmn_toa_cfmip_fb_driver.m which also uses
 ; glbmn_toa_cfmip_fb.m
 ;
+; biases can be computed relative to either version of the CERES data
+; or relative to the piControl experiment of CM4.0
+;
+; The cloud radiative effects are normalized for different experiments according
+; to differing time periods.  I still need to determine an appropriate normalization
+; for the 1pct CO2 ramp experiment and the two ceres profiles.  
+;
 ; the temperature change of the air near the surface is not exactly 4K but:
 ; delT_amip_fut = 4.6816
 ; delT_amip_p4K = 4.4938
@@ -88,7 +95,8 @@ filename="CERES_EBAF-TOA_Ed2.8_Subset_200003-201607.nc"
 filename_4p1="CERES_EBAF_Ed4.1_Subset_200003-201809.nc"
 infile_obs=path_obs+filename
 infile_obs_4p1=path_obs+filename_4p1
-print("infile_obs is: "+infile_obs)
+print("infile_obs ceres v2.8 is: "+infile_obs)
+print("infile_obs_4p1 ceres v4.1 is: "+infile_obs_4p1)
 
 ; read data
 add_rsut=addfile(infile1,"r")
@@ -1091,6 +1099,8 @@ end if
  plot6c=gsn_csm_xy(wks,latitude(:),cre_lw_abr2(:),res)
 
 ;;; compute bias
+; I am still working out the normalizations for these profiles...
+; 
 if (plotbias .ge. 0) then ; plot the cre feedback
  cre_net_amip          =(cre_net_amip+cont_cre)/0.76
  cre_net_h2_historical =(cre_net_h2_historical+cont_cre)/0.8

@@ -80,7 +80,7 @@ filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_
 obs_filein="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"
 
 infile = addfile(filein,"r")
-;obs_infile = addfile(obs_filein,"r")
+obs_infile = addfile(obs_filein,"r")
 
   print("infile is: "+filein)
 ;  print("observations infile is: "+obs_filein)
