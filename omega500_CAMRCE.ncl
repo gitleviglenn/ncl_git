@@ -6,6 +6,11 @@
 ; data is from CAM5 GCM RCE experiments and is at hourly frequency over 3 years
 ; dimensions of omega:	[time | 26281] x [lat | 192] x [lon | 288]
 ;
+; timing: 
+; 1 year:         8760 time steps
+; 1 30 day month: 720 time steps
+; 75 days:        1800 time steps
+;
 ; levi silvers                                                           may 2020
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -14,16 +19,33 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-file_omega_5_295="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large295_2D_wap500.nc"
-file_omega_6_295="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large295_2D_wap500.nc"
-file_omega_5_300="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large300_2D_wap500.nc"
-file_omega_6_300="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large300_2D_wap500.nc"
-file_omega_5_305="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large305_2D_wap500.nc"
-file_omega_6_305="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large305_2D_wap500.nc"
+path_laptop="/Users/silvers/data/CAM/"
+path_C5_lt="CAM5_GCM_RCE/"
+path_C6_lt="CAM6_GCM_RCE/"
+
+path_cheyenne="/glade/scratch/levi/RCEMIP/"
+path_C5="CAM5_GCM/";RCE_large305/2D/"
+path_C6="CAM6_GCM/";RCE_large305/2D/"
+
+;file_omega_5_295="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large295_2D_wap500.nc"
+;file_omega_6_295="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large295_2D_wap500.nc"
+;file_omega_5_300="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large300_2D_wap500.nc"
+;file_omega_6_300="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large300_2D_wap500.nc"
+;file_omega_5_305="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large305_2D_wap500.nc"
+;file_omega_6_305="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large305_2D_wap500.nc"
+
+file_omega_5_295=path_cheyenne+path_C5+"RCE_large295/2D/CAM5_GCM_RCE_large295_2D_wap500.nc"
+file_omega_6_295=path_cheyenne+path_C6+"RCE_large295/2D/CAM6_GCM_RCE_large295_2D_wap500.nc"
+file_omega_5_300=path_cheyenne+path_C5+"RCE_large300/2D/CAM5_GCM_RCE_large300_2D_wap500.nc"
+file_omega_6_300=path_cheyenne+path_C6+"RCE_large300/2D/CAM6_GCM_RCE_large300_2D_wap500.nc"
+file_omega_5_305=path_cheyenne+path_C5+"RCE_large305/2D/CAM5_GCM_RCE_large305_2D_wap500.nc"
+file_omega_6_305=path_cheyenne+path_C6+"RCE_large305/2D/CAM6_GCM_RCE_large305_2D_wap500.nc"
 
 print("begin adding files...")
-timelength=2880
-;timelength=17280
+;timelength=24479 ; all but the first 75 days
+;timelength=2880 ; 4 months
+timelength=8760 ; 1 year 
+;timelength=17520 ; 2 years
 endtime=26279
 startime=endtime-timelength+1
 
@@ -108,6 +130,7 @@ c6c_reshape=reshape(c6c,(/120,numperiods,192,288/))
 
 print("average arrays")
 
+;???LINES MISSING
 c5a_5dmn=dim_avg_n(c5a_reshape,0)
 c5b_5dmn=dim_avg_n(c5b_reshape,0)
 c5c_5dmn=dim_avg_n(c5c_reshape,0)
@@ -162,6 +185,7 @@ omega_down =new((/6,numperiods,192,288/),float)
 omega_u    =new((/6/),float)
 omega_d    =new((/6/),float)
 
+
 omega_up(0,:,:,:)=omega_u_5a
 omega_up(1,:,:,:)=omega_u_5b
 omega_up(2,:,:,:)=omega_u_5c
@@ -193,14 +217,17 @@ do i=0,5
 end do
 
 down_min_up=omega_d-omega_u
+down_plu_up=omega_d+omega_u
 
 print("!@#$%@%^@#%$")
 print("omega up: "+omega_u)
 print("omega down: "+omega_d)
 print("!@#$%@%^@#%$")
 print("omega down for CAM5 300: "+omega_d(1))
-print("Circulation Strenght: omega down minus omega up")
+print("Circulation Strength: omega down minus omega up")
 print(down_min_up)
+print("Circulation Strength: omega down plus omega up")
+print(down_plu_up)
 print("!@#$%@%^@#%$")
 
 ;;---------------------
@@ -210,48 +237,54 @@ print("begin to make plots")
 
 plot = new(1,"graphic")
 
-pdf_c5a=pdfx(c5a_5dmn,50,False)   
-pdf_c5b=pdfx(c5b_5dmn,50,False)   
-pdf_c5c=pdfx(c5c_5dmn,50,False)   
-pdf_c5a_morebins=pdfx(c5a_5dmn,50,False)   
+pdf_c5a=pdfx(c5a_5dmn,50,False)
+pdf_c5b=pdfx(c5b_5dmn,50,False)
+pdf_c5c=pdfx(c5c_5dmn,50,False)
+pdf_c5a_morebins=pdfx(c5a_5dmn,50,False)
 ;
-pdf_c6a=pdfx(c6a_5dmn,50,False)   
-pdf_c6b=pdfx(c6b_5dmn,50,False)   
-pdf_c6c=pdfx(c6c_5dmn,50,False)   
-pdf_c6a_morebins=pdfx(c6a_5dmn,50,False)   
+pdf_c6a=pdfx(c6a_5dmn,50,False)
+pdf_c6b=pdfx(c6b_5dmn,50,False)
+pdf_c6c=pdfx(c6c_5dmn,50,False)
+pdf_c6a_morebins=pdfx(c6a_5dmn,50,False)
 ;
-; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/) 
-  colors = (/"black","orangered","orangered3","orangered4"/) 
+; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/)
+  ;colors = (/"black","orangered","orangered3","orangered4"/)
+  colors = (/"chocolate2","aquamarine3"/)
 
 ;
-wks = gsn_open_wks("png","testplot")
+wks = gsn_open_wks("eps","testplot")
 
 res                    = True
 res@gsnDraw            = False
 res@gsnFrame           = False
-res@xyLineThicknessF   = 4
+res@xyLineThicknessF   = 5.
 res@tiYAxisString      = "PDF (%)"
 res@tiXAxisString      = "circulation regime (hPa/d)"
 
 res@trXMinF = -200.0
 res@trXMaxF = 100.0
 res@trYMinF = 0.0
-res@trYMaxF = 50.0
+res@trYMaxF = 20.0
 
-res@gsnCenterString    = "default bins"
-res@xyLineColors = colors(1)
+;res@gsnCenterString    = "default bins"
+res@xyLineColors = colors(0)
 res@xyDashPattern =  0
+;res@xyLineThicknessF = 2.
 plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
-res@xyLineColors = colors(2)
+res@xyLineColors = colors(0)
+res@xyDashPattern =  3
 plot0_b    =  gsn_csm_xy (wks,pdf_c5b@bin_center, pdf_c5b, res)
-res@xyLineColors = colors(3)
+res@xyLineColors = colors(0)
+res@xyDashPattern =  16
 plot0_c    =  gsn_csm_xy (wks,pdf_c5c@bin_center, pdf_c5c, res)
 res@xyLineColors = colors(1)
-res@xyDashPattern =  16
+res@xyDashPattern = 0 
 plot0_d    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
-res@xyLineColors = colors(2)
+res@xyLineColors = colors(1)
+res@xyDashPattern = 3 
 plot0_e    =  gsn_csm_xy (wks,pdf_c6b@bin_center, pdf_c6b, res)
-res@xyLineColors = colors(3)
+res@xyLineColors = colors(1)
+res@xyDashPattern =  16
 plot0_f    =  gsn_csm_xy (wks,pdf_c6c@bin_center, pdf_c6c, res)
 overlay(plot0_a,plot0_b)
 overlay(plot0_a,plot0_c)
@@ -269,7 +302,7 @@ plot(0)=plot0_a
 ;plot(1)=plot1_a
 ;
 resP    = True
-resP@gsnPanelMainString  = "testing distractions"
+resP@gsnPanelMainString  = "Circulation Regime over last year"
 gsn_panel(wks,plot,(/1,1/),resP)
 
 end
