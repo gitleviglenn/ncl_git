@@ -5,6 +5,7 @@
 ; plot global cloud fraction as observed from Satellites
 ;
 ; current example is from MISR
+; also shows how to use input from command line
 ;
 ; example here is for clouds below 3km with tau .gt. 0.3
 ; for reference see Fig 9 of Marchand et al. 2010 JGR
@@ -17,6 +18,9 @@
 ; with the tot_cld_amt variable?
 ; 
 ; model data will need to be pp'ed with the script misr_pp_yrlowcl.s
+;
+; an input file can also be read in from the command line using the following syntax: 
+; ncl glb_cf_SatData.ncl 'infile="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"'
 ;
 ; levi silvers								feb 2020	
 ;***********************************************************************************
