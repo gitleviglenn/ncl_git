@@ -90,8 +90,8 @@ ceres_sw_cre_tmn=dim_avg_n(ceres_sw_cre,0)
 
 ; ceres data is at a higher resolution (180x360 than) so we need to interpolate CERES to the AM4 grid
 
-var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
-;var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
+;var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
+var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
 
 ;*************************************************************
 ; perform conservative remapping of ceres data to am4 grid

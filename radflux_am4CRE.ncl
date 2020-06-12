@@ -30,6 +30,10 @@ path="/Users/silvers/data/cfmip_toafluxes/"
 
 path_obs="/Users/silvers/data/SatData/CERES/"
 
+; everything = 0; plotbias = 0 --> Panel on left, showing the raw CRE for CERES-EBAF, coupled experiments, and amip
+; everything = 2; plotbias = 0 --> Panel on far right showing amip type feedback experiments
+
+
 everything = 0 ; switch defining which profiles are plotted
 ; 0 plots the CRE from: ceres, amip, historical, abrupt, and 1pct
 ; 1 plots the shortwave, longwave, and net CRE for amip and aqua
@@ -940,7 +944,7 @@ aqua_p4K_a=(cre_aqua4K-cre_aqua)/delT_aqua
 
   print("-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-")
   print(" The following values indicate that the sign of the CRE and Feedbacks should be switched...")
-  print(" Clouds should cool the earth overall, but roughly 20 W/m2 ")
+  print(" Clouds should cool the earth overall, by roughly 20 W/m2 ")
   print("w mean of aqua p 4K time series fb:      "+aqua_p4K_a)
   print("w mean of amip time series net:          "+cre_amip)
   print("w mean of amip p 4K time series net:     "+cre_p4K)
@@ -1014,8 +1018,6 @@ amip_b=amip_cre_fb_p4K*clat_am4/180
 if (everything .ge. 2) then ; plot amip based feedback of CRE
  res@tiMainString = "SW CRE Feedback"
  res@tiYAxisString  = "[W/m2K]" 
- ;res@trYMinF = -1
- ;res@trYMaxF = 2 
  res@trYMinF = -4
  res@trYMaxF = 1 
 else if (everything .ge. 1) then ; plot the whole shebang
@@ -1027,11 +1029,10 @@ else
  res@tiMainString = "Cloud Radiative Effect "
  res@tiYAxisString  = "[W/m2]" 
  res@trYMinF = -50 
-; res@trYMaxF = 20 
  res@trYMaxF = 10 
 end if
 end if
-if (plotbias .ge. 0) then ; plot the cre feedback
+if (plotbias .gt. 0) then ; plot the cre feedback
  res@tiMainString = "Cloud Radiative Effect bias"
  res@trYMinF = -20 
  res@trYMaxF = 10 
@@ -1101,13 +1102,13 @@ end if
 ;;; compute bias
 ; I am still working out the normalizations for these profiles...
 ; 
-if (plotbias .ge. 0) then ; plot the cre feedback
+if (plotbias .gt. 0) then ; plot the cre feedback
  cre_net_amip          =(cre_net_amip+cont_cre)/0.76
  cre_net_h2_historical =(cre_net_h2_historical+cont_cre)/0.8
  cre_net_abr2          =(cre_net_abr2+cont_cre)/3.99
- cre_net_1pct          =cre_net_1pct+cont_cre
- ceres_2p8_cre_ztmn    =ceres_2p8_cre_ztmn-cont_cre
- ceres_4p1_cre_ztmn    =ceres_4p1_cre_ztmn-cont_cre
+ cre_net_1pct          =(cre_net_1pct+cont_cre)/2.0
+ ceres_2p8_cre_ztmn    =(ceres_2p8_cre_ztmn-cont_cre)/0.8
+ ceres_4p1_cre_ztmn    =(ceres_4p1_cre_ztmn-cont_cre)/0.8
 end if
 ;
  res@xyLineColors=colors(1)
