@@ -4,6 +4,9 @@
 ; analysis for 1 model to determine circulation strength.
 ; the goal is to be able to use this as a script for a driver ncl program
 ;
+; input should be: 
+; model, nlat, nlon, varname, conversion factor
+;
 ; levi silvers                                                          june 2020
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -25,31 +28,45 @@ path_cheyenne="/glade/scratch/levi/RCEMIP/"
 
 ;str_mod="ICON_GCM"
 ;str_var="wa500"
-str_mod="ECHAM6_GCM"
-str_var="wap500"
+;model="ECHAM6_GCM"
+;varname="wap500"
 
-filen_test=str_mod+"-RCE_large_295-2D."+str_var+".nc"
-file_testmodel=path_cheyenne+"swift.dkrz.de/"+str_mod+"/"+filen_test
+; the omega switch determines whether wap500 or wa500 is used...
+
+filen_test=model+"_RCE_large295_2D_"+varname+".nc"
+file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
 print("incoming file: "+file_testmodel)
 fin=addfile(file_testmodel,"r")
-wvar_a=fin->wap500(startime:endtime,:,:,:)
+if (omega .lt. 1) then
+  wvar_a=fin->wap500(startime:endtime,:,:)
+else
+  wvar_a=fin->wa500(startime:endtime,:,:)
+end if 
 printVarSummary(wvar_a)
 
-filen_test=str_mod+"-RCE_large_300-2D."+str_var+".nc"
-file_testmodel=path_cheyenne+"swift.dkrz.de/"+str_mod+"/"+filen_test
+filen_test=model+"_RCE_large300_2D_"+varname+".nc"
+file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
 fin=addfile(file_testmodel,"r")
-wvar_b=fin->wap500(startime:endtime,:,:,:)
+if (omega .lt. 1) then
+  wvar_b=fin->wap500(startime:endtime,:,:)
+else
+  wvar_b=fin->wa500(startime:endtime,:,:)
+end if 
 
-filen_test=str_mod+"-RCE_large_305-2D."+str_var+".nc"
-file_testmodel=path_cheyenne+"swift.dkrz.de/"+str_mod+"/"+filen_test
+filen_test=model+"_RCE_large305_2D_"+varname+".nc"
+file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
 fin=addfile(file_testmodel,"r")
-wvar_c=fin->wap500(startime:endtime,:,:,:)
+if (omega .lt. 1) then
+  wvar_c=fin->wap500(startime:endtime,:,:)
+else
+  wvar_c=fin->wa500(startime:endtime,:,:)
+end if 
 
 ; convert units to hPa/d?  
 ; for models with Pa/s conversion factor is 864
 ; for models with m/s, conversion factor is ? 
 
-scalef=864.
+;scalef=864.
 wvar_a=scalef*wvar_a
 wvar_b=scalef*wvar_b
 wvar_c=scalef*wvar_c
@@ -69,8 +86,10 @@ print("numperiods ="+numperiods)
 ; before calling this script?
 ;nlat=128
 ;nlon=256
-nlat=96
-nlon=192
+;nlat=96
+;nlon=192
+
+print("nlat is: "+nlat)
 
 a_reshape=new((/hourchunks,numperiods,nlat,nlon/),float)
 b_reshape=new((/hourchunks,numperiods,nlat,nlon/),float)
