@@ -1,9 +1,20 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-; omega500_CAMRCE.ncl
+; omega500_RCEMIP.ncl
 ;
 ; analyze characteristics of the circulation using omega at 500 hPa
 ;
-; data is from CAM5 GCM RCE experiments and is at hourly frequency over 3 years
+; this script looks at data from several different models
+; initially only the circulation strength is computed, I will deal with pdf of omega
+; later
+;
+; Models: CAM5, CAM6, ICON-GCM, ECHAM6-GCM
+;
+; Several factors will need to be checked for the various models: 
+; vertical velocity, or pressure velocity?
+; are units in m/s, Pa/s, Pa/d, ?
+; how many timesteps are present?  what is the time step frequency?
+;
+; data from CAM5 GCM RCE experiments and is at hourly frequency over 3 years
 ; dimensions of omega:	[time | 26281] x [lat | 192] x [lon | 288]
 ;
 ; timing: 
@@ -11,7 +22,7 @@
 ; 1 30 day month: 720 time steps
 ; 75 days:        1800 time steps
 ;
-; levi silvers                                                           may 2020
+; levi silvers                                                           june  2020
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -19,28 +30,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-path_laptop="/Users/silvers/data/CAM/"
-path_C5_lt="CAM5_GCM_RCE/"
-path_C6_lt="CAM6_GCM_RCE/"
-
-path_cheyenne="/glade/scratch/levi/RCEMIP/"
-path_C5="CAM5_GCM/";RCE_large305/2D/"
-path_C6="CAM6_GCM/";RCE_large305/2D/"
-
-;file_omega_5_295="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large295_2D_wap500.nc"
-;file_omega_6_295="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large295_2D_wap500.nc"
-;file_omega_5_300="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large300_2D_wap500.nc"
-;file_omega_6_300="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large300_2D_wap500.nc"
-;file_omega_5_305="/Users/silvers/data/CAM/CAM5_GCM_RCE/CAM5_GCM_RCE_large305_2D_wap500.nc"
-;file_omega_6_305="/Users/silvers/data/CAM/CAM6_GCM_RCE/CAM6_GCM_RCE_large305_2D_wap500.nc"
-
-file_omega_5_295=path_cheyenne+path_C5+"RCE_large295/2D/CAM5_GCM_RCE_large295_2D_wap500.nc"
-file_omega_6_295=path_cheyenne+path_C6+"RCE_large295/2D/CAM6_GCM_RCE_large295_2D_wap500.nc"
-file_omega_5_300=path_cheyenne+path_C5+"RCE_large300/2D/CAM5_GCM_RCE_large300_2D_wap500.nc"
-file_omega_6_300=path_cheyenne+path_C6+"RCE_large300/2D/CAM6_GCM_RCE_large300_2D_wap500.nc"
-file_omega_5_305=path_cheyenne+path_C5+"RCE_large305/2D/CAM5_GCM_RCE_large305_2D_wap500.nc"
-file_omega_6_305=path_cheyenne+path_C6+"RCE_large305/2D/CAM6_GCM_RCE_large305_2D_wap500.nc"
-
+; time parameters
 print("begin adding files...")
 ;timelength=24479 ; all but the first 75 days
 ;timelength=2880 ; 4 months
@@ -51,7 +41,43 @@ endtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
 ;endtime=26279 ; this is the end time for CAM5 and CAM6
 startime=endtime-timelength+1
 
-; ICON
+; path bases
+path_laptop="/Users/silvers/data/CAM/"
+path_cheyenne="/glade/scratch/levi/RCEMIP/"
+
+;# CAM5 & CAM6
+; [lat | 192] x [lon | 288]
+path_C5_lt="CAM5_GCM_RCE/"
+path_C6_lt="CAM6_GCM_RCE/"
+path_C5="CAM5_GCM/";RCE_large305/2D/"
+path_C6="CAM6_GCM/";RCE_large305/2D/"
+
+file_omega_5_295=path_cheyenne+path_C5+"RCE_large295/2D/CAM5_GCM_RCE_large295_2D_wap500.nc"
+file_omega_6_295=path_cheyenne+path_C6+"RCE_large295/2D/CAM6_GCM_RCE_large295_2D_wap500.nc"
+file_omega_5_300=path_cheyenne+path_C5+"RCE_large300/2D/CAM5_GCM_RCE_large300_2D_wap500.nc"
+file_omega_6_300=path_cheyenne+path_C6+"RCE_large300/2D/CAM6_GCM_RCE_large300_2D_wap500.nc"
+file_omega_5_305=path_cheyenne+path_C5+"RCE_large305/2D/CAM5_GCM_RCE_large305_2D_wap500.nc"
+file_omega_6_305=path_cheyenne+path_C6+"RCE_large305/2D/CAM6_GCM_RCE_large305_2D_wap500.nc"
+
+; below are files from CAM5 and CAM6
+fc5_295=addfile(file_omega_5_295,"r")
+c5a=fc5_295->wap500(startime:endtime,:,:)
+fc6_295=addfile(file_omega_6_295,"r")
+c6a=fc6_295->wap500(startime:endtime,:,:)
+
+fc5_300=addfile(file_omega_5_300,"r")
+c5b=fc5_300->wap500(startime:endtime,:,:)
+fc6_300=addfile(file_omega_6_300,"r")
+c6b=fc6_300->wap500(startime:endtime,:,:)
+;
+fc5_305=addfile(file_omega_5_305,"r")
+c5c=fc5_305->wap500(startime:endtime,:,:)
+fc6_305=addfile(file_omega_6_305,"r")
+c6c=fc6_305->wap500(startime:endtime,:,:)
+
+;# ICON
+; [lat | 128] x [lon | 256]
+; m/s
 filen_test="ICON_GCM-RCE_large_295-2D.wa500.nc"
 file_testmodel=path_cheyenne+"swift.dkrz.de/"+"ICON_GCM/"+filen_test
 ;/glade/scratch/levi/RCEMIP/swift.dkrz.de/ICON_GCM/
@@ -61,6 +87,8 @@ ficona=ficon_295->wa500(startime:endtime,:,:,:)
 printVarSummary(ficona)
 
 ;# ECHAM
+; [lat | 96] x [lon | 192]
+; Pa/s
 filen_test="ECHAM6_GCM-RCE_large_295-2D.wap500.nc"
 file_echam_a=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
 print("icon file: "+file_echam_a)
@@ -78,6 +106,8 @@ fechamc=f_add->wap500(startime:endtime,:,:,:)
 printVarSummary(fechama)
 
 ; SP-CAM
+; [lat | 192] x [lon | 288]
+; Pa/s
 filen_test="SP-CAM_RCE_large295_2D_wap500.nc"
 file_spcam_a=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
 f_add=addfile(file_spcam_a,"r")
@@ -101,24 +131,12 @@ printVarSummary(fspcamc)
 ;filen_test="SP-CAM_RCE_large305_2D_wap500.nc"
 ;file_spcam_c=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
 
-; below are files from CAM5 and CAM6
-fc5_295=addfile(file_omega_5_295,"r")
-c5a=fc5_295->wap500(startime:endtime,:,:)
-fc6_295=addfile(file_omega_6_295,"r")
-c6a=fc6_295->wap500(startime:endtime,:,:)
-
-fc5_300=addfile(file_omega_5_300,"r")
-c5b=fc5_300->wap500(startime:endtime,:,:)
-fc6_300=addfile(file_omega_6_300,"r")
-c6b=fc6_300->wap500(startime:endtime,:,:)
-;
-fc5_305=addfile(file_omega_5_305,"r")
-c5c=fc5_305->wap500(startime:endtime,:,:)
-fc6_305=addfile(file_omega_6_305,"r")
-c6c=fc6_305->wap500(startime:endtime,:,:)
+; finished reading data from models
+;---------------------------------------------------------------------
 
 print("convert to hPa/d")
 
+; do units need to be converted? 
 c5a=864*c5a  ; convert to hPa/d
 c6a=864*c6a  ; convert to hPa/d
 c5b=864*c5b  ; convert to hPa/d
@@ -143,6 +161,7 @@ print("begin to reshape arrays")
 numperiods=timelength/120
 print("numperiods ="+numperiods)
 
+; the lat and lon dimensions will be different for each of the models...
 ;c5a_reshape=new((/120,219,192,288/),float)
 ;c5a_reshape=reshape(play5a,(/120,219,192,288/))
 c5a_reshape=new((/120,numperiods,192,288/),float)
@@ -251,7 +270,9 @@ blue=omega_down(1,:,:,:)
 ;print("dimsizes of omega_down are: "+dimsizes(omega_down))
 ;print("dimsizes of blue are: "+dimsizes(blue))
 
-do i=0,5
+; it might make more sense to create an omega_d and omega_u array 
+; that have dimensions (nmodels,ntemps), for cam5 and cam6 this would be (2,3) instead of (1,6)
+do i=0,5 ; average over time, lat, and lon
   omega_dn= omega_down(i,:,:,:)
   av_a=dim_avg_n(omega_dn,0)
   av_b=dim_avg_n(av_a,0)
@@ -276,79 +297,70 @@ print("Circulation Strength: omega down plus omega up")
 print(down_plu_up)
 print("!@#$%@%^@#%$")
 
-;;---------------------
-;; make plots
-;;---------------------
-print("begin to make plots")
-
-plot = new(1,"graphic")
-
-pdf_c5a=pdfx(c5a_5dmn,50,False)
-pdf_c5b=pdfx(c5b_5dmn,50,False)
-pdf_c5c=pdfx(c5c_5dmn,50,False)
-pdf_c5a_morebins=pdfx(c5a_5dmn,50,False)
+;;;---------------------
+;;; make plots
+;;;---------------------
+;print("begin to make plots")
 ;
-pdf_c6a=pdfx(c6a_5dmn,50,False)
-pdf_c6b=pdfx(c6b_5dmn,50,False)
-pdf_c6c=pdfx(c6c_5dmn,50,False)
-pdf_c6a_morebins=pdfx(c6a_5dmn,50,False)
+;plot = new(1,"graphic")
 ;
-; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/)
-  ;colors = (/"black","orangered","orangered3","orangered4"/)
-  colors = (/"chocolate2","aquamarine3"/)
-
+;pdf_c5a=pdfx(c5a_5dmn,50,False)
+;pdf_c5b=pdfx(c5b_5dmn,50,False)
+;pdf_c5c=pdfx(c5c_5dmn,50,False)
+;pdf_c5a_morebins=pdfx(c5a_5dmn,50,False)
+;;
+;pdf_c6a=pdfx(c6a_5dmn,50,False)
+;pdf_c6b=pdfx(c6b_5dmn,50,False)
+;pdf_c6c=pdfx(c6c_5dmn,50,False)
+;pdf_c6a_morebins=pdfx(c6a_5dmn,50,False)
+;;
+;; colors = (/"black","darkgoldenrod","darkolivegreen3","steelblue","mediumorchid3","darkslategray4","cyan3","red"/)
+;  colors = (/"chocolate2","aquamarine3"/)
 ;
-wks = gsn_open_wks("eps","testplot")
-
-res                    = True
-res@gsnDraw            = False
-res@gsnFrame           = False
-res@xyLineThicknessF   = 5.
-res@tiYAxisString      = "PDF (%)"
-res@tiXAxisString      = "circulation regime (hPa/d)"
-
-res@trXMinF = -200.0
-res@trXMaxF = 100.0
-res@trYMinF = 0.0
-res@trYMaxF = 20.0
-
-;res@gsnCenterString    = "default bins"
-res@xyLineColors = colors(0)
-res@xyDashPattern =  0
-;res@xyLineThicknessF = 2.
-plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
-res@xyLineColors = colors(0)
-res@xyDashPattern =  3
-plot0_b    =  gsn_csm_xy (wks,pdf_c5b@bin_center, pdf_c5b, res)
-res@xyLineColors = colors(0)
-res@xyDashPattern =  16
-plot0_c    =  gsn_csm_xy (wks,pdf_c5c@bin_center, pdf_c5c, res)
-res@xyLineColors = colors(1)
-res@xyDashPattern = 0 
-plot0_d    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
-res@xyLineColors = colors(1)
-res@xyDashPattern = 3 
-plot0_e    =  gsn_csm_xy (wks,pdf_c6b@bin_center, pdf_c6b, res)
-res@xyLineColors = colors(1)
-res@xyDashPattern =  16
-plot0_f    =  gsn_csm_xy (wks,pdf_c6c@bin_center, pdf_c6c, res)
-overlay(plot0_a,plot0_b)
-overlay(plot0_a,plot0_c)
-overlay(plot0_a,plot0_d)
-overlay(plot0_a,plot0_e)
-overlay(plot0_a,plot0_f)
-plot(0)=plot0_a
-
-;res@gsnCenterString    = "50 bins"
-;res@xyLineColors = "black"
-;plot1_a    =  gsn_csm_xy (wks,pdf_c5a_morebins@bin_center, pdf_c5a_morebins, res)
-;res@xyLineColors = "green"
-;plot1_b    =  gsn_csm_xy (wks,pdf_c6a_morebins@bin_center, pdf_c6a_morebins, res)
-;overlay(plot1_a,plot1_b)
-;plot(1)=plot1_a
+;;
+;wks = gsn_open_wks("eps","testplot")
 ;
-resP    = True
-resP@gsnPanelMainString  = "Circulation Regime over last year"
-gsn_panel(wks,plot,(/1,1/),resP)
+;res                    = True
+;res@gsnDraw            = False
+;res@gsnFrame           = False
+;res@xyLineThicknessF   = 5.
+;res@tiYAxisString      = "PDF (%)"
+;res@tiXAxisString      = "circulation regime (hPa/d)"
+;
+;res@trXMinF = -200.0
+;res@trXMaxF = 100.0
+;res@trYMinF = 0.0
+;res@trYMaxF = 20.0
+;
+;;res@gsnCenterString    = "default bins"
+;res@xyLineColors = colors(0)
+;res@xyDashPattern =  0
+;;res@xyLineThicknessF = 2.
+;plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
+;res@xyLineColors = colors(0)
+;res@xyDashPattern =  3
+;plot0_b    =  gsn_csm_xy (wks,pdf_c5b@bin_center, pdf_c5b, res)
+;res@xyLineColors = colors(0)
+;res@xyDashPattern =  16
+;plot0_c    =  gsn_csm_xy (wks,pdf_c5c@bin_center, pdf_c5c, res)
+;res@xyLineColors = colors(1)
+;res@xyDashPattern = 0 
+;plot0_d    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
+;res@xyLineColors = colors(1)
+;res@xyDashPattern = 3 
+;plot0_e    =  gsn_csm_xy (wks,pdf_c6b@bin_center, pdf_c6b, res)
+;res@xyLineColors = colors(1)
+;res@xyDashPattern =  16
+;plot0_f    =  gsn_csm_xy (wks,pdf_c6c@bin_center, pdf_c6c, res)
+;overlay(plot0_a,plot0_b)
+;overlay(plot0_a,plot0_c)
+;overlay(plot0_a,plot0_d)
+;overlay(plot0_a,plot0_e)
+;overlay(plot0_a,plot0_f)
+;plot(0)=plot0_a
+;
+;resP    = True
+;resP@gsnPanelMainString  = "Circulation Regime over last year"
+;gsn_panel(wks,plot,(/1,1/),resP)
 
 end
