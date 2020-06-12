@@ -518,7 +518,7 @@ print("is FillValue defined here?")
 
 ;;***********************************************************************************
 
-figurenumber = 3 ; 1 is default and plots 9 panel figure
+figurenumber = 4 ; 1 is default and plots 9 panel figure
                  ; 2 plots the 3 panel figure of zonal means
                  ; 3 plots the 3 panel figure of zonal means with a linear cosine axis
                  ; 4 plots the 3 panel figure of zonal means with a linear cosine axis

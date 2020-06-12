@@ -1,5 +1,5 @@
 ;---------------------------------------------------------------------
-; radflux_toa_am4_ceres.ncl
+; radflux_toa_net_ceres.ncl
 ;---------------------------------------------------------------------
 ;
 ; reads in one data file from one experiment
@@ -17,7 +17,7 @@
 ; this script also prints out the global mean values of the fields
 ; to be plotted
 ; 
-; levi silvers                                            sep 2019 
+; levi silvers                                            feb 2020 
 ;---------------------------------------------------------------------
 ; These files are loaded by default in NCL V6.2.0 and newer
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -90,8 +90,8 @@ ceres_sw_cre_tmn=dim_avg_n(ceres_sw_cre,0)
 
 ; ceres data is at a higher resolution (180x360 than) so we need to interpolate CERES to the AM4 grid
 
-;var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
-var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
+var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
+;var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
 
 ;*************************************************************
 ; perform conservative remapping of ceres data to am4 grid
@@ -223,9 +223,11 @@ ceres_swcre_tmn=dim_avg_n(ceres_swcre,0)
 ;
 print("dimensions of am4 data before average: "+dimsizes(field1))
 print("dimensions of am4 data after average: "+dimsizes(field1_mn))
+
 ; toa net radiative flux positive downward
   radfluxtoa=swdntoa+swuptoa+olr
-  ;cre_radfluxtoa=radfluxtoa-olrclr-swuptoaclr
+
+;cre_radfluxtoa=radfluxtoa-olrclr-swuptoaclr
   cre_olr=olr-olrclr; positive values indicates clouds are warming climate
   cre_sw=swuptoa-swuptoaclr; pos vals indicate clouds warm climate
   cre_radfluxtoa=olr+swuptoa-olrclr-swuptoaclr
@@ -297,6 +299,8 @@ print("global mean field1 is: "+field1_weighted_ave)
 ;print("global mean sfc temp of ctl is: "+temp1_weighted_ave)
 ;print("global mean sfc temp of ctlpreg is: "+temp2_weighted_ave)
 ;---------------------------------------------------------------------
+radfluxtoa_weighted_ave = wgt_areaave(radfluxtoa,clat,1.0,1)
+print("global mean net radiation = "+radfluxtoa_weighted_ave)
 ;---------------------------------------------------------------------
 ; create plot
 ;---------------------------------------------------------------------
@@ -321,11 +325,64 @@ my_colors_swclr = (/35,40, 45, 50, 55, 60, 65, 70, 75,80,85/)
 my_colors_lwclr = (/35,40, 45, 50, 55, 60, 65, 70, 75,80,85/)
 
 
-;my_levels_20posneg = (/-45,-40,-35,-30,-25,-20,-15,-10,-5,0,5,10,15,20,25,30,35,40,45/) ; plots 20 colors (19 nums) 1 less than thought
+my_levels_11posneg = (/-90,-80,-70,-60,-50,-40,-30,-20,-10,0,10/) ; plots 20 colors (9 nums) 1 less than thought
+my_levels_11posneg_b = (/-15,-12,-9,-6,-3,0,3,6,9,12,15/) ; plots 20 colors (9 nums) 1 less than thought
+my_colors_13posneg = (/10,20,30,40,50,60,70,80,90,100,150,180,210/) ; 20 colors (21 nums) 1 more than thought
+my_colors_13posneg_b = (/10,33,53,73,93,100,150,166,182,198,214,230,246/) ; 20 colors (21 nums) 1 more than thought
 ;my_levels_20posneg = (/-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9/) ; plots 20 colors (19 nums) 1 less than thought
 my_levels_20posneg = (/-18,-16,-14,-12,-10,-8,-6,-4,-2,0,2,4,6,8,10,12,14,16,18/) ; plots 20 colors (19 nums) 1 less than thought
 my_levels_20posneg_pm85 = (/-85,-75,-65,-55,-45,-35,-25,-15,-5,0,5,15,25,35,45,55,65,75,85/) ; plots 20 colors (19 nums) 1 less than thought
 my_colors_20posneg = (/ 10,23,33,43,53,63,73,83,93,103,127,151,161,171,181,191,201,211,221,231,241/) ; 20 colors (21 nums) 1 more than thought
+
+;----------------------------------------------------------------
+am4_cre=cre_sw+cre_olr
+
+am4_cre!0="lat"
+am4_cre&lat=cre_sw&lat
+am4_cre!1="lon"
+am4_cre&lon=cre_sw&lon
+
+lw_bias=cre_olr-ceres_lwcre_180x288
+
+lw_bias!0="lat"
+lw_bias&lat=cre_sw&lat
+lw_bias!1="lon"
+lw_bias&lon=cre_sw&lon
+
+sw_bias=cre_sw-ceres_swcre_180x288
+
+sw_bias!0="lat"
+sw_bias&lat=cre_sw&lat
+sw_bias!1="lon"
+sw_bias&lon=cre_sw&lon
+
+
+sw_cre_w_ave     = wgt_areaave(cre_sw,clat,1.0,1)
+sw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_swcre_tmn,clat,1.0,1)
+sw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_sw_cre_tmn,clat,1.0,1)
+lw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_lwcre_tmn,clat,1.0,1)
+lw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_lw_cre_tmn,clat,1.0,1)
+lw_cre_w_ave     = wgt_areaave(cre_olr,clat,1.0,1)
+
+cre_ceres_weighted_ave          = wgt_areaave(ceres_cre_180x288,clat,1.0,1)
+cre_am4_weighted_ave            = wgt_areaave(am4_cre,clat,1.0,1)
+lwbias_weighted_ave             = wgt_areaave(lw_bias,clat,1.0,1)
+swbias_weighted_ave             = wgt_areaave(sw_bias,clat,1.0,1)
+
+print("longwave cre = "+lw_cre_w_ave)
+print("ceres 2p8 longwave cre = "+lw_cre_ceres2p8_w_ave)
+print("ceres 4p1 longwave cre = "+lw_cre_ceres4p1_w_ave)
+print("shortwave cre = "+sw_cre_w_ave)
+print("ceres 2p8 shortwave cre = "+sw_cre_ceres2p8_w_ave)
+print("ceres 4p2 shortwave cre = "+sw_cre_ceres4p1_w_ave)
+print("longwave bias = "+lwbias_weighted_ave)
+  lwbias_st=flt2string(decimalPlaces(lwbias_weighted_ave,1,True))
+print("shortwave bias = "+swbias_weighted_ave)
+  swbias_st=flt2string(decimalPlaces(swbias_weighted_ave,1,True))
+print("total ceres cre= "+cre_ceres_weighted_ave)
+  cre_ceres_st=flt2string(decimalPlaces(cre_ceres_weighted_ave,1,True))
+print("total am4 cre = "+cre_am4_weighted_ave)
+  cre_am4_st=flt2string(decimalPlaces(cre_am4_weighted_ave,1,True))
 
 ;---------------------------------------------------------------------
   wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
@@ -357,8 +414,8 @@ my_colors_20posneg = (/ 10,23,33,43,53,63,73,83,93,103,127,151,161,171,181,191,2
 ;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
   res@cnLineLabelsOn    = False             ; turn off contour lines
   res@cnLevelSelectionMode  = "ExplicitLevels"
-  res@cnLevels          = my_levels_20posneg_pm85
-  res@cnFillColors      = my_colors_20posneg
+  res@cnLevels          = my_levels_11posneg
+  res@cnFillColors      = my_colors_13posneg
   res@txFontHeightF     = 0.015 
 
   ;res@vpXF            = 0.1                 ; make plot bigger
@@ -373,69 +430,29 @@ my_colors_20posneg = (/ 10,23,33,43,53,63,73,83,93,103,127,151,161,171,181,191,2
   res@tiMainFontHeightF  = .018                               ; font height
 
 
+
 ; net cre and clear sky row
   res@cnLevelSelectionMode  = "ExplicitLevels"
-  ;res@cnLevels          = my_levels_olrcre
-  ;res@cnFillColors      = my_colors_olrcre
-  res@tiMainString       = "CERES-EBAF lw cre" 
+  res@tiMainString       = "CERES-EBAF CRE ("+cre_ceres_st+")"
 ;  contour6 = gsn_csm_contour_map(wks,ceres_lwcre_180x288,res)  ; create the plot
   contour6 = gsn_csm_contour_map(wks,ceres_cre_180x288,res)  ; create the plot
   plot(0) = contour6
   res@gsnFrame         = False
-  ;res@cnLevels          = my_levels_swcre
-  ;res@cnFillColors      = my_colors_swcre
-  res@tiMainString       = "CERES-EBAF sw cre" 
-  contour7 = gsn_csm_contour_map(wks,ceres_swcre_180x288,res)  ; create the plot
+  res@tiMainString       = "AM4.0 CRE ("+cre_am4_st+")"
+  ;contour7 = gsn_csm_contour_map(wks,ceres_swcre_180x288,res)  ; create the plot
+  contour7 = gsn_csm_contour_map(wks,am4_cre,res)  ; create the plot
   plot(1) = contour7
 
-lw_bias=cre_olr-ceres_lwcre_180x288
 
-lw_bias!0="lat"
-lw_bias&lat=cre_sw&lat
-lw_bias!1="lon"
-lw_bias&lon=cre_sw&lon
-
-sw_bias=cre_sw-ceres_swcre_180x288
-
-sw_bias!0="lat"
-sw_bias&lat=cre_sw&lat
-sw_bias!1="lon"
-sw_bias&lon=cre_sw&lon
-
-var_to_interpolate=ceres_swcre_tmn ; for ceres 2.8
-;var_to_interpolate=ceres_sw_cre_tmn ; for ceres 4.1
-
-sw_cre_w_ave     = wgt_areaave(cre_sw,clat,1.0,1)
-sw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_swcre_tmn,clat,1.0,1)
-sw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_sw_cre_tmn,clat,1.0,1)
-lw_cre_ceres2p8_w_ave     = wgt_areaave(ceres_lwcre_tmn,clat,1.0,1)
-lw_cre_ceres4p1_w_ave     = wgt_areaave(ceres_lw_cre_tmn,clat,1.0,1)
-lw_cre_w_ave     = wgt_areaave(cre_olr,clat,1.0,1)
-
-lwbias_weighted_ave     = wgt_areaave(lw_bias,clat,1.0,1)
-swbias_weighted_ave     = wgt_areaave(sw_bias,clat,1.0,1)
-
-print("longwave cre = "+lw_cre_w_ave)
-print("ceres 2p8 longwave cre = "+lw_cre_ceres2p8_w_ave)
-print("ceres 4p1 longwave cre = "+lw_cre_ceres4p1_w_ave)
-print("shortwave cre = "+sw_cre_w_ave)
-print("ceres 2p8 shortwave cre = "+sw_cre_ceres2p8_w_ave)
-print("ceres 4p2 shortwave cre = "+sw_cre_ceres4p1_w_ave)
-print("longwave bias = "+lwbias_weighted_ave)
-  lwbias_st=flt2string(decimalPlaces(lwbias_weighted_ave,1,True))
-print("shortwave bias = "+swbias_weighted_ave)
-  swbias_st=flt2string(decimalPlaces(swbias_weighted_ave,1,True))
 
 ; cre row
   res@cnLevelSelectionMode  = "ExplicitLevels"
-  res@cnLevels          = my_levels_20posneg
-  res@cnFillColors      = my_colors_20posneg
+  res@cnLevels          = my_levels_11posneg_b
+  res@cnFillColors      = my_colors_13posneg_b
   res@tiMainString       = "AM4.0 LW CRE Bias ("+lwbias_st+")"
   contour4 = gsn_csm_contour_map(wks,lw_bias,res)  ; create the plot
   plot(2) = contour4
   res@gsnFrame         = False
-  res@cnLevels          = my_levels_20posneg
-  res@cnFillColors      = my_colors_20posneg
   res@tiMainString       = "AM4.0 SW CRE Bias ("+swbias_st+")" 
   contour5 = gsn_csm_contour_map(wks,sw_bias,res)  ; create the plot
   plot(3) = contour5
