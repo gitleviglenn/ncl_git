@@ -7,6 +7,7 @@
 ; example here is for clouds with tau .gt. 0.3
 ; for reference see Fig 9 of Marchand et al. 2010 JGR
 ;
+; in the observations file, there is a -1 value of tau before 0.15
 ; in general the tau levels in misr are:
 ; 0.15,0.8,2.45,6.5,16.2,41.5,100.
 ; but they are usually grouped in the histograms as: 
@@ -68,12 +69,14 @@ z_top=15
 print("dimsizes of am4 incoming data is: "+dimsizes(cfrac_total))
   cfrac_thin  = a->$var2read$(:,1:2,z_bot:z_top,:,:) ; for thin clouds (0.3:1.3) 
   cfrac_thick = a->$var2read$(:,3:4,z_bot:z_top,:,:) ; for thicker clouds (3.6:60)      
+  cfrac_full  = a->$var2read$(:,:,:,:,:) ; for thin clouds (0.3:1.3) 
 
 ;
 
   cfrac_misr_thin  = m_obs->$var_obs$(0,1:2,z_bot:z_top,:,:) ; for thin clouds      
-  ;cfrac_misr_thick = m_obs->$var_obs$(0,3:5,:,:,:) ; for thicker clouds      
-  cfrac_misr_thick = m_obs->$var_obs$(0,3:4,z_bot:z_top,:,:) ; for thicker clouds      
+  cfrac_misr_thick = m_obs->$var_obs$(0,3:5,:,:,:) ; for thicker clouds      
+  ;cfrac_misr_thick = m_obs->$var_obs$(0,3:4,z_bot:z_top,:,:) ; for thicker clouds      
+  ;cfrac_misr_thick = m_obs->$var_obs$(0,:,z_bot:z_top,:,:) ; for thicker clouds      
 ;  cfrac_misr_all = m_obs->$var_obs$(:,:,:,:,:) ; for thicker clouds      
 ;print("dimsizes of full misr obs: "+dimsizes(cfrac_misr_all))
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -303,6 +306,9 @@ printVarSummary(cfrac_thin_misr)
 print("dimensions of the latitude used for weighted mean are: "+dimsizes(lat))
 print("dimensions of interpolated am4 data are: "+dimsizes(interpolated_var))
 print("dimensions of cfrac_thin_misr data are: "+dimsizes(cfrac_thin_misr))
+;print("blah blah blah dimsizes of craf_am4_thin_oc: "+dimsizes(cfrac_am4_thin_oc))
+;print("blah blah blah craf_am4_thin_oc: "+cfrac_am4_thin_oc(:,1))
+;print("blah blah blah craf_plot_am4_thin: "+cfrac_plot_am4_thin(:,1))
   am4_cfmisr_thin_weighted_ave    = wgt_areaave(cfrac_plot_am4_thin,clat,1.0,1)
   am4_cfmisr_thin_oc_whted_ave    = wgt_areaave(cfrac_am4_thin_oc,clat,1.0,0)
   am4_cfmisr_thick_weighted_ave   = wgt_areaave(cfrac_plot_am4_thick,clat,1.0,1)
