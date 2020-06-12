@@ -7,7 +7,7 @@
 ; the calipso observations are on a 2.5x2.5 degree grid so the model output is 
 ; interpolated to a 2x2 degree grid before being plotted
 ;
-; figurenumber is a switch that deterimines which of 3 figures will be output
+; figurenumber is a switch that determines which of 3 figures will be output
 ; figurenumber 3  plots cloud fraction as a function of latitude for 
 ;                 amipp4k amipfuture and amip
 ; figurenumber 4  plots cloud fraction as a function of latitude for high, mid, 
