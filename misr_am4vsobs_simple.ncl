@@ -115,18 +115,22 @@ clat = cos(lat*rad)
 ;;
 ;;field_wave_am4     = wgt_areaave(fields_tmn,clat,1.0,1)
 
+funny_stuff_h=new((/2,16/),float)
+funny_stuff_t=new((/2,7/),float)
+
 i=0
 do while(i.le.15)
   fields_one_tau   =fields_tmn(:,i,:,:) ; all tau, one height
   fields_one       =dim_sum_n(fields_one_tau,0)
-filds_gmn_a=dim_avg_n(fields_one,1)
+  filds_gmn_a=dim_avg_n(fields_one,1)
 ;print("dimsizes of filds_gmn_a are: "+dimsizes(filds_gmn_a))
-filds_gmn  =dim_avg_n(filds_gmn_a,0)
+  filds_gmn  =dim_avg_n(filds_gmn_a,0)
 ;print("dimsizes of filds_gmn are: "+dimsizes(filds_gmn))
   ;print("dimsizes of fields_one are: "+dimsizes(fields_one))
   field_wave_am4   = wgt_areaave(fields_one,clat,1.0,0)
   print("unweighted average of AM4 data for all tau and height..."+filds_gmn)
   print("weighted average of AM4 data for all tau and height..."+field_wave_am4)
+  funny_stuff_h(0,i)=field_wave_am4
   i=i+1
 end do
 
@@ -143,8 +147,18 @@ print("dimsizes of filds_one_h are: "+dimsizes(fields_one_h))
   print("unweighted average of AM4 data for all height and tau..."+filds_1h_gmn)
   field_wave_am4_oneh   = wgt_areaave(fields_one_h,clat,1.0,0)
   print("weighted average of AM4 data for all height and tau..."+field_wave_am4_oneh)
+  funny_stuff_t(0,i)=field_wave_am4_oneh
   i=i+1
 end do
+
+print("#$^@$%&$Hebrides&^(%^&$%^&^@#$%")
+print("total weighted cloud fraction of am4 summing over all heights: "+dim_sum_n(funny_stuff_h,1))
+print("#$^@$%&$Hebrides&^(%^&$%^&^@#$%")
+print("total weighted cloud fraction of am4 summing over all heights: "+dim_sum_n(funny_stuff_h,0))
+print("#$^@$%&$Hebrides&^(%^&$%^&^@#$%")
+print("total weighted cloud fraction of am4 summing over all tau: "+dim_sum_n(funny_stuff_t,1))
+print("#$^@$%&$&^(%^&$%^&^@#$%")
+print("total weighted cloud fraction of am4 summing over all tau: "+dim_sum_n(funny_stuff_t,0))
 
 ;fields_one=fields_one_s(:,0,:,:)
 ;print("dimsizes of fields_one are: "+dimsizes(fields_one))
