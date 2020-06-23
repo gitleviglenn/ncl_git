@@ -49,11 +49,6 @@ end if
 path_laptop="/Users/silvers/data/CAM/"
 path_cheyenne="/glade/scratch/levi/RCEMIP/"
 
-;str_mod="ICON_GCM"
-;str_var="wa500"
-;model="ECHAM6_GCM"
-;varname="wap500"
-
 ; the omega switch determines whether wap500 or wa500 is used...
 
 filen_test=model+"_RCE_large295_2D_"+varname+".nc"
