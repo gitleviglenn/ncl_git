@@ -20,12 +20,40 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-print("begin adding files...")
-
+;-----------------
 ; time parameters
+; initially look at 5 day chunks
+ndays=10
+if (isvar("datafreq")) then
+  freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
+  print("data freq read, freq is: "+freq)
+else
+  freq=24
+  print("data freq not detected, freq is: "+freq)
+end if
+
+timewindow=ndays*freq
+
 ;echam has 26280
-timelength=8760 ; 1 year has 8760 hours
+timelength=8760-timewindow ; 1 year has 8760 hours
 ;startime=endtime-timelength+1
+
+;timewindow=ndays*freq
+;hourchunks=ndays*24
+; n5d=ntim/hourchunks
+
+numperiods=timelength/timewindow
+;print("numperiods ="+numperiods)
+
+; nlat and nlon will be model dependent
+; should i write a script that interpolates everything to a common grid 
+; before calling this script?
+
+;print("nlat is: "+nlat)
+;print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
+print("ndays is: "+ndays)
+print("numperiods is: "+numperiods)
+print("timewindow of each period (ndays*freq) is: "+timewindow)
 
 if (isvar("lasttime")) then
   endtime=lasttime
@@ -44,6 +72,9 @@ else
   startime=endtime-timelength+1
   print("timesteps var not detected, startime is:  "+startime)
 end if
+;-----------------
+
+print("begin adding files...")
 
 ; path bases
 path_laptop="/Users/silvers/data/CAM/"
@@ -95,7 +126,7 @@ end if
 
 ; convert units to hPa/d?  
 ; for models with Pa/s conversion factor is 864
-; for models with m/s, conversion factor is ? 
+; for models with m/s, conversion factor is 6042 ?!! 
 
 ;scalef=864.
 wvar_a=scalef*wvar_a
@@ -104,33 +135,35 @@ wvar_c=scalef*wvar_c
 
 ntim=fin->time
 
-; look at 5 day chunks
-ndays=5
-if (isvar("datafreq")) then
-  freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
-  print("data freq read, freq is: "+freq)
-else
-  freq=24
-  print("data freq not detected, freq is: "+freq)
-end if
-
-timewindow=ndays*freq
-;hourchunks=ndays*24
-; n5d=ntim/hourchunks
-
+;; look at 5 day chunks
+;ndays=10
+;if (isvar("datafreq")) then
+;  freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
+;  print("data freq read, freq is: "+freq)
+;else
+;  freq=24
+;  print("data freq not detected, freq is: "+freq)
+;end if
+;
+;timewindow=ndays*freq
+;;hourchunks=ndays*24
+;; n5d=ntim/hourchunks
+;
+;;numperiods=timelength/timewindow
 ;numperiods=timelength/timewindow
-numperiods=timelength/timewindow
-print("numperiods ="+numperiods)
+;;print("numperiods ="+numperiods)
+;
+;; nlat and nlon will be model dependent
+;; should i write a script that interpolates everything to a common grid 
+;; before calling this script?
+;
+;print("nlat is: "+nlat)
+;print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
+;print("ndays is: "+ndays)
+;print("numperiods is: "+numperiods)
+;print("timewindow of each period (ndays*freq) is: "+timewindow)
 
-; nlat and nlon will be model dependent
-; should i write a script that interpolates everything to a common grid 
-; before calling this script?
-
-print("nlat is: "+nlat)
-print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
-print("numperiods is: "+numperiods)
-print("timewindow is: "+timewindow)
-
+; reshape data arrays to allow for averaging over a particular time period
 a_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 b_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 c_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
