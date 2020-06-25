@@ -24,7 +24,13 @@ begin
 ;-----------------
 ; time parameters
 ; initially look at 5 day chunks
-ndays=10
+if (isvar("chunkdays")) then
+  ndays=chunkdays
+else
+  ndays=5
+end if
+print("number of days in each averaging chunks is: "+ndays)
+
 if (isvar("datafreq")) then
   freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
   print("data freq read, freq is: "+freq)
@@ -35,37 +41,40 @@ end if
 
 timewindow=ndays*freq
 
-timelength=8760-timewindow ; 1 year has 8760 hours
-;startime=endtime-timelength+1
-
-;timewindow=ndays*freq
-;hourchunks=ndays*24
-; n5d=ntim/hourchunks
-
-numperiods=timelength/timewindow
-;print("numperiods ="+numperiods)
-
-print("ndays is: "+ndays)
-print("numperiods is: "+numperiods)
-print("timewindow of each period (ndays*freq) is: "+timewindow)
+if (isvar("nperiods")) then
+  numperiods=nperiods
+else
+  numperiods=73
+end if
+print("number of averaging periods is: "+numperiods)
 
 if (isvar("lasttime")) then
   endtime=lasttime
   print("lasttime var read, endtime is:  "+endtime)
 else
   endtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
-;  timelength=8760 ; 1 year has 8760 hours
   print("lasttime var not detected, endtime is:  "+endtime)
 end if
 
-if (isvar("timesteps")) then
-  startime=endtime-timesteps+1
-  timelength=timesteps
-  print("timesteps var read, startime is:  "+startime)
-else
-  startime=endtime-timelength+1
-  print("timesteps var not detected, startime is:  "+startime)
-end if
+timelenght=endtime-timewindow*numperiods
+startime  =endtime-timewindow*numperiods+1
+
+;if (isvar("timesteps")) then
+;  timelength=timesteps
+;  startime=endtime-timesteps+1
+;  print("timesteps var read, startime is:  "+startime)
+;else
+;  timelength=8760-timewindow ; 1 year has 8760 hours
+;  startime=endtime-timelength+1
+;  ;startime=endtime-timelength
+;  print("timesteps var not detected, startime is:  "+startime)
+;end if
+
+print("ndays is: "+ndays)
+print("numperiods is: "+numperiods)
+;print("timewindow of each period (ndays*freq) is: "+timewindow)
+print("startime for reading data: "+startime+" lasttime to read data is: "+endtime)
+
 ;-----------------
 
 
@@ -78,9 +87,9 @@ path_C5="CAM5_GCM/";RCE_large305/2D/"
 
 print("begin adding files...")
 
-timelength=8760 ; 1 year 
-endtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
-startime=endtime-timelength+1
+;timelength=8760 ; 1 year 
+;endtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
+;startime=endtime-timelength+1
 
 if (isvar("CAMGCM")) then
 
@@ -162,22 +171,24 @@ wvar_c=scalef*wvar_c
 ;;;;
 
 
-;ntim=fc5_295->time
-
-; look at 5 day chunks (for files that have hourly output)
-;n5d=ntim/120
-
 ;print("begin to reshape arrays")
 ;numperiods=timelength/120
 ;print("numperiods ="+numperiods)
 
-a_reshape=new((/120,numperiods,192,288/),float)
-b_reshape=new((/120,numperiods,192,288/),float)
-c_reshape=new((/120,numperiods,192,288/),float)
+a_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
+b_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
+c_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 
-a_reshape=reshape(wvar_a,(/120,numperiods,192,288/))
-b_reshape=reshape(wvar_b,(/120,numperiods,192,288/))
-c_reshape=reshape(wvar_c,(/120,numperiods,192,288/))
+print("from omega500 pdf")
+printVarSummary(wvar_a)
+print("nlat is: "+nlat)
+print("nlon is: "+nlon)
+print("timewindow is: "+timewindow)
+print("numperiods is: "+numperiods)
+print("dimsizes of a_reshape are: "+dimsizes(a_reshape))
+a_reshape=reshape(wvar_a,(/timewindow,numperiods,nlat,nlon/))
+b_reshape=reshape(wvar_b,(/timewindow,numperiods,nlat,nlon/))
+c_reshape=reshape(wvar_c,(/timewindow,numperiods,nlat,nlon/))
 
 print("average arrays")
 
@@ -195,8 +206,8 @@ omega_d_5b=where((b_reshape_tmn .ge. 0),b_reshape_tmn,b_reshape_tmn@_FillValue)
 omega_u_5c=where((c_reshape_tmn .le. 0),c_reshape_tmn,c_reshape_tmn@_FillValue)
 omega_d_5c=where((c_reshape_tmn .ge. 0),c_reshape_tmn,c_reshape_tmn@_FillValue)
 
-omega_up   =new((/3,numperiods,192,288/),float)
-omega_down =new((/3,numperiods,192,288/),float)
+omega_up   =new((/3,numperiods,nlat,nlon/),float)
+omega_down =new((/3,numperiods,nlat,nlon/),float)
 omega_u    =new((/3/),float)
 omega_d    =new((/3/),float)
 

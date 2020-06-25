@@ -70,6 +70,7 @@ if (isvar("timesteps")) then
   print("timesteps var read, startime is:  "+startime)
 else
   startime=endtime-timelength+1
+  ;startime=endtime-timelength
   print("timesteps var not detected, startime is:  "+startime)
 end if
 ;-----------------
@@ -167,6 +168,13 @@ ntim=fin->time
 a_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 b_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 c_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
+
+print("from omega500 1model")
+printVarSummary(wvar_a)
+print("nlat is: "+nlat)
+print("nlon is: "+nlon)
+print("timewindow is: "+timewindow)
+print("numperiods is: "+numperiods)
 
 a_reshape=reshape(wvar_a,(/timewindow,numperiods,nlat,nlon/))
 b_reshape=reshape(wvar_b,(/timewindow,numperiods,nlat,nlon/))
