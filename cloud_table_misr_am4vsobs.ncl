@@ -15,6 +15,8 @@
 ;  plot_map
 ;  plot_cfvheight; when True, cloud frac vs height, otherwise cloud frac vs tau
 ;
+;  plot_cfvtau;   need to add....
+;
 ; there is also code at the end that when uncommented can 
 ; produce global maps...
 ;
@@ -109,8 +111,8 @@ end
 begin
 
 ; switches---------------------------------------------------------------
-plot_cloudtable  = True
-plot_map         = False
+plot_cloudtable  = False
+plot_map         = True
 plot_cfvheight   = False
 
 ; these deterimine what vertical levels are used for some of the averaging.
@@ -323,6 +325,7 @@ field_wave_misr  = wgt_areaave(obs_fields_tmn,clat,1.0,0)
 ; dom_bot and dom_top can be used to select particular vertical levels, but
 ; they shouldn't be allowed to change the dimensions of the variables that 
 ; will be plotted in the cloud tables or in the profiles....
+; latitudes: 1:180  from the south pole to the north, equator at 90
 
 fields_pm30        =obs_fields_tmn(:,dom_bot:dom_top,60:119,:)
 fields_am4_pm30    =fields_tmn_noland(:,dom_bot:dom_top,60:119,:)
@@ -344,6 +347,13 @@ fields_sh30t90     =obs_fields_tmn(:,dom_bot:dom_top,0:59,:)
 fields_am4_sh30t90 =fields_tmn_noland(:,dom_bot:dom_top,0:59,:)
 shlat30to90        =clat(0:59)
 
+; isolate the tropical Pacific to attempt at seeing clouds in a Walker setting...
+; Schwenkide et al., 2014 indicate an are of 10N - 35S could work..
+fields_10nt35S     =obs_fields_tmn(:,dom_bot:dom_top,55:100,:)
+fields_am4_10nt35s =fields_tmn_noland(:,dom_bot:dom_top,55:100,:)
+tropWalk10Nto35S   =clat(55:100)
+
+
 ; compute weighted means
 
 field_obs_gmn           = wgt_areaave(obs_fields_tmn,clat,1.0,0)
@@ -363,6 +373,9 @@ field_am4_sh30t60       = wgt_areaave(fields_am4_sh30t60,shlat30to60,1.0,0)
 
 field_obs_nh30t60       = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
 field_am4_nh30t60       = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
+
+field_obs_10t35         = wgt_areaave(fields_10nt35S,tropWalk10Nto35S,1.0,0)
+field_am4_10t35         = wgt_areaave(fields_am4_10nt35s,tropWalk10Nto35S,1.0,0)
 
 ; dimensions should be 7x16
   print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
@@ -423,6 +436,7 @@ field_am4_nh30t60       = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
 ; define which region to tabulate and set titles...
 ;----------------------------------------------------
 
+; 0(global); 1(pm30); 2(30n to 60n); 3(30s to 60n); 4(walker)
 DomainOfInterest=4
 
 if (DomainOfInterest .lt. 1) then  ; default is 0 and plots global
@@ -446,13 +460,21 @@ else if (DomainOfInterest .lt. 3) then
   titleRight="MISR: 30 to 60 NH"
   titleLeft ="AM4: 30 to 60 NH"
   titleProf ="Global 30 to 60 NH"
-else 
+else if (DomainOfInterest .lt. 4) then
     print("!!!!! plotting mean data from 30S to 60S !!!!!")
   fields     = field_am4_sh30t60
   fields_obs = field_obs_sh30t60
   titleRight="MISR: 30 to 60 SH"
   titleLeft ="AM4: 30 to 60 SH"
   titleProf ="Global 30 to 60 SH"
+else 
+    print("!!!!! plotting mean data from 10N to 35S !!!!!")
+  fields     = field_am4_10t35
+  fields_obs = field_obs_10t35
+  titleRight="MISR: 10N to 35S"
+  titleLeft ="AM4: 10N to 35S"
+  titleProf ="Walker? 10N to 35S"
+end if
 end if
 end if
 end if
@@ -747,11 +769,12 @@ if(plot_cloudtable) then
   
     gsn_table(wks,ncr_flip,x,y,text_obs_values,rest)    ; Draw table
 ;------
-else  ; plot profiles instead of the full cloud table
+end if
+if (plot_cfvheight) then
+;else  ; plot profiles instead of the full cloud table
 ;------
   wks = gsn_open_wks("eps","lostplot")
   plot = new(1,graphic)
-  ;plot_cfvheight = True
 
   if (plot_cfvheight) then
     xtitle = "Cloud Fraction (%)"
@@ -825,51 +848,51 @@ end if
 
 if(plot_map) then
 ; test plotting...
-  t_a    = dim_sum_n_Wrap(t_full,0)
-  t      = dim_sum_n_Wrap(t_a,0)
+  t_a    = dim_sum_n_Wrap(t_full,0)  
+  t_b      = dim_sum_n_Wrap(t_a,0)
 
   my_levels1 = (/6,12,18,24,30,36,42,48,54,60/) ; 10
   my_levels1 = (/5,10,20,30,40,50,60,70,80,90/) ; 10
   my_colors = (/30,37,44,51,58,65,72,79,86,93,100/) ; 11
 
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
+  wks = gsn_open_wks("eps","testmap")          ; send graphics to ps file
   ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhBlGrYeRe")
   gsn_define_colormap(wks,"MPL_YlGnBu")
 
-  res                   = True
-  ;res@mpProjection      = "Mollweide"       ; choose projection
-  res@mpProjection      = "Robinson"       ; choose projection
-  res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
-  res@mpPerimOn         = False             ; turn off box around plot
-  res@mpGridLatSpacingF = 30.               ; spacing for lat lines
-  res@mpGridLonSpacingF = 30.               ; spacing for lon lines
-  res@mpFillOn          = False
+  resmap                   = True
+  ;resmap@mpProjection      = "Mollweide"       ; choose projection
+  resmap@mpProjection      = "Robinson"       ; choose projection
+  resmap@mpGridAndLimbOn   = True              ; turn on lat/lon lines
+  resmap@mpPerimOn         = False             ; turn off box around plot
+  resmap@mpGridLatSpacingF = 30.               ; spacing for lat lines
+  resmap@mpGridLonSpacingF = 30.               ; spacing for lon lines
+  resmap@mpFillOn          = False
 
 ; these commands turn off/on the varname and units at top of image
-  res@gsnLeftString = ""
-  res@gsnRightString = ""
+  resmap@gsnLeftString = ""
+  resmap@gsnRightString = ""
 
-  res@cnFillOn          = True              ; color plot desired
-;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
-  res@cnLineLabelsOn    = False             ; turn off contour lines
-  res@cnLevelSelectionMode  = "ExplicitLevels"
-  res@cnLevels          = my_levels1
-  res@cnLinesOn         = False
-  res@cnFillColors      = my_colors
-  res@txFontHeightF     = 0.015
+  resmap@cnFillOn          = True              ; color plot desired
+;  resmap@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
+  resmap@cnLineLabelsOn    = False             ; turn off contour lines
+  resmap@cnLevelSelectionMode  = "ExplicitLevels"
+  resmap@cnLevels          = my_levels1
+  resmap@cnLinesOn         = False
+  resmap@cnFillColors      = my_colors
+  resmap@txFontHeightF     = 0.015
 
-  res@vpXF            = 0.1                 ; make plot bigger
-  res@vpYF            = 0.9
-  res@vpWidthF        = 0.8
-  res@vpHeightF       = 0.8
+  resmap@vpXF            = 0.1                 ; make plot bigger
+  resmap@vpYF            = 0.9
+  resmap@vpWidthF        = 0.8
+  resmap@vpHeightF       = 0.8
 
-  res@lbLabelFontHeightF  = 0.015           ; label bar font height
+  resmap@lbLabelFontHeightF  = 0.015           ; label bar font height
 
-  res@tiMainString       = "maintitle"  ; add a title
-  res@tiMainFontHeightF  = .018                               ; font height
+  resmap@tiMainString       = "maintitle"  ; add a title
+  resmap@tiMainFontHeightF  = .018                               ; font height
 
-  contour = gsn_csm_contour_map(wks,t,res)  ; create the plot
+  contour = gsn_csm_contour_map(wks,t_b,resmap)  ; create the plot
 end if
 
 
