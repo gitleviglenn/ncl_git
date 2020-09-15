@@ -51,50 +51,50 @@ endtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
 ;endtime=26279 ; this is the end time for CAM5 and CAM6
 startime=endtime-timelength+1
 
-; ICON
-filen_test="ICON_GCM-RCE_large_295-2D.wa500.nc"
-file_testmodel=path_cheyenne+"swift.dkrz.de/"+"ICON_GCM/"+filen_test
-;/glade/scratch/levi/RCEMIP/swift.dkrz.de/ICON_GCM/
-print("icon file: "+file_testmodel)
-ficon_295=addfile(file_testmodel,"r")
-ficona=ficon_295->wa500(startime:endtime,:,:,:)
-printVarSummary(ficona)
+;; ICON
+;filen_test="ICON_GCM-RCE_large_295-2D.wa500.nc"
+;file_testmodel=path_cheyenne+"swift.dkrz.de/"+"ICON_GCM/"+filen_test
+;;/glade/scratch/levi/RCEMIP/swift.dkrz.de/ICON_GCM/
+;print("icon file: "+file_testmodel)
+;ficon_295=addfile(file_testmodel,"r")
+;ficona=ficon_295->wa500(startime:endtime,:,:,:)
+;printVarSummary(ficona)
 
-;# ECHAM
-filen_test="ECHAM6_GCM-RCE_large_295-2D.wap500.nc"
-file_echam_a=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
-print("icon file: "+file_echam_a)
-f_add=addfile(file_echam_a,"r")
-fechama=f_add->wap500(startime:endtime,:,:,:)
-filen_test="ECHAM6_GCM-RCE_large_300-2D.wap500.nc"
-file_echam_b=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
-f_add=addfile(file_echam_b,"r")
-fechamb=f_add->wap500(startime:endtime,:,:,:)
-filen_test="ECHAM6_GCM-RCE_large_305-2D.wap500.nc"
-file_echam_c=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
-f_add=addfile(file_echam_c,"r")
-fechamc=f_add->wap500(startime:endtime,:,:,:)
-
-printVarSummary(fechama)
-
-; SP-CAM
-filen_test="SP-CAM_RCE_large295_2D_wap500.nc"
-file_spcam_a=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
-f_add=addfile(file_spcam_a,"r")
-fspcama=f_add->wap500(startime:endtime,:,:)
-
-filen_test="SP-CAM_RCE_large300_2D_wap500.nc"
-file_spcam_b=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
-f_add=addfile(file_spcam_b,"r")
-fspcamb=f_add->wap500(startime:endtime,:,:)
-
-filen_test="SP-CAM_RCE_large305_2D_wap500.nc"
-file_spcam_c=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
-f_add=addfile(file_spcam_c,"r")
-fspcamc=f_add->wap500(startime:endtime,:,:)
-print("SP-CAM file: "+file_spcam_c)
-
-printVarSummary(fspcamc)
+;;# ECHAM
+;filen_test="ECHAM6_GCM-RCE_large_295-2D.wap500.nc"
+;file_echam_a=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
+;print("icon file: "+file_echam_a)
+;f_add=addfile(file_echam_a,"r")
+;fechama=f_add->wap500(startime:endtime,:,:,:)
+;filen_test="ECHAM6_GCM-RCE_large_300-2D.wap500.nc"
+;file_echam_b=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
+;f_add=addfile(file_echam_b,"r")
+;fechamb=f_add->wap500(startime:endtime,:,:,:)
+;filen_test="ECHAM6_GCM-RCE_large_305-2D.wap500.nc"
+;file_echam_c=path_cheyenne+"swift.dkrz.de/"+"ECHAM6_GCM/"+filen_test
+;f_add=addfile(file_echam_c,"r")
+;fechamc=f_add->wap500(startime:endtime,:,:,:)
+;
+;printVarSummary(fechama)
+;
+;; SP-CAM
+;filen_test="SP-CAM_RCE_large295_2D_wap500.nc"
+;file_spcam_a=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
+;f_add=addfile(file_spcam_a,"r")
+;fspcama=f_add->wap500(startime:endtime,:,:)
+;
+;filen_test="SP-CAM_RCE_large300_2D_wap500.nc"
+;file_spcam_b=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
+;f_add=addfile(file_spcam_b,"r")
+;fspcamb=f_add->wap500(startime:endtime,:,:)
+;
+;filen_test="SP-CAM_RCE_large305_2D_wap500.nc"
+;file_spcam_c=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
+;f_add=addfile(file_spcam_c,"r")
+;fspcamc=f_add->wap500(startime:endtime,:,:)
+;print("SP-CAM file: "+file_spcam_c)
+;
+;printVarSummary(fspcamc)
 
 ;filen_test="SP-CAM_RCE_large300_2D_wap500.nc"
 ;;file_spcam_b=path_cheyenne+"swift.dkrz.de/"+"SPCAM/"+filen_test
@@ -307,30 +307,43 @@ res@xyLineThicknessF   = 5.
 res@tiYAxisString      = "PDF (%)"
 res@tiXAxisString      = "circulation regime (hPa/d)"
 
-res@trXMinF = -200.0
-res@trXMaxF = 100.0
+res@trXMinF = -150.0
+res@trXMaxF = 75.0
 res@trYMinF = 0.0
 res@trYMaxF = 20.0
 
+res@tmXTOn              = False
+res@tmXTBorderOn        = False
+res@tmYROn              = False
+res@tmYRBorderOn        = False
+res@vpWidthF            = 0.9
+res@vpHeightF           = 0.5
+;res@vpXF                = .9
+;res@vpYF                =.45
 ;res@gsnCenterString    = "default bins"
 res@xyLineColors = colors(0)
 res@xyDashPattern =  0
-;res@xyLineThicknessF = 2.
+res@xyLineThicknessF = 2.
 plot0_a    =  gsn_csm_xy (wks,pdf_c5a@bin_center, pdf_c5a, res)
 res@xyLineColors = colors(0)
-res@xyDashPattern =  3
+;res@xyDashPattern =  3
+res@xyLineThicknessF = 4.
 plot0_b    =  gsn_csm_xy (wks,pdf_c5b@bin_center, pdf_c5b, res)
 res@xyLineColors = colors(0)
-res@xyDashPattern =  16
+;res@xyDashPattern =  16
+res@xyLineThicknessF = 6.
 plot0_c    =  gsn_csm_xy (wks,pdf_c5c@bin_center, pdf_c5c, res)
 res@xyLineColors = colors(1)
-res@xyDashPattern = 0 
+;res@xyDashPattern = 0 
+res@xyLineThicknessF = 2.
 plot0_d    =  gsn_csm_xy (wks,pdf_c6a@bin_center, pdf_c6a, res)
 res@xyLineColors = colors(1)
-res@xyDashPattern = 3 
+;res@xyDashPattern = 3 
+res@xyLineThicknessF = 4.
 plot0_e    =  gsn_csm_xy (wks,pdf_c6b@bin_center, pdf_c6b, res)
 res@xyLineColors = colors(1)
-res@xyDashPattern =  16
+;res@xyDashPattern =  16
+res@xyLineThicknessF = 6.
 plot0_f    =  gsn_csm_xy (wks,pdf_c6c@bin_center, pdf_c6c, res)
 overlay(plot0_a,plot0_b)
 overlay(plot0_a,plot0_c)

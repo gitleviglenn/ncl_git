@@ -12,6 +12,8 @@
 ; input should be: 
 ; model, nlat, nlon, varname, conversion factor
 ;
+; so far this only works for averaging over 5 day chunks before creating the pdf...
+;
 ; levi silvers                                                          june 2020
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
@@ -20,12 +22,40 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-print("begin adding files...")
-
+;-----------------
 ; time parameters
+; initially look at 5 day chunks
+ndays=5
+if (isvar("datafreq")) then
+  freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
+  print("data freq read, freq is: "+freq)
+else
+  freq=24
+  print("data freq not detected, freq is: "+freq)
+end if
+
+timewindow=ndays*freq
+
 ;echam has 26280
-timelength=8760 ; 1 year has 8760 hours
+timelength=8760-timewindow ; 1 year has 8760 hours
 ;startime=endtime-timelength+1
+
+;timewindow=ndays*freq
+;hourchunks=ndays*24
+; n5d=ntim/hourchunks
+
+numperiods=timelength/timewindow
+;print("numperiods ="+numperiods)
+
+; nlat and nlon will be model dependent
+; should i write a script that interpolates everything to a common grid 
+; before calling this script?
+
+;print("nlat is: "+nlat)
+;print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
+print("ndays is: "+ndays)
+print("numperiods is: "+numperiods)
+print("timewindow of each period (ndays*freq) is: "+timewindow)
 
 if (isvar("lasttime")) then
   endtime=lasttime
@@ -42,23 +72,22 @@ if (isvar("timesteps")) then
   print("timesteps var read, startime is:  "+startime)
 else
   startime=endtime-timelength+1
+  ;startime=endtime-timelength
   print("timesteps var not detected, startime is:  "+startime)
 end if
+;-----------------
+
+print("begin adding files...")
 
 ; path bases
 path_laptop="/Users/silvers/data/CAM/"
 path_cheyenne="/glade/scratch/levi/RCEMIP/"
 
-;str_mod="ICON_GCM"
-;str_var="wa500"
-;model="ECHAM6_GCM"
-;varname="wap500"
-
 ; the omega switch determines whether wap500 or wa500 is used...
 
 filen_test=model+"_RCE_large295_2D_"+varname+".nc"
 file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
-print("incoming file: "+file_testmodel)
+  print("incoming file: "+file_testmodel)
 fin=addfile(file_testmodel,"r")
 if (omega .lt. 1) then
   wvar_a=fin->wap500(startime:endtime,:,:)
@@ -100,45 +129,29 @@ end if
 
 ; convert units to hPa/d?  
 ; for models with Pa/s conversion factor is 864
-; for models with m/s, conversion factor is ? 
+; for models with m/s, conversion factor is 6042 ?!! 
 
 ;scalef=864.
+; scalef should be provided as an input variable in omega500_driver.sh
 wvar_a=scalef*wvar_a
 wvar_b=scalef*wvar_b
 wvar_c=scalef*wvar_c
 
-ntim=fin->time
+; is this the spot to interpolate?  
 
-; look at 5 day chunks
-ndays=5
-if (isvar("datafreq")) then
-  freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
-  print("data freq read, freq is: "+freq)
-else
-  freq=24
-  print("data freq not detected, freq is: "+freq)
-end if
+;ntim=fin->time
 
-timewindow=ndays*freq
-;hourchunks=ndays*24
-; n5d=ntim/hourchunks
-
-;numperiods=timelength/timewindow
-numperiods=timelength/timewindow
-print("numperiods ="+numperiods)
-
-; nlat and nlon will be model dependent
-; should i write a script that interpolates everything to a common grid 
-; before calling this script?
-
-print("nlat is: "+nlat)
-print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
-print("numperiods is: "+numperiods)
-print("timewindow is: "+timewindow)
-
+; reshape data arrays to allow for averaging over a particular time period
 a_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 b_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
 c_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
+
+  print("from omega500 1model")
+  printVarSummary(wvar_a)
+  print("nlat is: "+nlat)
+  print("nlon is: "+nlon)
+  print("timewindow is: "+timewindow)
+  print("numperiods is: "+numperiods)
 
 a_reshape=reshape(wvar_a,(/timewindow,numperiods,nlat,nlon/))
 b_reshape=reshape(wvar_b,(/timewindow,numperiods,nlat,nlon/))
@@ -158,8 +171,8 @@ omega_d_a=where((a_reshape_5dmn .ge. 0),a_reshape_5dmn,a_reshape_5dmn@_FillValue
 omega_d_b=where((b_reshape_5dmn .ge. 0),b_reshape_5dmn,b_reshape_5dmn@_FillValue)
 omega_d_c=where((c_reshape_5dmn .ge. 0),c_reshape_5dmn,c_reshape_5dmn@_FillValue)
 
-print("dimsizes of omega_u_a are: "+dimsizes(omega_u_a))
-print("dimsizes of omega_d_a are: "+dimsizes(omega_d_a))
+  print("dimsizes of omega_u_a are: "+dimsizes(omega_u_a))
+  print("dimsizes of omega_d_a are: "+dimsizes(omega_d_a))
 
 omega_full_up   =new((/3,numperiods,nlat,nlon/),float)
 omega_full_down =new((/3,numperiods,nlat,nlon/),float)
@@ -187,16 +200,16 @@ end do
 down_min_up=omega_dn-omega_up
 down_plu_up=omega_dn+omega_up
 
-print("!@#$%@%^@#%$")
-print("omega up: "+omega_up)
-print("omega down: "+omega_dn)
-print("!@#$%@%^@#%$")
-print("omega down for 300K: "+omega_dn(1))
-print("Circulation Strength: omega down minus omega up")
-print(down_min_up)
-print("Circulation Strength: omega down plus omega up")
-print(down_plu_up)
-print("!@#$%@%^@#%$")
+  print("!@#$%@%^@#%$")
+  print("omega up: "+omega_up)
+  print("omega down: "+omega_dn)
+  print("!@#$%@%^@#%$")
+  print("omega down for 300K: "+omega_dn(1))
+  print("Circulation Strength: omega down minus omega up")
+  print(down_min_up)
+  print("Circulation Strength: omega down plus omega up")
+  print(down_plu_up)
+  print("!@#$%@%^@#%$")
 
 
 end
