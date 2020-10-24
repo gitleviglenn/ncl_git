@@ -20,8 +20,8 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"
 
 begin 
 
-plot_map     = True
-plot_profile = False
+plot_map     = False
+plot_profile = True
 
 
 ; central pac
@@ -31,10 +31,10 @@ plot_profile = False
 ;lat2=100   ; 180 at SP
 
 ; latitudes to analyze
-fd_lat1=80    ; 0 at NP
-fd_lat2=100   ; 180 at SP
-;fd_lat1=80    ; 0 at NP        Schwendike et al. 2014 advocate for lat1=80; lat2=125
-;fd_lat2=125   ; 180 at SP
+;fd_lat1=80    ; 0 at NP
+;fd_lat2=100   ; 180 at SP
+fd_lat1=80    ; 0 at NP        Schwendike et al. 2014 advocate for lat1=80; lat2=125
+fd_lat2=125   ; 180 at SP
 
 ; full Walker Domain
 fd_lon1=120
@@ -56,17 +56,17 @@ dc_lon2=180
 
 ; if looking at LaNina years....
   ;;year="LaNina"
-  obs_filein=to_misr+"clMISR_obs4MIPs_tmn_LaNina.nc"
-  ;maintitle="LaNina Years: 00,07,08,11"
-  testmap ="LaNina_10lat35_120lon300"
-  profname="LaNina_10lat35_120lon300_Prof"
+  ;obs_filein=to_misr+"clMISR_obs4MIPs_tmn_LaNina.nc"
+  ;;maintitle="LaNina Years: 00,07,08,11"
+  ;testmap ="LaNina_10lat35_120lon300"
+  ;profname="LaNina_10lat35_120lon300_Prof"
 
 ; if looking at all years...
   ;;year="2008"
-  ;obs_filein=to_misr+"clMISR_obs4MIPs_200003th201911.timemn.nc"
+  obs_filein=to_misr+"clMISR_obs4MIPs_200003th201911.timemn.nc"
   ;maintitle="Years: 2000-2019"
-  ;testmap ="Full_3doms_10lat35_120lon300"
-  ;profname="Full_3doms_10lat10_120lon300_Prof"
+  testmap ="Full_3doms_10lat35_120lon300"
+  profname="Full_3doms_10lat35_120lon300_Prof"
 ;=============input data=========================================================
   
   obs_infile = addfile(obs_filein,"r")
@@ -258,11 +258,36 @@ if (plot_profile) then
     plot_obs  = gsn_csm_xy(wks,field_obs_gmn(1:14),vaxis1(1:14)/1000,res)
     res@xyDashPattern = 16 
     plot_fd_obs  = gsn_csm_xy(wks,full_field_obs_gmn(1:14),vaxis1(1:14)/1000,res)
-    res@xyDashPattern = 1 
+    res@xyDashPattern = 3 
     plot_dc_obs  = gsn_csm_xy(wks,dc_field_obs_gmn(1:14),vaxis1(1:14)/1000,res)
     overlay(plot_obs,plot_fd_obs)
     overlay(plot_obs,plot_dc_obs)
   plot       = plot_obs
+
+  lgres                      = True
+  lgres@lgLineColors         = (/"black","black","black"/)
+;  lgres@xyLabelMode          = "Custom"
+  lgres@xyLineLabelFontHeightF = 0.020                ; font height
+  lgres@lgItemType           = "Lines"
+  lgres@lgLineLabelsOn       = False             ; turn off line labels
+  lgres@lgLabelFontHeightF   = .12
+  lgres@vpWidthF             = 0.23        ; width of legend
+  lgres@vpHeightF            = 0.20        ; height of legend
+  lgres@lgLineThicknessF     = 4.0
+  ;lgres@lgPerimThicknessF    = 2.0
+  lgres@lgMonoDashIndex      = False 
+  lgres@lgDashIndexes          = (/"0","16","3"/)
+  lgres@lgPerimOn            = False
+ 
+  legend  = gsn_create_legend (wks, 3, (/"Subsidence","Domain Mean","Deep Convection"/), lgres)
+
+  resP                 = True
+  resP@amJust = "TopRight"
+  resP@amOrthogonalPosF = -0.5     ; Move legend down more negative moves higher
+  resP@amParallelPosF   = 0.4    ; Move legend to right
+
+  annoid = gsn_add_annotation(plot,legend,resP) ; add legend to plot
+
   respanel   = True
   gsn_panel(wks,plot,(/1,1/),respanel)
 end if
