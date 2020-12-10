@@ -82,8 +82,8 @@ print("startime for reading data: "+startime+" lasttime to read data is: "+endti
 path_laptop="/Users/silvers/data/CAM/"
 path_cheyenne="/glade/scratch/levi/RCEMIP/"
 
-path_cheyenne="/glade/scratch/levi/RCEMIP/"
 path_C5="CAM5_GCM/";RCE_large305/2D/"
+path_C6="CAM6_GCM/"
 
 print("begin adding files...")
 
@@ -94,22 +94,41 @@ print("begin adding files...")
 if (isvar("CAMGCM")) then
 
   whichCAM=CAMGCM
-  file_omega_5_295=path_cheyenne+path_C5+"RCE_large295/2D/CAM5_GCM_RCE_large295_2D_wap500.nc"
-  file_omega_5_300=path_cheyenne+path_C5+"RCE_large300/2D/CAM5_GCM_RCE_large300_2D_wap500.nc"
-  file_omega_5_305=path_cheyenne+path_C5+"RCE_large305/2D/CAM5_GCM_RCE_large305_2D_wap500.nc"
-  
-  print("incoming file should be CAM: "+file_omega_5_295)
+  if (CAMGCM .lt. 6) then
+    file_omega_5_295=path_cheyenne+path_C5+"RCE_large295/2D/CAM5_GCM_RCE_large295_2D_wap500.nc"
+    file_omega_5_300=path_cheyenne+path_C5+"RCE_large300/2D/CAM5_GCM_RCE_large300_2D_wap500.nc"
+    file_omega_5_305=path_cheyenne+path_C5+"RCE_large305/2D/CAM5_GCM_RCE_large305_2D_wap500.nc"
+    
+    print("incoming file should be CAM: "+file_omega_5_295)
 
-  fc5_295=addfile(file_omega_5_295,"r")
-  wvar_a=fc5_295->wap500(startime:endtime,:,:)
-  
-  fc5_300=addfile(file_omega_5_300,"r")
-  wvar_b=fc5_300->wap500(startime:endtime,:,:)
-  
-  fc5_305=addfile(file_omega_5_305,"r")
-  wvar_c=fc5_305->wap500(startime:endtime,:,:)
+    fc5_295=addfile(file_omega_5_295,"r")
+    wvar_a=fc5_295->wap500(startime:endtime,:,:)
+    
+    fc5_300=addfile(file_omega_5_300,"r")
+    wvar_b=fc5_300->wap500(startime:endtime,:,:)
+    
+    fc5_305=addfile(file_omega_5_305,"r")
+    wvar_c=fc5_305->wap500(startime:endtime,:,:)
 
-  print("incoming file should be CAM: "+file_omega_5_295)
+    print("incoming file should be CAM: "+file_omega_5_295)
+  else 
+    file_omega_6_295=path_cheyenne+path_C6+"RCE_large295/2D/CAM6_GCM_RCE_large295_2D_wap500.nc"
+    file_omega_6_300=path_cheyenne+path_C6+"RCE_large300/2D/CAM6_GCM_RCE_large300_2D_wap500.nc"
+    file_omega_6_305=path_cheyenne+path_C6+"RCE_large305/2D/CAM6_GCM_RCE_large305_2D_wap500.nc"
+    
+    print("incoming file should be CAM: "+file_omega_6_295)
+
+    fc6_295=addfile(file_omega_6_295,"r")
+    wvar_a=fc6_295->wap500(startime:endtime,:,:)
+    
+    fc6_300=addfile(file_omega_6_300,"r")
+    wvar_b=fc6_300->wap500(startime:endtime,:,:)
+    
+    fc6_305=addfile(file_omega_6_305,"r")
+    wvar_c=fc6_305->wap500(startime:endtime,:,:)
+
+    print("incoming file should be CAM: "+file_omega_6_295)
+  end if
 else
   
   ; for SST = 295K

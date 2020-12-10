@@ -44,8 +44,13 @@ timelength=8760-timewindow ; 1 year has 8760 hours
 ;hourchunks=ndays*24
 ; n5d=ntim/hourchunks
 
-numperiods=timelength/timewindow
-;print("numperiods ="+numperiods)
+if (isvar("howmanyperiods")) then
+  numperiods=howmanyperiods
+else
+  numperiods=timelength/timewindow
+end if
+
+;numperiods=timelength/timewindow
 
 ; nlat and nlon will be model dependent
 ; should i write a script that interpolates everything to a common grid 
