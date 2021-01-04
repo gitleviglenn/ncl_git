@@ -1,5 +1,6 @@
-;================================================;
+;***********************************************************************************
 ;cloud_table_misr_am4vsobs.ncl 
+;***********************************************************************************
 ;
 ; Observations:  https://esgf-node.llnl.gov/projects/obs4mips/
 ; above is a link to a useful website with observations 
@@ -8,19 +9,28 @@
 ; as cloud top height (km) vs. tau using output from
 ; the misr simulator
 ;
+; a number of switches can be set to determine the plot output
+; plot_cfvheight is only relevent when plot_cloudtable = False
+;  plot_cloudtable
+;  plot_map
+;  plot_cfvheight; when True, cloud frac vs height, otherwise cloud frac vs tau
+;
+;  plot_cfvtau;   need to add....
+;
 ; there is also code at the end that when uncommented can 
 ; produce global maps...
 ;
 ; should we be using a land mask to block out AM4's land 
 ; points?  This was done with the global script cf_misr_vs_am4.ncl
-; but in that script, the am4 data was interpolated to the same grid
-; as the misr observations and then the misr data was used to mask
-; out the land from am4.  
+; but in that script, the 
+;
+; AM4.0 data is interpolated to the MISR grid
+; MISR data is used to mask out land from AM4.0.  
 ;
 ; the data that is used in the table is actually an 
 ; array of strings, called text_values 
 ;
-; vertical levels in observational data
+; vertical levels in observational data (these values are midpoints of bins):
 ; cth = -1, 250, 750, 1250, 1750, 2250, 2750, 3500, 4500, 6000, 8000, 10000,
 ;    12000, 14000, 16000, 20000 ;
 ;
@@ -29,17 +39,25 @@
 ;    12000, 14500, 16000, 18000 ;
 ; These levels are correct as per: http://clipc-services.ceda.ac.uk/dreq/u/dim:alt16.html
 ;
-; still to do: 
-; 	cosine weight data for selected geographic regions
-;       add all data from AM4, not just first 5 years of amip
+; tau levels in AM4 and observational output is labeled 'tau', they are names as
+; tau and tau_obs
+; 
+; tau_obs = -1, 0.15, 0.8, 2.45, 6.5, 16.2, 41.5, 100  which are the midpoints;
+; bin boundaries: 
+; tau_obs = 0, 0.3, 1.3, 3.6, 9.4, 23, 60, 
 ;
-; levi silvers  		feb 2020
-;================================================;
+;
+; still to do: 
+;       do we want to only look at the years that match with the MISR data?  
+;       do we want to show difference plots instead of of base output?
+;
+; levi silvers  	                                	july 2020
+;***********************************************************************************
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"   
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"   
-; ================================================;
+;***********************************************************************************
 
 ;;;----------------------------------------------------------------------
 ;;; Procedure to attach a labelbar to the bottom of plot.
@@ -88,33 +106,60 @@ begin
   amres@amOrthogonalPosF =  0.0
   plot@annoid = gsn_add_annotation(plot,lbid,amres)
 end
+;;;----------------------------------------------------------------------
 
 begin
 
+; switches---------------------------------------------------------------
+plot_cloudtable  = False
+plot_map         = True
+plot_cfvheight   = False
+
+; these deterimine what vertical levels are used for some of the averaging.
+; for 'normal' behavior these should represent the full vert extent. 
+dom_bot=0
+dom_top=15
+;------------------------------------------------------------------------
+
 ;
+; old path from archive
 ;;;filein="/archive/Levi.Silvers/data/c96L32_am4G12r16_2010climo_new_cosp/atmos_month_misr/atmos_month_misr.0002-0011.alltmn_wavg.nc"
 
+; read all clmisr AM4 data
 filein=systemfunc("ls /Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_*nc")
-;filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
-;filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_200301-200812.nc"
-obs_filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
 
-obs_filein="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"
+; read only clmisr AM4 data from 2003 through 2008
+;filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_200301-200812.nc"
+
+; old observation data
+;obs_filein="/Users/silvers/data/cfmip_clouds/clmisr_Emon_GFDL-CM4_amip_r1i1p1f1_gr1_197901-198412.nc"
+;obs_filein="/Users/silvers/data/SatData/MISR/clMISR/clMISR_obs4MIPS_20000601_20130531_tmn.nc"
+
+; newer obs data from Roger Marchand:
+to_misr="/Users/silvers/data/SatData/MISR_fromRoj/MISR_CTH_OD_histograms_v7/"
+obs_filein=to_misr+"clMISR_obs4MIPs_200003th201911.timemn.nc"
 
 ;infile     = addfile(filein,"r")
 infile     = addfiles(filein,"r")
+
 obs_infile = addfile(obs_filein,"r")
 
   print("infile is: "+filein)
   print("observations infile is: "+obs_filein)
 
 ;tau=infile->tau(:)
-tau=infile[:]->tau(:)
+tau=infile[0]->tau(:)
   print("tau =: "+tau)
 
 tau_obs=obs_infile->tau(:)
   print("obs tau =: "+tau_obs)
 ;
+vaxis1=infile[0]->alt16(:)
+;vaxis1=obs_infile->cth(:)
+
+;vaxis2=infile[0]->tau(:)
+vaxis2=new((/7,1/),float)
+vaxis2=(/0,1,2,3,4,5,6/)
 ;;-Reading and processing of data-------------------------------------------
 ;
 
@@ -127,8 +172,10 @@ fields=new((/7,16/),float)
 ;fields_full     =infile->$varname$(:,:,:,:,:)
 fields_full     =infile[:]->$varname$(:,:,:,:,:)
 obs_fields_tmn  =obs_infile->$ob_varname$(0,1:7,:,:,:)
-t_full          =obs_infile->$ob_varname$(0,:,:,:,:)
-obs_fields_pnt  =obs_infile->$ob_varname$(0,1,3,:,:)
+if (plot_map) then
+  t_full          =obs_infile->$ob_varname$(0,:,:,:,:)
+end if
+;obs_fields_pnt  =obs_infile->$ob_varname$(0,1,3,:,:)
 ;obs_fields_tmn=obs_infile->$ob_varname$(0,:,:,90,90)
 
 ;;printVarSummary(obs_fields_tmn)
@@ -138,7 +185,8 @@ obs_fields_pnt  =obs_infile->$ob_varname$(0,1,3,:,:)
 ;  print("overall max of obs fields is: "+max(obs_fields_tmn))
 ;  print("overall min of obs fields is: "+min(obs_fields_tmn))
 ;
-;;  printVarSummary(fields_full)
+
+  printVarSummary(fields_full)
 
 ;--------------------------------
 ; created some arrays that will be needed
@@ -155,7 +203,9 @@ ncr_flip     =dimsizes(cf_array)
 ; average over time and decide which geographic region to look at
 ; once the geographic region has been selected, compute the spatial average
 
+; average over all timesteps for the AM4.0 data
 fields_tmn=dim_avg_n(fields_full,0)
+
 ;  printVarSummary(fields_tmn)
   print("dimsizes of fields_tmn are:"+dimsizes(fields_tmn))
   print("dimsizes of obs_fields_tmn are:"+dimsizes(obs_fields_tmn))
@@ -176,7 +226,7 @@ fields_obs_gmn  =dim_avg_n(fields_obs_gmn_a,2)
 ;fields_trm_a =dim_avg_n(fields_patch,2)
 ;fields_trm_am4   =dim_avg_n(fields_trm_a,2)
 ;
-;  ;print("dimsizes of gmn_a are: "+dimsizes(fields_gmn_a))
+  ;print("dimsizes of gmn_a are: "+dimsizes(fields_gmn_a))
 ;;fields_point=fields_patch(:,:,90,144)
 ;  print("=-=-=-=-=-=-=-")
 ;  print("dimsizes of fields_trm_am4 for AM4 are: "+dimsizes(fields_trm_am4))
@@ -192,7 +242,7 @@ fields_tmn&lon        =fields_full&lon
 
 ;***********************************************************************************
 ; interpolate gfdl data to a 180x360 degree grid
-print("Beginning Interpolation")
+  print("Beginning Interpolation")
 
 ;var_to_interpolate=cfrac_tmn_totz_thick
 
@@ -204,7 +254,7 @@ copy_VarCoords(interpolated_var,obs_fields_tmn)
 
 ;
 dimgfdl=dimsizes(var_to_interpolate)
-print("dims of variable before interpolation: "+dimgfdl)
+  print("dims of variable before interpolation: "+dimgfdl)
 ;
 nlat=dimgfdl(2)
 nlon=dimgfdl(3)
@@ -228,18 +278,18 @@ latN=tofloat(var_to_interpolate&lat(nlat-1))                 ; northern extent o
    LAT_REG_1x1     = LAT_1x1({latS:latN})
    interpolated_var = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_1x1, LAT_REG_1x1, opt)
 
-print("dims of variable after interpolation: "+dimsizes(interpolated_var))
+  print("dims of variable after interpolation: "+dimsizes(interpolated_var))
 ;***********************************************************************************
 
 fields_tmn_noland=where(obs_fields_tmn.eq.obs_fields_tmn@_FillValue,obs_fields_tmn@_FillValue,interpolated_var)
 
 copy_VarCoords(obs_fields_tmn,fields_tmn_noland)
 
-;print("dimsizes of fields_tmn_noland: "+dimsizes(fields_tmn_noland))
+;  print("dimsizes of fields_tmn_noland: "+dimsizes(fields_tmn_noland))
 
-;print(" do we have dims defined for obs_fields_tmn? ") ;--> yes
-printVarSummary(obs_fields_tmn)
-printVarSummary(fields_tmn_noland)
+;  print(" do we have dims defined for obs_fields_tmn? ") ;--> yes
+  printVarSummary(obs_fields_tmn)
+  printVarSummary(fields_tmn_noland)
 
 ;;---------------------------------------------------------------------
 ; compute lat weights to determine the global mn
@@ -267,53 +317,68 @@ field_wave_misr  = wgt_areaave(obs_fields_tmn,clat,1.0,0)
 ;  print("global mean of field_wave_misr with 1 is: "+field_wave_misr)
 ;  print("***************)")
 ;---------------------------------------------------------------------
+
 ; grab a particular region of the data, and that same regions lat array
 ; and use this to create a cosine weighted mean for a non-global region
 
-fields_pm30    =obs_fields_tmn(:,:,60:119,:)
-fields_am4_pm30=fields_tmn_noland(:,:,60:119,:)
-pm30lat        =clat(60:119)
+; select particular vertical levels
+; dom_bot and dom_top can be used to select particular vertical levels, but
+; they shouldn't be allowed to change the dimensions of the variables that 
+; will be plotted in the cloud tables or in the profiles....
+; latitudes: 1:180  from the south pole to the north, equator at 90
 
-fields_nh30t60 =obs_fields_tmn(:,:,120:149,:)
-fields_am4_nh30t60 =fields_tmn_noland(:,:,120:149,:)
-nhlat30to60    =clat(120:149)
-fields_sh30t60 =obs_fields_tmn(:,:,30:59,:)
-fields_am4_sh30t60 =fields_tmn_noland(:,:,30:59,:)
-shlat30to60    =clat(30:59)
+fields_pm30        =obs_fields_tmn(:,dom_bot:dom_top,60:119,:)
+fields_am4_pm30    =fields_tmn_noland(:,dom_bot:dom_top,60:119,:)
+pm30lat            =clat(60:119)
 
-fields_nh30t90 =obs_fields_tmn(:,:,120:179,:)
-fields_am4_nh30t90 =fields_tmn_noland(:,:,120:179,:)
-nhlat30to90    =clat(120:179)
-fields_sh30t90 =obs_fields_tmn(:,:,0:59,:)
-fields_am4_sh30t90 =fields_tmn_noland(:,:,0:59,:)
-shlat30to90    =clat(0:59)
+fields_nh30t60     =obs_fields_tmn(:,dom_bot:dom_top,120:149,:)
+fields_am4_nh30t60 =fields_tmn_noland(:,dom_bot:dom_top,120:149,:)
+nhlat30to60        =clat(120:149)
 
-; computed weighted means
-field_obs_gmn       = wgt_areaave(obs_fields_tmn,clat,1.0,0)
-field_gmn_am4       = wgt_areaave(fields_tmn_noland,clat,1.0,0)
+fields_sh30t60     =obs_fields_tmn(:,dom_bot:dom_top,30:59,:)
+fields_am4_sh30t60 =fields_tmn_noland(:,dom_bot:dom_top,30:59,:)
+shlat30to60        =clat(30:59)
 
-;field_wave_pm30_misr = wgt_areaave(fields_pm30,pm30lat,1.0,0)
-field_obs_pm30       = wgt_areaave(fields_pm30,pm30lat,1.0,0)
-field_am4_pm30       = wgt_areaave(fields_am4_pm30,pm30lat,1.0,0)
+fields_nh30t90     =obs_fields_tmn(:,dom_bot:dom_top,120:179,:)
+fields_am4_nh30t90 =fields_tmn_noland(:,dom_bot:dom_top,120:179,:)
+nhlat30to90        =clat(120:179)
 
-field_obs_sh30t90 = wgt_areaave(fields_sh30t90,shlat30to90,1.0,0)
-field_obs_nh30t90 = wgt_areaave(fields_nh30t90,nhlat30to90,1.0,0)
-field_am4_sh30t90 = wgt_areaave(fields_am4_sh30t90,shlat30to90,1.0,0)
-field_am4_nh30t90 = wgt_areaave(fields_am4_nh30t90,nhlat30to90,1.0,0)
+fields_sh30t90     =obs_fields_tmn(:,dom_bot:dom_top,0:59,:)
+fields_am4_sh30t90 =fields_tmn_noland(:,dom_bot:dom_top,0:59,:)
+shlat30to90        =clat(0:59)
 
-;field_wave_sh_misr = wgt_areaave(fields_sh30t90,shlat30to90,1.0,0)
-;field_wave_nh_misr = wgt_areaave(fields_nh30t90,nhlat30to90,1.0,0)
+; isolate the tropical Pacific to attempt at seeing clouds in a Walker setting...
+; Schwenkide et al., 2014 indicate an are of 10N - 35S could work..
+fields_10nt35S     =obs_fields_tmn(:,dom_bot:dom_top,55:100,:)
+fields_am4_10nt35s =fields_tmn_noland(:,dom_bot:dom_top,55:100,:)
+tropWalk10Nto35S   =clat(55:100)
 
-field_obs_sh30t60 = wgt_areaave(fields_sh30t60,shlat30to60,1.0,0)
-field_obs_nh30t60 = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
-field_am4_sh30t60 = wgt_areaave(fields_am4_sh30t60,shlat30to60,1.0,0)
-field_am4_nh30t60 = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
 
-;field_wave_sh_30t60misr = wgt_areaave(fields_sh30t60,shlat30to60,1.0,0)
-;field_wave_nh_30t60misr = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
+; compute weighted means
 
-; dimensions are 7x16
-print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
+field_obs_gmn           = wgt_areaave(obs_fields_tmn,clat,1.0,0)
+field_gmn_am4           = wgt_areaave(fields_tmn_noland,clat,1.0,0)
+
+field_obs_pm30          = wgt_areaave(fields_pm30,pm30lat,1.0,0)
+field_am4_pm30          = wgt_areaave(fields_am4_pm30,pm30lat,1.0,0)
+
+field_obs_sh30t90       = wgt_areaave(fields_sh30t90,shlat30to90,1.0,0)
+field_am4_sh30t90       = wgt_areaave(fields_am4_sh30t90,shlat30to90,1.0,0)
+
+field_obs_nh30t90       = wgt_areaave(fields_nh30t90,nhlat30to90,1.0,0)
+field_am4_nh30t90       = wgt_areaave(fields_am4_nh30t90,nhlat30to90,1.0,0)
+
+field_obs_sh30t60       = wgt_areaave(fields_sh30t60,shlat30to60,1.0,0)
+field_am4_sh30t60       = wgt_areaave(fields_am4_sh30t60,shlat30to60,1.0,0)
+
+field_obs_nh30t60       = wgt_areaave(fields_nh30t60,nhlat30to60,1.0,0)
+field_am4_nh30t60       = wgt_areaave(fields_am4_nh30t60,nhlat30to60,1.0,0)
+
+field_obs_10t35         = wgt_areaave(fields_10nt35S,tropWalk10Nto35S,1.0,0)
+field_am4_10t35         = wgt_areaave(fields_am4_10nt35s,tropWalk10Nto35S,1.0,0)
+
+; dimensions should be 7x16
+  print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
 ;--------------------------------
 ;
 ;-----------------------------------------------------------------
@@ -324,74 +389,95 @@ print("dimensions of area weighted array are: "+dimsizes(field_obs_pm30))
 ;fields     =field_gmn_am4
 ;fields_obs =field_obs_gmn
 
-print("sum of global am4 cloud fraction: "+sum(field_gmn_am4))
-print("sum of global misr cloud fraction: "+sum(field_obs_gmn))
+  print("sum of global am4 cloud fraction: "+sum(field_gmn_am4))
+  print("sum of global misr cloud fraction: "+sum(field_obs_gmn))
 
 ; tropics: plus/minus 30
 ;fields     =field_am4_pm30
 ;fields_obs =field_obs_pm30
 
-print("sum of pm30 am4 cloud fraction: "+sum(field_am4_pm30))
-print("sum of pm30 misr cloud fraction: "+sum(field_obs_pm30))
+  print("sum of pm30 am4 cloud fraction: "+sum(field_am4_pm30))
+  print("sum of pm30 misr cloud fraction: "+sum(field_obs_pm30))
 
 ; higher latitudes
 ;fields     =field_am4_nh30t90
 ;fields_obs =field_obs_nh30t90
 
-print("sum of NH 30 to 90 am4 cloud fraction: "+sum(field_am4_nh30t90))
-print("sum of NH 30 to 90 misr cloud fraction: "+sum(field_obs_nh30t90))
+  print("sum of NH 30 to 90 am4 cloud fraction: "+sum(field_am4_nh30t90))
+  print("sum of NH 30 to 90 misr cloud fraction: "+sum(field_obs_nh30t90))
 
-print("sum of SH 30 to 90 am4 cloud fraction: "+sum(field_am4_sh30t90))
-print("sum of SH 30 to 90 misr cloud fraction: "+sum(field_obs_sh30t90))
+  print("sum of SH 30 to 90 am4 cloud fraction: "+sum(field_am4_sh30t90))
+  print("sum of SH 30 to 90 misr cloud fraction: "+sum(field_obs_sh30t90))
 
 ; mid-latitudes
 ;fields     =field_am4_nh30t60
 ;fields_obs =field_obs_nh30t60
 
-print("sum of NH 30 to 60 am4 cloud fraction: "+sum(field_am4_nh30t60))
-print("sum of NH 30 to 60 misr cloud fraction: "+sum(field_obs_nh30t60))
+  print("sum of NH 30 to 60 am4 cloud fraction: "+sum(field_am4_nh30t60))
+  print("sum of NH 30 to 60 misr cloud fraction: "+sum(field_obs_nh30t60))
 
-print("sum of SH 30 to 60 am4 cloud fraction: "+sum(field_am4_sh30t60))
-print("sum of SH 30 to 60 misr cloud fraction: "+sum(field_obs_sh30t60))
+  print("sum of SH 30 to 60 am4 cloud fraction: "+sum(field_am4_sh30t60))
+  print("sum of SH 30 to 60 misr cloud fraction: "+sum(field_obs_sh30t60))
 
 ;;titleRight="MISR SH"
 ;;titleLeft ="MISR NH"
 ;titleRight="MISR pm 30"
 ;titleLeft ="AM4 pm 30"
 ;
-;print("sum of tabulated am4 cloud fraction: "+sum(fields))
-;print("sum of tabulated misr cloud fraction: "+sum(fields_obs))
+;  print("sum of tabulated am4 cloud fraction: "+sum(fields))
+;  print("sum of tabulated misr cloud fraction: "+sum(fields_obs))
 
 ; higher latitudes
 ;fields     =field_wave_nh_misr
 ;fields_obs =field_wave_sh_misr
 
-;  print("dimsizes of fields are:"+dimsizes(fields))
-;print(fields(:,10))
-;printVarSummary(fields_obs)
-
+;----------------------------------------------------
+; Domain To Plot
 ; define which region to tabulate and set titles...
+;----------------------------------------------------
 
-;fields     = field_gmn_am4
-;fields_obs = field_obs_gmn
-;titleRight="MISR: Global mn"
-;titleLeft ="AM4: Global mn"
+; 0(global); 1(pm30); 2(30n to 60n); 3(30s to 60n); 4(walker)
+DomainOfInterest=4
 
-fields     = field_am4_pm30
-fields_obs = field_obs_pm30
-titleRight="MISR: 30S to 30N"
-titleLeft ="AM4: 30S to 30N"
-
-;fields     = field_am4_nh30t60
-;fields_obs = field_obs_nh30t60
-;titleRight="MISR: 30 to 60 NH"
-;titleLeft ="AM4: 30 to 60 NH"
-
-;fields     = field_am4_sh30t60
-;fields_obs = field_obs_sh30t60
-;titleRight="MISR: 30 to 60 SH"
-;titleLeft ="AM4: 30 to 60 SH"
-
+if (DomainOfInterest .lt. 1) then  ; default is 0 and plots global
+    print("!!!!! plotting Global mean data !!!!!")
+  fields     = field_gmn_am4
+  fields_obs = field_obs_gmn
+  titleRight="MISR: Global mn"
+  titleLeft ="AM4: Global mn"
+  titleProf ="Global mn"
+else if (DomainOfInterest .lt. 2) then
+    print("!!!!! plotting Tropical mean data !!!!!")
+  fields     = field_am4_pm30
+  fields_obs = field_obs_pm30
+  titleRight="MISR: 30S to 30N"
+  titleLeft ="AM4: 30S to 30N"
+  titleProf ="Global 30S to 30N"
+else if (DomainOfInterest .lt. 3) then
+    print("!!!!! plotting mean data from 30N to 60N !!!!!")
+  fields     = field_am4_nh30t60
+  fields_obs = field_obs_nh30t60
+  titleRight="MISR: 30 to 60 NH"
+  titleLeft ="AM4: 30 to 60 NH"
+  titleProf ="Global 30 to 60 NH"
+else if (DomainOfInterest .lt. 4) then
+    print("!!!!! plotting mean data from 30S to 60S !!!!!")
+  fields     = field_am4_sh30t60
+  fields_obs = field_obs_sh30t60
+  titleRight="MISR: 30 to 60 SH"
+  titleLeft ="AM4: 30 to 60 SH"
+  titleProf ="Global 30 to 60 SH"
+else 
+    print("!!!!! plotting mean data from 10N to 35S !!!!!")
+  fields     = field_am4_10t35
+  fields_obs = field_obs_10t35
+  titleRight="MISR: 10N to 35S"
+  titleLeft ="AM4: 10N to 35S"
+  titleProf ="Walker? 10N to 35S"
+end if
+end if
+end if
+end if
 
 
 ;-----------------------------------------------------------------
@@ -420,25 +506,17 @@ fields_obs&alt16  =fields_full&alt16
 cf_array&alt16    =fields_full&alt16
 cf_array_obs&alt16=fields_full&alt16
 
-;  print("--------- old fields --------")
-;  printVarSummary(fields)
-;  printVarSummary(fields_obs)
-
 cf_array     =fields(alt16|:,tau|:)
 cf_array_obs =fields_obs(alt16|:,tau|:)
 
-;  print("--------- cf array 1----------")
-;  printVarSummary(cf_array)
-;  print("--------- cf array 2----------")
 cf_array     =cf_array(::-1,:)
 cf_array_obs =cf_array_obs(::-1,:)
-;  printVarSummary(cf_array)
-;  print("-----------------------------")
-
 
 ;-----------------------------------------------------------
 ; save data for tables to text_values and text_obs
 ;-----------------------------------------------------------
+
+; round to 1 decimal place
 
 ; for data from aM4
 cf_array=where(cf_array.le.0.001,0.0,cf_array)
@@ -449,6 +527,28 @@ cf_array_obs=decimalPlaces(cf_array_obs,1,True)
 
 text_values=""+cf_array
 text_obs_values=""+cf_array_obs
+
+; print some of the numbers relevent to cf_array: 
+  print("dimsizes of cf_array are: "+dimsizes(cf_array))
+
+  print("!@#$^$%#&^@@!#$#$^&")
+; 
+; profiles for am4 
+blabichra=dim_sum_n_Wrap(cf_array,1)
+blabichra=blabichra(::-1)
+  print("sum along second dimension of cf_array: "+blabichra)
+archibald=dim_sum_n_Wrap(cf_array,0)
+  print("sum along first dimension of cf_array: "+archibald)
+  print("!@#$^$%#&^@@!#$#$^&")
+;
+; profiles for observations
+mij=dim_sum_n_Wrap(cf_array_obs,1)
+mij=mij(::-1)
+jim=dim_sum_n_Wrap(cf_array_obs,0)
+  print("sum along second dimension of cf_array_obs: "+jim)
+  print("sum along first dimension of cf_array_obs: "+mij)
+  print("!@#$^$%#&^@@!#$#$^&")
+
 ;-----------------------------------------------------------
 ;
 ncols=7
@@ -496,8 +596,6 @@ do i=2,10
   end do 
 end do
 
-;cols_for_vals = colors(3)
-
 ;;---Create formatted labels for the labelbar
 ;;---Converts floats or doubles into formatted strings.
 do i=2,10
@@ -519,217 +617,285 @@ obs_cols_for_txt = where(obs_cols_for_vals.eq."Navy".or.obs_cols_for_vals.eq."Me
 ;; Start the graphics.
 ;
 
-xtitle="hieght (km)"
-ytitle="optical depth"
-;
-  ;wks = gsn_open_wks("newPDF","testplot")
-  wks = gsn_open_wks("eps","testplot")
+
+if(plot_cloudtable) then
+
+  xtitle="hieght (km)"
+  ytitle="optical depth"
+  ;
+  ;wks = gsn_open_wks("newPDF","testplot_v7_allyrs")
+  wks = gsn_open_wks("eps","testplot_cldtable")
   gsn_define_colormap(wks,colors)
-;
-;  ;
-;; Create a blank plot so we can get some tickmarks.
-;;
-;; Do the blank plot before the table, so we can maximize
-;; the blank plot. Later we'll make sure the table goes
-;; in the same location as the blank plot.
-;;
-;  printVarSummary(ncr_flip)
-;  print("ncr flip is: "+ncr_flip)
-;  print("text values are: "+text_values)
-;  print("text values from observations are: "+text_obs_values)
-;;;-----------------------------------------------------------------------------
-; lower table
-;;;-----------------------------------------------------------------------------
-  resb                         = True
-  resb@gsnDraw                 = False
-  resb@gsnFrame                = False
+  ;
+  ;  ;
+  ;; Create a blank plot so we can get some tickmarks.
+  ;;
+  ;; Do the blank plot before the table, so we can maximize
+  ;; the blank plot. Later we'll make sure the table goes
+  ;; in the same location as the blank plot.
+  ;;
+  ;  printVarSummary(ncr_flip)
+  ;  print("ncr flip is: "+ncr_flip)
+  ;  print("text values are: "+text_values)
+  ;  print("text values from observations are: "+text_obs_values)
 
-;  resb@vpYF                    = 0.95
-;  resb@vpXF                    = 0.13
-;  resb@vpHeightF               = 0.4 ; 0.85
-;  resb@vpWidthF                = 0.35 ; 0.75
-
-  ;resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
-  resb@vpYF                    = 0.47  ; specifies the location of top edge of view object
-  ;resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
-  resb@vpXF                    = 0.13  ; specifies the location of the left edge of view object
-  resb@vpHeightF               = 0.4 ; 0.85
-  resb@vpWidthF                = 0.35 ; 0.75
-
-; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-  resb@tmXBMode                = "Explicit"
-  ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
-  resb@tmXBValues              = fspan(col_width,1.,ncols)
-  ;print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
-  ncol_labels=(/0.15,0.80,2.45,6.50,16.2,41.5,100./)
-  ncol_labels_b=(/" "," "," "," "," "," "," "/)
-  ;nrow_labels=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,7.0,9.0,11.0,13.0,15.0,17.0/)
-  nrow_labels=(/0.25,0.75,1.25,1.75,2.25,2.75,3.5,4.5,6.0,8.0,10.0,12.0,14.5,16.0,18.0/)
-; alt16 = 0, 250, 750, 1250, 1750, 2250, 2750, 3500, 4500, 6000, 8000, 10000,
-;    12000, 14500, 16000, 18000 ;
-  resb@tmXBLabels              = ncol_labels
-  resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Explicitly label Y axis.
-  resb@tmYLMode                = "Explicit"
-  resb@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
-  resb@tmYLLabels              = nrow_labels
-  resb@tiYAxisString           = "km"
-  resb@tiXAxisString           = "Tau "
-;
-; The Y labels need to be reversed, because the label in the first
-; row in the ASCII file is associated with the top of the plot.
-  ;resb@tmYLLabels              = nrow_labels(::-1)
-  resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
-
-; Rotate the X axis labels 90 degrees.
-  ;resb@tmXBLabelAngleF         = 90.
-  resb@tmXBLabelJust           = "CenterRight"
-
-; Turn off right and top tickmarks
-  resb@tmYROn                  = False
-  resb@tmXTOn                  = False
-
-; Main title
-  resb@tiMainString            = titleLeft
+  ;;;-----------------------------------------------------------------------------
+  ; lower table
+  ;;;-----------------------------------------------------------------------------
+    resb                         = True
+    resb@gsnDraw                 = False
+    resb@gsnFrame                = False
   
-  blank = gsn_csm_blank_plot(wks,resb)
-;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
-  draw(blank)                                 ; Draw tickmarks and labelbar
-;
-; Get position and size of the blank plot so we can
-; be sure to draw the table in same location.
-;
-  getvalues blank
-    "vpXF"      : vpx
-    "vpYF"      : vpy
-    "vpWidthF"  : vpw
-    "vpHeightF" : vph
-  end getvalues
+  ;  resb@vpYF                    = 0.95
+  ;  resb@vpXF                    = 0.13
+  ;  resb@vpHeightF               = 0.4 ; 0.85
+  ;  resb@vpWidthF                = 0.35 ; 0.75
+  
+    ;resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
+    resb@vpYF                    = 0.47  ; specifies the location of top edge of view object
+    ;resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
+    resb@vpXF                    = 0.13  ; specifies the location of the left edge of view object
+    resb@vpHeightF               = 0.4 ; 0.85
+    resb@vpWidthF                = 0.35 ; 0.75
+  
+  ; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
+    resb@tmXBMode                = "Explicit"
+    ;resb@tmXBValues              = fspan(col_width2,1.-col_width2,ncols)
+    resb@tmXBValues              = fspan(col_width,1.,ncols)
+    ;print("what are these values? "+fspan(col_width2,1.-col_width2,ncols))
+    ;ncol_labels=(/0.15,0.80,2.45,6.50,16.2,41.5,100./)
+    ncol_labels_b=(/"0.3","1.3","3.6","9.4","23","60"," "/)
+    ncol_labels_t=(/" "," "," "," "," "," "," "/)
+    nrow_labels=(/0.0,0.5,1.0,1.5,2.0,2.5,3.0,4.0,5.0,7.0,9.0,11.0,13.0,15.0,17.0/)
+  ; alt16 = 0, 250, 750, 1250, 1750, 2250, 2750, 3500, 4500, 6000, 8000, 10000,
+  ;    12000, 14500, 16000, 18000 ;
+    resb@tmXBLabels              = ncol_labels_t
+    resb@tmXBLabelFontHeightF    = 0.015            ; Make font a little smaller
+  
+  ; Explicitly label Y axis.
+    resb@tmYLMode                = "Explicit"
+    resb@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
+    resb@tmYLLabels              = nrow_labels
+    resb@tmXBMode                = "Explicit"
+    resb@tmXBLabels              = ncol_labels_b
+    resb@tiYAxisString           = "km"
+    resb@tiXAxisString           = "Tau "
+  ;
+    resb@tmYLLabelFontHeightF    = 0.015            ; Make font a little smaller
+  
+  ; Rotate the X axis labels 90 degrees.
+    ;resb@tmXBLabelAngleF         = 90.
+    resb@tmXBLabelJust           = "CenterRight"
+  
+  ; Turn off right and top tickmarks
+    resb@tmYROn                  = False
+    resb@tmXTOn                  = False
+  
+    resb@tiMainString            = titleLeft
+    
+    blank = gsn_csm_blank_plot(wks,resb)
+  ;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
+    draw(blank)                                 ; Draw tickmarks and labelbar
+  ;
+  ; Get position and size of the blank plot so we can
+  ; be sure to draw the table in same location.
+    getvalues blank
+      "vpXF"      : vpx
+      "vpYF"      : vpy
+      "vpWidthF"  : vpw
+      "vpHeightF" : vph
+    end getvalues
+  
+  ; Start and end coordinates for table.
+    x = (/vpx,vpx+vpw/)
+    y = (/vpy-vph,vpy/)
+  
+  ; Set up resources for table
+    rest               = True
+    rest@tiXAxisString    = xtitle
+    ;rest@tiYAxisString    = ytitle
+    rest@gsLineColor   = -1                ; No border lines
+    rest@gsFillColor   = cols_for_vals     ; Each cell of table
+    rest@txFontColor   = cols_for_txt
+  
+    rest@txFontHeightF = 0.015             ; Size of centered text
+  
+    gsn_table(wks,ncr_flip,x,y,text_values,rest)    ; Draw table
+  
+  ;;;-----------------------------------------------------------------------------
+  ; upper table
+  ;;;-----------------------------------------------------------------------------
+  
+    resb@vpYF                    = 0.95
+    resb@vpXF                    = 0.13
+    resb@vpHeightF               = 0.4 ; 0.85
+    resb@vpWidthF                = 0.35 ; 0.75
+  
+    resb@tiYAxisString           = "km"
+    resb@tiXAxisString           = ""
+  
+  ;; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
+     nrow_st_labels=(/" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "/)
+  ;
+  ;; Explicitly label Y axis.
+    resb@tmYLMode                = "Explicit"
+  ;  resb@tmXBLabels              = ncol_labels_b
+  
+    resb@tiMainString            = titleRight
+  
+    blank = gsn_csm_blank_plot(wks,resb)
+  ;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
+    draw(blank)                                 ; Draw tickmarks and labelbar
+  ;
+    getvalues blank
+      "vpXF"      : vpx
+      "vpYF"      : vpy
+      "vpWidthF"  : vpw
+      "vpHeightF" : vph
+    end getvalues
+  
+    x = (/vpx,vpx+vpw/)
+    y = (/vpy-vph,vpy/)
+  
+;  ; Set up resources for table
+    rest               = True
+    ;rest@tiXAxisString    = xtitle
+    ;rest@tiYAxisString    = ytitle
+    rest@gsLineColor   = -1                ; No border lines
+    rest@gsFillColor   = obs_cols_for_vals     ; Each cell of table
+    rest@txFontColor   = obs_cols_for_txt
+  
+;    rest@txFontHeightF = 0.015             ; Size of centered text
+  
+    gsn_table(wks,ncr_flip,x,y,text_obs_values,rest)    ; Draw table
+;------
+end if
+if (plot_cfvheight) then
+;else  ; plot profiles instead of the full cloud table
+;------
+  wks = gsn_open_wks("eps","lostplot")
+  plot = new(1,graphic)
 
-; Start and end coordinates for table.
-  x = (/vpx,vpx+vpw/)
-  y = (/vpy-vph,vpy/)
+  if (plot_cfvheight) then
+    xtitle = "Cloud Fraction (%)"
+    ytitle = "height (km)"
+  else
+    xtitle = "Cloud Optical Depth (tau)"
+    ytitle = "Cloud Fraction (%)"
+  end if
 
-; Set up resources for table
-  rest               = True
-  rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
-  rest@gsLineColor   = -1                ; No border lines
-  rest@gsFillColor   = cols_for_vals     ; Each cell of table
-  rest@txFontColor   = cols_for_txt
+  res                   = True
+  res@tiMainString      = titleProf
+  res@gsnDraw           = False
+  res@gsnFrame          = False
+  res@tmYROn            = False
+  res@tmXTOn            = False
+  res@tmYRBorderOn      = False
+  res@tmXTBorderOn      = False
+  res@tiXAxisString     = xtitle
+  res@tiYAxisString     = ytitle
+  res@vpWidthF          = 0.45
+  res@vpHeightF         = 0.45
+  res@xyLineThicknessF  = 2.0
+  if (plot_cfvheight) then
+    res@trXMinF           = 0.0
+    res@trXMaxF           = 15.0
+  else
+    res@trYMinF           = 0.0
+    res@trYMaxF           = 20.0
+  end if
 
-  rest@txFontHeightF = 0.015             ; Size of centered text
+  ; plot profiles of cloud fraction as function of height or optical depth
+  ; blabichra and mij 
+  ;
+  ; archibald and jim
+    print("blab: "+dimsizes(vaxis1))
+    print("blabichra: "+dimsizes(blabichra))
+    print("archibald: "+dimsizes(mij))
+    print("mij: "+dimsizes(vaxis2))
+    print("jim: "+dimsizes(jim))
 
-  gsn_table(wks,ncr_flip,x,y,text_values,rest)    ; Draw table
-
-;;;-----------------------------------------------------------------------------
-; upper table
-;;;-----------------------------------------------------------------------------
-
-  resb@vpYF                    = 0.95
-  resb@vpXF                    = 0.13
-  resb@vpHeightF               = 0.4 ; 0.85
-  resb@vpWidthF                = 0.35 ; 0.75
-
-  ;;resb@vpYF                    = 0.92  ; specifies the location of top edge of view object
-  ;resb@vpYF                    = 0.48  ; specifies the location of top edge of view object
-  ;;resb@vpXF                    = 0.55  ; specifies the location of the left edge of view object
-  ;resb@vpXF                    = 0.13  ; specifies the location of the left edge of view object
-  ;resb@vpHeightF               = 0.4 ; 0.85
-  ;resb@vpWidthF                = 0.35 ; 0.75
-  resb@tiYAxisString           = "km"
-  resb@tiXAxisString           = ""
-
-;; Explicitly label X axis. The blank plot goes from 0 to 1, by default.
-   nrow_st_labels=(/" "," "," "," "," "," "," "," "," "," "," "," "," "," "," "/)
-;
-;; Explicitly label Y axis.
-  resb@tmYLMode                = "Explicit"
-;  resb@tmXBLabels              = ncol_labels_b
-
-; Main title
-  resb@tiMainString            = titleRight
-
-  blank = gsn_csm_blank_plot(wks,resb)
-;  add_labelbar(wks,blank,colors(2:),labels)   ; Attach labelbar
-  draw(blank)                                 ; Draw tickmarks and labelbar
-;
-  getvalues blank
-    "vpXF"      : vpx
-    "vpYF"      : vpy
-    "vpWidthF"  : vpw
-    "vpHeightF" : vph
-  end getvalues
-
-  x = (/vpx,vpx+vpw/)
-  y = (/vpy-vph,vpy/)
-
-; Set up resources for table
-  rest               = True
-  ;rest@tiXAxisString    = xtitle
-  ;rest@tiYAxisString    = ytitle
-  rest@gsLineColor   = -1                ; No border lines
-  rest@gsFillColor   = obs_cols_for_vals     ; Each cell of table
-  rest@txFontColor   = obs_cols_for_txt
-
-  rest@txFontHeightF = 0.015             ; Size of centered text
-
-  gsn_table(wks,ncr_flip,x,y,text_obs_values,rest)    ; Draw table
+  if (plot_cfvheight) then
+    res@xyDashPattern = 16 
+    plot_am4  = gsn_csm_xy(wks,blabichra(:),vaxis1(:)/1000,res)
+    res@xyDashPattern = 0
+    plot_obs  = gsn_csm_xy(wks,mij(:),vaxis1(:)/1000,res)
+  else 
+    ;res@tmYLValues              = fspan(row_width,1.-row_width,nrows-1)
+    ;res@tmYLLabels              = nrow_labels
+    res@tmXBMode                = "Explicit"
+    res@trXMinF           = 0.0
+    res@trXMaxF           = 7.0
+    res@tmXBValues              = (/0.0,1.0,2.0,3.0,4.0,5.0,6.0/)
+    ;res@tmXBLabels              = (/0.0,0.3,1.3,3.6,9.4,23,60/)
+    res@tmXBLabels              = (/0.15,0.8,2.45,6.5,16.2,41.5,100/)
+    ;ncol_labels_b=(/"0.3","1.3","3.6","9.4","23","60"," "/)
+    res@xyDashPattern = 16 
+    plot_am4  = gsn_csm_xy(wks,vaxis2(:,0),archibald(:),res)
+    res@xyDashPattern = 0
+    plot_obs  = gsn_csm_xy(wks,vaxis2(:,0),jim(:),res)
+  end if
+  overlay(plot_am4,plot_obs)
+  plot       = plot_am4
+  respanel   = True
+  gsn_panel(wks,plot,(/1,1/),respanel)
+end if 
 
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; block of code to plot maps
 ; DO NOT DELETE!!!
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
-;if(plot_map) then
-;; test plotting...
-;  t_a    = dim_sum_n_Wrap(t_full,0)
-;  t      = dim_sum_n_Wrap(t_a,0)
-;
-;  my_levels1 = (/6,12,18,24,30,36,42,48,54,60/) ; 10
-;  my_levels1 = (/5,10,20,30,40,50,60,70,80,90/) ; 10
-;  my_colors = (/30,37,44,51,58,65,72,79,86,93,100/) ; 11
-;
-;  wks = gsn_open_wks("eps","testplot")          ; send graphics to ps file
-;  ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
-;  ;gsn_define_colormap(wks,"WhBlGrYeRe")
-;  gsn_define_colormap(wks,"MPL_YlGnBu")
-;
-;  res                   = True
-;  ;res@mpProjection      = "Mollweide"       ; choose projection
-;  res@mpProjection      = "Robinson"       ; choose projection
-;  res@mpGridAndLimbOn   = True              ; turn on lat/lon lines
-;  res@mpPerimOn         = False             ; turn off box around plot
-;  res@mpGridLatSpacingF = 30.               ; spacing for lat lines
-;  res@mpGridLonSpacingF = 30.               ; spacing for lon lines
-;  res@mpFillOn          = False
-;
-;; these commands turn off/on the varname and units at top of image
-;  res@gsnLeftString = ""
-;  res@gsnRightString = ""
-;
-;  res@cnFillOn          = True              ; color plot desired
-;;  res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
-;  res@cnLineLabelsOn    = False             ; turn off contour lines
-;  res@cnLevelSelectionMode  = "ExplicitLevels"
-;  res@cnLevels          = my_levels1
-;  res@cnLinesOn         = False
-;  res@cnFillColors      = my_colors
-;  res@txFontHeightF     = 0.015
-;
-;  res@vpXF            = 0.1                 ; make plot bigger
-;  res@vpYF            = 0.9
-;  res@vpWidthF        = 0.8
-;  res@vpHeightF       = 0.8
-;
-;  res@lbLabelFontHeightF  = 0.015           ; label bar font height
-;
-;  res@tiMainString       = "maintitle"  ; add a title
-;  res@tiMainFontHeightF  = .018                               ; font height
-;
-;  contour = gsn_csm_contour_map(wks,t,res)  ; create the plot
-;end if
+if(plot_map) then
+; test plotting...
+  t_a    = dim_sum_n_Wrap(t_full,0)  
+  t_b      = dim_sum_n_Wrap(t_a,0)
+
+  my_levels1 = (/6,12,18,24,30,36,42,48,54,60/) ; 10
+  my_levels1 = (/5,10,20,30,40,50,60,70,80,90/) ; 10
+  my_colors = (/30,37,44,51,58,65,72,79,86,93,100/) ; 11
+
+  wks = gsn_open_wks("eps","testmap")          ; send graphics to ps file
+  ;wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
+  ;gsn_define_colormap(wks,"WhBlGrYeRe")
+  gsn_define_colormap(wks,"MPL_YlGnBu")
+
+  resmap                   = True
+  ;resmap@mpProjection      = "Mollweide"       ; choose projection
+  resmap@mpProjection      = "Robinson"       ; choose projection
+  resmap@mpGridAndLimbOn   = True              ; turn on lat/lon lines
+  resmap@mpPerimOn         = False             ; turn off box around plot
+  resmap@mpGridLatSpacingF = 30.               ; spacing for lat lines
+  resmap@mpGridLonSpacingF = 30.               ; spacing for lon lines
+  resmap@mpFillOn          = False
+
+; these commands turn off/on the varname and units at top of image
+  resmap@gsnLeftString = ""
+  resmap@gsnRightString = ""
+
+  resmap@cnFillOn          = True              ; color plot desired
+;  resmap@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
+  resmap@cnLineLabelsOn    = False             ; turn off contour lines
+  resmap@cnLevelSelectionMode  = "ExplicitLevels"
+  resmap@cnLevels          = my_levels1
+  resmap@cnLinesOn         = False
+  resmap@cnFillColors      = my_colors
+  resmap@txFontHeightF     = 0.015
+
+  resmap@vpXF            = 0.1                 ; make plot bigger
+  resmap@vpYF            = 0.9
+  resmap@vpWidthF        = 0.8
+  resmap@vpHeightF       = 0.8
+
+  resmap@lbLabelFontHeightF  = 0.015           ; label bar font height
+
+  resmap@tiMainString       = "maintitle"  ; add a title
+  resmap@tiMainFontHeightF  = .018                               ; font height
+
+  contour = gsn_csm_contour_map(wks,t_b,resmap)  ; create the plot
+end if
+
+
 ;
 end
 ;
