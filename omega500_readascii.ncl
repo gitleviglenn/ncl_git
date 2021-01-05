@@ -1,0 +1,94 @@
+;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+; read in ascii files from the driver script on casper
+; 
+; this script should read in data from ascii files that describe pdf's of omega500 from various RCEMIP models at a particular temperature.  Then a figure should be made with each of the pdfs plotted. 
+;
+; levi silvers                                                 jan 2021
+;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+
+load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
+load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
+
+begin
+
+array01=asciiread("arrayout_CAM5.txt",(/2,52/),"float")
+array02=asciiread("arrayout_CAM6.txt",(/2,52/),"float")
+array03=asciiread("arrayout_SPCAM.txt",(/2,52/),"float")
+;array04=asciiread("arrayout_ECHAM.txt",(/2,52/),"float")
+;array05=asciiread("arrayout_ICON.txt",(/2,52/),"float")
+array06=asciiread("arrayout_SPXCAM.txt",(/2,52/),"float")
+array07=asciiread("arrayout_SAMUNICON.txt",(/2,52/),"float")
+;array08=asciiread("arrayout_UKMO.txt",(/2,52/),"float")
+
+  print("************DISTORTION**********************")
+  print("dimensions of array are : "+dimsizes(array01))
+  print("values of array from CAM5 are: "+array01)
+  print("************DISTORTION**********************")
+
+colors = (/"chocolate2","aquamarine3","chartreuse3","cyan3","coral3","darkolivegreen4","cornsilk4","palegreen3","paleturquoise3","palevioletred3"/)
+;*************************************************************
+; plot the pdf
+;-------------------------------------------------------------
+plot = new(1,"graphic")
+
+;
+wks = gsn_open_wks("eps","testplot")
+
+res                    = True
+res@gsnDraw            = False
+res@gsnFrame           = False
+res@xyLineThicknessF   = 5.
+res@tiYAxisString      = "PDF (%)"
+res@tiXAxisString      = "circulation regime (hPa/d)"
+
+res@trXMinF = -150.0
+res@trXMaxF = 50.0
+res@trYMinF = 0.0
+res@trYMaxF = 20.0
+
+;  printVarSummary(pdf_a)
+;  print("pdf_a values are: "+pdf_a)
+;  print("sum of pdf_a? is: "+sum(pdf_a))
+;  print("sum of pdf_a bin_center values is: "+sum(pdf_a@bin_center))
+;  print("sum of pdf_b? is: "+sum(pdf_b))
+;  print("sum of pdf_b? is: "+sum(pdf_c))
+;
+;res@gsnCenterString    = "default bins"
+res@xyLineColors = colors(0)
+res@xyDashPattern =  0
+res@xyLineThicknessF = 2.
+plot0_a    =  gsn_csm_xy (wks,array01(1,:), array01(0,:), res)
+res@xyLineColors = colors(1)
+;;;res@xyDashPattern =  3
+;res@xyLineThicknessF = 4.
+plot0_b    =  gsn_csm_xy (wks,array02(1,:), array02(0,:), res)
+res@xyLineColors = colors(2)
+;;;res@xyDashPattern =  16
+;;res@xyLineThicknessF = 6.
+plot0_c    =  gsn_csm_xy (wks,array03(1,:), array03(0,:), res)
+;res@xyLineColors = colors(3)
+;plot0_d    =  gsn_csm_xy (wks,array04(1,:), array04(0,:), res)
+;res@xyLineColors = colors(4)
+;plot0_e    =  gsn_csm_xy (wks,array05(1,:), array05(0,:), res)
+res@xyLineColors = colors(5)
+plot0_f    =  gsn_csm_xy (wks,array06(1,:), array06(0,:), res)
+res@xyLineColors = colors(6)
+plot0_g    =  gsn_csm_xy (wks,array07(1,:), array07(0,:), res)
+;res@xyLineColors = colors(7)
+;plot0_h    =  gsn_csm_xy (wks,array08(1,:), array09(0,:), res)
+
+overlay(plot0_a,plot0_b)
+overlay(plot0_a,plot0_c)
+;overlay(plot0_a,plot0_d)
+;overlay(plot0_a,plot0_e)
+overlay(plot0_a,plot0_f)
+overlay(plot0_a,plot0_g)
+;overlay(plot0_a,plot0_h)
+plot(0)=plot0_a
+
+;
+resP    = True
+resP@gsnPanelMainString  = "test multimodel PDFs.."
+gsn_panel(wks,plot,(/1,1/),resP)
+
+end
