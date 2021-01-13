@@ -12,13 +12,13 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-array01=asciiread("out_295_CAM5.txt",(/30,9/),"float")
-array02=asciiread("out_300_CAM5.txt",(/30,9/),"float")
-array03=asciiread("out_305_CAM5.txt",(/30,9/),"float")
+array01=asciiread("out_295_CAM5.txt",(/30,10/),"float")
+array02=asciiread("out_300_CAM5.txt",(/30,10/),"float")
+array03=asciiread("out_305_CAM5.txt",(/30,10/),"float")
 
-array1=asciiread("out_295_CAM6.txt",(/31,9/),"float")
-array2=asciiread("out_300_CAM6.txt",(/31,9/),"float")
-array3=asciiread("out_305_CAM6.txt",(/31,9/),"float")
+array1=asciiread("out_295_CAM6.txt",(/31,10/),"float")
+array2=asciiread("out_300_CAM6.txt",(/31,10/),"float")
+array3=asciiread("out_305_CAM6.txt",(/31,10/),"float")
 
 ;  printVarSummary(array1)
 ; gamma_a; gamma_m; sbycp; sigma; hur_tmn; lev_a
@@ -74,6 +74,12 @@ ddiv_a3=array03(0:29,8)
 ddiv_b1=array1(0:30,8)
 ddiv_b2=array2(0:30,8)
 ddiv_b3=array3(0:30,8)
+thetae_a1=array01(0:29,9)
+thetae_a2=array02(0:29,9)
+thetae_a3=array03(0:29,9)
+thetae_b1=array1(0:30,9)
+thetae_b2=array2(0:30,9)
+thetae_b3=array3(0:30,9)
 
 tntr_a1=rlcs_a1+rscs_a1
 tntr_a2=rlcs_a2+rscs_a2
@@ -92,13 +98,16 @@ scale       = 1. ; convert static stability to K/100hPa
 scale_gamm  = 1000.  ; convert gamma to K/km
 scalep      = 0.01   ; convert to hPa
 
+  print("values of the a1 equivalent potential temp are: "+thetae_a1)
+  print("values of the a2 equivalent potential temp are: "+thetae_a2)
+
   print("values to plot are: "+scale*array01(0:29,0)+" and hur: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
   print("dimensions are: "+dimsizes(gamma_a1)+" and also: "+dimsizes(vaxis1a))
   print("values of rlcs_a1 are: "+rlcs_a1(0:29)+" and rscs_a: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
 
 ; set the upper and lower levels to plot with the y-axis: 
 ytop = 100
-ybot = 450 ; often this is set to 1000.
+ybot = 1000 ;450 ; often this is set to 1000.
 
 ;============================================
 wks=gsn_open_wks("eps","testplot")
