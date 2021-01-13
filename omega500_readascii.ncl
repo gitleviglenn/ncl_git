@@ -11,14 +11,24 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-array01=asciiread("arrayout_CAM5.txt",(/2,52/),"float")
-array02=asciiread("arrayout_CAM6.txt",(/2,52/),"float")
-array03=asciiread("arrayout_SPCAM.txt",(/2,52/),"float")
-;array04=asciiread("arrayout_ECHAM.txt",(/2,52/),"float")
-;array05=asciiread("arrayout_ICON.txt",(/2,52/),"float")
-array06=asciiread("arrayout_SPXCAM.txt",(/2,52/),"float")
-array07=asciiread("arrayout_SAMUNICON.txt",(/2,52/),"float")
-;array08=asciiread("arrayout_UKMO.txt",(/2,52/),"float")
+;  numbins+4?
+binnum=48
+longdim=binnum+4
+
+array01=asciiread("arrayout_CAM5.txt",(/2,longdim/),"float")
+array02=asciiread("arrayout_CAM6.txt",(/2,longdim/),"float")
+array03=asciiread("arrayout_SPCAM.txt",(/2,longdim/),"float")
+array04=asciiread("arrayout_ECHAM.txt",(/2,longdim/),"float")
+;array05=asciiread("arrayout_ICON.txt",(/2,longdim/),"float")
+array06=asciiread("arrayout_SPXCAM.txt",(/2,longdim/),"float")
+array07=asciiread("arrayout_SAMUNICON.txt",(/2,longdim/),"float")
+;array08=asciiread("arrayout_UKMO.txt",(/2,longdim/),"float")
+array09=asciiread("arrayout_CNRM.txt",(/2,longdim/),"float")
+array10=asciiread("arrayout_GEOS.txt",(/2,longdim/),"float")
+; IPSL
+; ICON has corrupted latitudes
+; UKMO looks wrong...
+
 
   print("************DISTORTION**********************")
   print("dimensions of array are : "+dimsizes(array01))
@@ -56,18 +66,15 @@ res@trYMaxF = 20.0
 ;res@gsnCenterString    = "default bins"
 res@xyLineColors = colors(0)
 res@xyDashPattern =  0
-res@xyLineThicknessF = 2.
+res@xyLineThicknessF = 4.
 plot0_a    =  gsn_csm_xy (wks,array01(1,:), array01(0,:), res)
 res@xyLineColors = colors(1)
-;;;res@xyDashPattern =  3
 ;res@xyLineThicknessF = 4.
 plot0_b    =  gsn_csm_xy (wks,array02(1,:), array02(0,:), res)
 res@xyLineColors = colors(2)
-;;;res@xyDashPattern =  16
-;;res@xyLineThicknessF = 6.
 plot0_c    =  gsn_csm_xy (wks,array03(1,:), array03(0,:), res)
-;res@xyLineColors = colors(3)
-;plot0_d    =  gsn_csm_xy (wks,array04(1,:), array04(0,:), res)
+res@xyLineColors = colors(3)
+plot0_d    =  gsn_csm_xy (wks,array04(1,:), array04(0,:), res)
 ;res@xyLineColors = colors(4)
 ;plot0_e    =  gsn_csm_xy (wks,array05(1,:), array05(0,:), res)
 res@xyLineColors = colors(5)
@@ -76,19 +83,25 @@ res@xyLineColors = colors(6)
 plot0_g    =  gsn_csm_xy (wks,array07(1,:), array07(0,:), res)
 ;res@xyLineColors = colors(7)
 ;plot0_h    =  gsn_csm_xy (wks,array08(1,:), array09(0,:), res)
+res@xyLineColors = colors(8)
+plot0_i    =  gsn_csm_xy (wks,array09(1,:), array09(0,:), res)
+res@xyLineColors = colors(9)
+plot0_j    =  gsn_csm_xy (wks,array10(1,:), array10(0,:), res)
 
 overlay(plot0_a,plot0_b)
 overlay(plot0_a,plot0_c)
-;overlay(plot0_a,plot0_d)
+overlay(plot0_a,plot0_d)
 ;overlay(plot0_a,plot0_e)
 overlay(plot0_a,plot0_f)
 overlay(plot0_a,plot0_g)
 ;overlay(plot0_a,plot0_h)
+overlay(plot0_a,plot0_i)
+overlay(plot0_a,plot0_j)
 plot(0)=plot0_a
 
 ;
 resP    = True
-resP@gsnPanelMainString  = "test multimodel PDFs.."
+resP@gsnPanelMainString  = "omega 500 from RCE 300K"
 gsn_panel(wks,plot,(/1,1/),resP)
 
 end
