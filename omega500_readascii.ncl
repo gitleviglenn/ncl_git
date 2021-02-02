@@ -12,7 +12,15 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 begin
 
 ;  numbins+4?
-binnum=48
+;binnum=48
+if (isvar("numberOfbins")) then
+  binnum=numberOfbins ; number of bins used with pdfx ncl function
+  print("number of bins is:  "+binnum)
+else
+  binnum=24
+  print("number of bins is:  "+binnum)
+end if
+
 longdim=binnum+4
 
 array01=asciiread("arrayout_CAM5.txt",(/2,longdim/),"float")

@@ -212,9 +212,9 @@ down_plu_up=omega_dn+omega_up
   print("omega down for 300K: "+omega_dn(1))
   print("Circulation Strength: omega down minus omega up")
   print(down_min_up)
-  print("Circulation Strength: omega down plus omega up")
-  print(down_plu_up)
-  print("!@#$%@%^@#%$")
+;  print("Circulation Strength: omega down plus omega up")
+;  print(down_plu_up)
+;  print("!@#$%@%^@#%$")
 
 
 end

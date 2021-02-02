@@ -28,6 +28,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
+  print("scumstash is right.")
 ;-----------------
 ; time parameters
 ; initially look at 5 day chunks
@@ -36,7 +37,7 @@ if (isvar("chunkdays")) then
 else
   ndays=5
 end if
-print("number of days in each averaging chunks is: "+ndays)
+  print("number of days in each averaging chunks is: "+ndays)
 
 if (isvar("datafreq")) then
   freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
@@ -97,8 +98,10 @@ path_C6="CAM6_GCM/"
 ;*************************************************************
 ; read variables
 ;---------------------------------------------------------
-if (isvar("CAMGCM")) then
+numygp=127
+numxgp=1983
 
+if (isvar("CAMGCM")) then
   whichCAM=CAMGCM
   if (CAMGCM .lt. 6) then
     file_omega_5=path_cheyenne+path_C5+"RCE_large"+seaST+"/2D/CAM5_GCM_RCE_large"+seaST+"_2D_wap500.nc"
@@ -113,7 +116,7 @@ if (isvar("CAMGCM")) then
     wvar_a=fc6->wap500(startime:endtime,:,:)
       print("incoming file should be CAM: "+file_omega_6)
   end if
-else if (CRM .lt. 0) ; case for GCM data that is not from CAM5 or CAM6
+else if (CRM .lt. 1) ; case for GCM data that is not from CAM5 or CAM6
   ; for SST = 295K
   filen_test=model+"_RCE_large"+seaST+"_2D_"+varname+".nc"
   file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
@@ -132,20 +135,49 @@ else ; case for CRM data
   filen_test=model+"_RCE_large"+seaST+"_2D_"+varname+".nc"
   file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
   fin=addfile(file_testmodel,"r")
-  wvar_a=fin->wa500(startime:endtime,:,:)
     print("incoming file: "+file_testmodel)
-    printVarSummary(wvar_a)
-  y_orig=fin->y(:)
-  x_orig=fin->x(:)
-end if
-end if
+  ;if (isvar("extradim")) then
+  ;  wvar_a=fin->wa500(startime:endtime,:,0:numxgp,0:numygp)  ; ICON LEM has a spurious height dimension that adds one more dim here.
+  if (isvar("flippeddim")) then  ; ICON LEM
+    wvar_a=fin->wa500(startime:endtime,0:numxgp,0:numygp)  
+    y_orig=fin->y(0:numxgp)
+    x_orig=fin->x(0:numygp)
+  else ; below should be the default reading, which works for SAM
+    wvar_a=fin->wa500(startime:endtime,0:numygp,0:numxgp)  
+    y_orig=fin->y(0:numygp)
+    x_orig=fin->x(:numxgp)
+  end if
+  ;wvar_a=fin->wa500(startime:endtime,0:numygp,0:numxgp)  
+  ; ICON-LEM should have a horizontal grid that is 2000x134 grid points with a grid-spacing of 3km.
+  ;  print("incoming file: "+file_testmodel)
+  ;  printVarSummary(wvar_a)
+  ;y_orig=fin->lat(:)
+  ;x_orig=fin->lon(:)
+  ;y_orig=fin->y(:)
+  ;x_orig=fin->x(:)
 
-y_new=fspan(0,288000,4)
-x_new=fspan(0,6048000,64)
+  ; for SAM
+  ;y_new=fspan(0,288000,4)
+  ;x_new=fspan(0,6048000,64)
+  ; for ICON-LEM
+  ;y_new=fspan(0,288000,4)
+  ;x_new=fspan(0,5856000,62)
+  ; would this work?
+  if (isvar("flippeddim")) then  ; ICON LEM
+    x_new=fspan(0,384000,5)
+    y_new=fspan(0,5952000,63)
+  else                           ; SAM
+    y_new=fspan(0,384000,5)
+    x_new=fspan(0,5952000,63)
+  end if
 
   print("original y array is: "+y_orig)
   print("new y array is: "+y_new)
   print("new x array is: "+x_new)
+
+end if
+end if
+
 wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 ;*************************************************************
@@ -206,29 +238,45 @@ if (isvar("RCE_GCM"))
     print("interpolation finished")
     printVarSummary(intvar_out)
 else
+  ; for SAM
+  ;y_new=fspan(0,288000,4)
+  ;x_new=fspan(0,6048000,64)
+  ; for ICON-LEM
+  ;y_new=fspan(0,288000,4)
+  ;x_new=fspan(0,5856000,62)
+  ; would this work?
+  if (isvar("flippeddim")) then  ; ICON LEM
+    x_new=fspan(0,384000,5)
+    y_new=fspan(0,5952000,63)
+  else                           ; SAM
+    y_new=fspan(0,384000,5)
+    x_new=fspan(0,5952000,63)
+  end if
+    print("original y array is: "+y_orig)
+    print("new y array is: "+y_new)
+    print("new x array is: "+x_new)
   var_to_interpolate=wvar_a ; incoming CRM data
-;  ; need to have arrays to interpolate to that will range either from 0:3 or 0:384 and 
-;  ; 0:64 or 0:6144
+  ; var_to_interpolate must have y,x as its two rightmost dimensions...
   juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,False)
-;  intvar_out=wvar_a ; incoming CRM data
   intvar_out=juljack
 end if  ; end interpolation loop
 
-;printVarSummary(juljack)
 ;*************************************************************
-; parse out the ascending and descending regions
+; parse out the ascending and descending regions and comp SF
 ;-------------------------------------------------------------
 
 omega_u_a      =where((intvar_out .le. 0),intvar_out,intvar_out@_FillValue)
 omega_u_a_frac =where((intvar_out .le. 0),1.0,0.0)
 omega_d_a      =where((intvar_out .ge. 0),intvar_out,intvar_out@_FillValue)
 omega_d_a_frac =where((intvar_out .ge. 0),1.0,0.0)
+
 omega_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
- printVarSummary(omega_u_a)
- dim_om=dimsizes(omega_u_a)
- print("first dimension of omega_u_a: "+dim_om(1))
- print("second dimension of omega_u_a: "+dim_om(2))
+
+  printVarSummary(omega_u_a)
+dim_om=dimsizes(omega_u_a)
+  print("first dimension of omega_u_a: "+dim_om(1))
+  print("second dimension of omega_u_a: "+dim_om(2))
 total_area=dim_om(1)*dim_om(2)
 ;omega_temp =new((/1,nlat,nlon/),float)
 sfrac      =new((/dim_om(0)/),float)
@@ -242,7 +290,7 @@ do tt=0,dim_om(0)-1
   sfrac(tt)=sum(omega_temp3)/total_area
 end do
 ;sfrac=sum(omega_u_a_frac)/total_area
-  print("poor mans subs frac at 1 timestep is: "+sfrac(100)+" and fraction of ascending air is: "+sfrac_up(100))
+  print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" and fraction of ascending air is: "+sfrac_up(10))
 
 ;*************************************************************
 ; compute cosine weighting
@@ -278,9 +326,13 @@ w_dn=intvar_d_ave*sfrac
 av_up = dim_avg_n(intvar_u_ave,0)
 av_dn = dim_avg_n(intvar_d_ave,0)
 
+wav_up = dim_avg_n(w_up,0)
+wav_dn = dim_avg_n(w_dn,0)
+
 ;  print(down_min_up)   ; this is the circulation intensity
   print("av_dn is equal to: "+av_dn)
-  print("weighted av_dn at 1 time is equal to: "+w_dn(100)+" and weighted av_up is equal to: "+w_up(100))
+  print("weighted av_dn at 1 time is equal to: "+w_dn(10)+" and weighted av_up is equal to: "+w_up(10))
+  print("ave weighted wav_dn is equal to: "+wav_dn+" and weighted wav_up is equal to: "+wav_up)
   print("av_up is equal to: "+av_up)
  ; print("av_dn2 is equal to: "+av_dn2)
  ; print("av_up2 is equal to: "+av_up2)
@@ -288,9 +340,10 @@ circulation_int = -av_dn-av_up
   print("is the circulation intensity at "+seaST+" equal to: "+circulation_int+"?")
 
 ;*************************************************************
-; plot the pdf
-;-------------------------------------------------------------
-plot = new(1,"graphic")
+; first reshape the time dimension, then compute the pdf
+;
+; almost certainly, the omega parameters should be computed 
+; using the same array as the pdf is calculated with...
 
 if (CRM .lt. 1)
   ; cosine weighted
@@ -298,19 +351,25 @@ if (CRM .lt. 1)
   a_reshape=reshape(intvar_out,(/timewindow,numperiods,180,360/))
   a_reshape_tmn=dim_avg_n(a_reshape,0)
 else
-  xdim=64
-  ydim=4 
-  a_reshape=new((/timewindow,numperiods,ydim,xdim/),float)
-  a_reshape=reshape(intvar_out,(/timewindow,numperiods,ydim,xdim/))
+  xdim=63
+  ydim=5 
+  if (isvar("flippeddim")) then  ; ICON LEM  has the long and short dims of the channel reversed from SAM...
+    a_reshape=new((/timewindow,numperiods,xdim,ydim/),float)
+    a_reshape=reshape(intvar_out,(/timewindow,numperiods,xdim,ydim/))
+  else ; SAM
+    a_reshape=new((/timewindow,numperiods,ydim,xdim/),float)
+    a_reshape=reshape(intvar_out,(/timewindow,numperiods,ydim,xdim/))
+  end if
   a_reshape_tmn=dim_avg_n(a_reshape,0)
 end if
 
 ;; not cosine weighted
-;b_reshape=new((/timewindow,numperiods,nlat,nlon/),float)
-;b_reshape=reshape(wvar_a,(/timewindow,numperiods,nlat,nlon/))
 ;a_reshape_tmn=dim_avg_n(a_reshape,0)
 
 numbins =  24; originally 48 
+
+; should we compute the pdf of the time averaged data 
+; or should we compute the time average of the pdfs? 
 
 opt = True
 opt@bin_min=-120
@@ -318,7 +377,12 @@ opt@bin_max=120
 ;opt@bin_spacing=5
 opt@bin_spacing=10
 pdf_a=pdfx(a_reshape_tmn,numbins,opt)
-;pdf_b=pdfx(b_reshape_tmn,numbins,opt)
+
+;new_pdf   =new((/dim_om(0)/),float)
+;do tt=0,dim_om(0)-1
+;  omega_temp3=omega_d_a_frac(tt,:,:)
+;  sfrac(tt)=sum(omega_temp3)/total_area
+;end do
 
 ;  print("mean of -omega for 295K is: "+avg(pdf_a(0:21)))
 ;  print("mean of omega for 295K is: "+avg(pdf_a(22:41)))
@@ -335,11 +399,15 @@ binsb2=numbins/2
 ;  omegaup(i)=pdf_a@bin_center(i)*pdf_a(i)
 ;  omegadn(i)=pdf_a@bin_center(i+binsb2)*pdf_a(i+binsb2)
 ;end do
-;
 ;;omegaup/sum(pdf_a@bin_center)
-;
 ;omegaupbar=sum(omegaup)/sum(pdf_a@bin_center)
 ;omegadnbar=sum(omegadn)/sum(pdf_a@bin_center)
+
+;*************************************************************
+; plot the pdf
+;-------------------------------------------------------------
+plot = new(1,"graphic")
+
 
 colors = (/"chocolate2","aquamarine3"/)
 ;
