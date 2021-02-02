@@ -69,12 +69,12 @@ rh_a3=hur_a3(15:29)
 rh_b1=hur_b1(15:29)
 rh_b2=hur_b2(15:29)
 rh_b3=hur_b3(15:29)
-print("max and min of RH c5 at 295 are: "+ max(rh_a1)+"/"+min(rh_a1))
-print("max and min of RH c5 at 300 are: "+ max(rh_a2)+"/"+min(rh_a2))
-print("max and min of RH c5 at 305 are: "+ max(rh_a3)+"/"+min(rh_a3))
-print("max and min of RH c6 at 295 are: "+ max(rh_b1)+"/"+min(rh_b1))
-print("max and min of RH c6 at 300 are: "+ max(rh_b2)+"/"+min(rh_b2))
-print("max and min of RH c6 at 305 are: "+ max(rh_b3)+"/"+min(rh_b3))
+;print("max and min of RH c5 at 295 are: "+ max(rh_a1)+"/"+min(rh_a1))
+;print("max and min of RH c5 at 300 are: "+ max(rh_a2)+"/"+min(rh_a2))
+;print("max and min of RH c5 at 305 are: "+ max(rh_a3)+"/"+min(rh_a3))
+;print("max and min of RH c6 at 295 are: "+ max(rh_b1)+"/"+min(rh_b1))
+;print("max and min of RH c6 at 300 are: "+ max(rh_b2)+"/"+min(rh_b2))
+;print("max and min of RH c6 at 305 are: "+ max(rh_b3)+"/"+min(rh_b3))
 sigma_a1=array01(0:29,3)
 sigma_a2=array02(0:29,3)
 sigma_a3=array03(0:29,3)
@@ -127,11 +127,7 @@ end do
 do i=0,30
   print("C6 diabatic pressure velocities: "+omega_d_b1(i)+": "+omega_d_b2(i)+": "+omega_d_b3(i)+" thetae: "+thetae_b1(i)+" pressure: "+vaxis2a(i))
 end do
-;print("C6 diabatic pressure velocity"+omega_d_b1(30)+" and thetae: "+thetae_b1(30))
 print("dimensions of C6 stuff are: "+dimsizes(thetae_b1))
-
-;  print("gamma_a1 from CAM5: "+gamma_a1+"pressure from CAM5: "+vaxis1a+" sigma from CAM5: "+sigma_a1)
-;  print("pressure from CAM6: "+vaxis2a)
 
 ; scaling factors for the plot: 
 scaleR=1.
@@ -139,6 +135,7 @@ scaleR=1.
 scale       = 1. ; convert static stability to K/100hPa
 scale_gamm  = 1000.  ; convert gamma to K/km
 scalep      = 0.01   ; convert to hPa
+scalediv    = 1.
 
 
 ;========================================
@@ -299,13 +296,17 @@ print("C6 rad net: "+radneg3_c6+" at press of:"+radneg3p_c6)
 ;  print("values of the a1 equivalent potential temp are: "+thetae_a1)
 ;  print("values of the a2 equivalent potential temp are: "+thetae_a2)
 
-  print("values to plot are: "+scale*array01(0:29,0)+" and hur: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
-  print("dimensions are: "+dimsizes(gamma_a1)+" and also: "+dimsizes(vaxis1a))
-  print("values of rlcs_a1 are: "+rlcs_a1(0:29)+" and rscs_a: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
+;  print("values to plot are: "+scale*array01(0:29,0)+" and hur: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
+;  print("dimensions are: "+dimsizes(gamma_a1)+" and also: "+dimsizes(vaxis1a))
+;  print("values of rlcs_a1 are: "+rlcs_a1(0:29)+" and rscs_a: "+hur_a1(0:29)+" and the pressure values: "+vaxis1a(0:29))
 
 ; set the upper and lower levels to plot with the y-axis: 
 ytop = 10
 ybot = 1000 ;450 ; often this is set to 1000.
+
+thick1=2.
+thick2=3.
+thick3=4.
 
 ;============================================
 wks=gsn_open_wks("eps","testplot")
@@ -319,20 +320,8 @@ plot=new(5,graphic)
   res@gsnFrame         = False
 
   res@xyDashPattern          = 0
-  ;res@xyLineColors           = (/"sienna2","sienna1","deepskyblue"/)
-  ;res@xyLineThicknesses      = (/2.0,2.0,3.5/)
-  ;res@xyExplicitLegendLabels = (/ "we","are","not"/)
-  ;res@tiMainString           = "Where are the Anvils?"
   res@tiYAxisString          = "Pressure (hPa)"
   res@tiXAxisString          = "K/km"
-
-;  res@pmLegendDisplayMode    = "Always"                      ; turn on legend
-;  res@pmLegendSide           = "Bottom"                      ; Change location of
-;  res@pmLegendParallelPosF   = .2                           ; move units right
-;  res@pmLegendOrthogonalPosF = -.48                          ; move units down
-;  res@pmLegendWidthF         = 0.12                          ; Change width and
-;  res@pmLegendHeightF        = 0.06                           ; height of legend.
-;  res@lgPerimOn              = False                         ; turn off box around
   res@lgLabelFontHeightF     = .015                          ; label font height
 
   res@trYReverse             = True     ; reverse the y-axis
@@ -346,23 +335,13 @@ plot=new(5,graphic)
   res@tmXTOn            = False
   res@tmYRBorderOn      = False
   res@tmXTBorderOn      = False
-
-;  res@tmYUseLeft             = False
-  ;res@tmYRLabelsOn           = True
   res@tmYLLabelsOn           = True
-  ;res@tmEqualizeXYSizes      = True
-  ;res@tmYRMode               = "Explicit"              ; explicitly set YR tick marks
-  ;res@tmYRValues             = (/29.0,26.4,21.6/)                ; set the YR values (in F) where the major tick marks will be
 
   res@vpWidthF               = 0.35
   res@vpHeightF              = 0.7
 
 ;  plot(0)   = gsn_csm_xy(wks,time/365.,avg_ts,res)
   res@xyLineColors = "chocolate2"
-  ;res@xyLineThicknessF  = lthick
-thick1=2.
-thick2=3.
-thick3=4.
   res@xyLineThicknessF       = thick1
   res@tiMainString           = "Lapse Rate"
   res@tiMainFontHeightF      = 0.035
@@ -406,9 +385,6 @@ thick3=4.
   res@xyLineThicknessF       = thick3
   plot1b3 = gsn_csm_xy(wks,hur_b3(0:30),scalep*vaxis2a(0:30),res)
 
-  ;res@trXMaxF                =  0.0
-  ;res@trXMinF                =  -10.0
-  ;res@tiXAxisString          = "K/100hPa"
   res@trXMaxF                =  120.0
   res@trXMinF                =  -10.0
   res@tiXAxisString          = "mK/hPa"
@@ -428,10 +404,6 @@ thick3=4.
   res@xyLineThicknessF       = thick3
   plot2b3 = gsn_csm_xy(wks,scale*sigma_b3(0:30),scalep*vaxis2a(0:30),res)
 
- 
-
-scalediv=1.
- 
   res@trXMaxF                =  0.5
   res@trXMinF                =  -1.75
   res@tiXAxisString          = "K/s"
@@ -461,7 +433,6 @@ scalediv=1.
   res@tiXAxisString          = "Div/d"
   res@tiMainString           = "Diab Div"
   res@xyLineColors = "chocolate2"
-;  print("ddiv values are: "+ddiv_a1(0:29))
   res@xyLineThicknessF       = thick1
   res@xyLineColors = "black"
   plot4a0 = gsn_csm_xy(wks,zero_line(0:29),scalep*vaxis1a(0:29),res)
@@ -553,9 +524,7 @@ scalediv=1.
   annoid = gsn_add_annotation(plot(0),legend,amres) ; add legend to plot
 
 respanel = True
-;respanel@txString = maintitle
 
-;gsn_panel(wks,plot,(/1,1/),respanel)
 gsn_panel(wks,plot,(/1,5/),respanel)
 
 end 
