@@ -183,7 +183,6 @@ wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 ;*************************************************************
 ; rescale variables to hPa/d 
 ;---------------------------------------------------------
-;  print("convert to hPa/d")
 
 ; convert units to hPa/d?  
 ; for models with Pa/s conversion factor is 864
@@ -331,7 +330,7 @@ wav_dn = dim_avg_n(w_dn,0)
 
 ;  print(down_min_up)   ; this is the circulation intensity
   print("av_dn is equal to: "+av_dn)
-  print("weighted av_dn at 1 time is equal to: "+w_dn(10)+" and weighted av_up is equal to: "+w_up(10))
+  print("weighted w_dn at 1 time is equal to: "+w_dn(10)+" and weighted w_up is equal to: "+w_up(10))
   print("ave weighted wav_dn is equal to: "+wav_dn+" and weighted wav_up is equal to: "+wav_up)
   print("av_up is equal to: "+av_up)
  ; print("av_dn2 is equal to: "+av_dn2)

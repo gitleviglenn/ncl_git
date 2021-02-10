@@ -35,6 +35,7 @@ end if
 ; picontrol paths
 ;file_c6_in =path_cmip6+exp_file_c6+filename
 file_c6_in="/glade/collections/cmip/CMIP6/CMIP/NCAR/CESM2/piControl/r1i1p1f1/Amon/cl/gn/latest/cl_Amon_CESM2_piControl_r1i1p1f1_gn_060001-069912.nc"
+
 file_c5_in =path_cmip5+exp_file_c5+file_c5
 c5_picontrol_fils=systemfunc("ls /glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/piControl/mon/atmos/Amon/r1i1p1/v20130313/cl/cl_Amon_CESM1-CAM5_piControl_r1i1p1_*nc")
 f_test   =addfiles(c5_picontrol_fils,"r")
@@ -42,7 +43,7 @@ ListSetType(f_test,"cat")
 
 
 f_in     =addfile(file_c6_in,"r")
-;f_in_2   =addfile(file_c5_in,"r")
+f_in_2   =addfile(file_c5_in,"r")
 f_in_lsm =addfile(file_lsmask,"r")
   print("incoming file is: "+file_c6_in)
   print("incoming file is: "+file_c5_in)
@@ -76,16 +77,16 @@ dims6=dimsizes(c6_cl)
 press_lev_5 = new(dims5(1),float)
 ps_trop   = new((/24,dims5(3)/),float)
 
-c5_aa  = f_test[:]->a ; lev
+c5_aa  = f_in_2->a ; lev
 c5_a   = tofloat(c5_aa)
-c5_bb  = f_test[:]->b ; lev
+c5_bb  = f_in_2->b ; lev
 c5_b   = tofloat(c5_bb)
-c5_p0  = f_test[:]->p0 ; constant
-c5_ps  = f_test[:]->ps ; time, lat, lon
+c5_p0  = f_in_2->p0 ; constant
+c5_ps  = f_in_2->ps ; time, lat, lon
 
-c5_lat = f_test[:]->lat
+c5_lat = f_in_2->lat
 
-;printVarSummary(c5_ps)
+printVarSummary(c5_ps)
 ;print("latitudes are: "+c5_lat)
 
 c5_ps_tmn = dim_avg_n(c5_ps,0)
@@ -94,10 +95,10 @@ ps_trop_mn_a = dim_avg_n(ps_trop,0)
 ps_trop_mn   = dim_avg_n(ps_trop_mn_a,0) 
 ;printVarSummary(ps_trop)
 ;; formula = "p = a*p0 + b*ps"
-;printVarSummary(c5_a)
-;printVarSummary(c5_p0)
-;printVarSummary(c5_b)
-;printVarSummary(ps_trop_mn)
+printVarSummary(c5_a)
+printVarSummary(c5_p0)
+printVarSummary(c5_b)
+printVarSummary(ps_trop_mn)
 press_lev_5 = (c5_a*c5_p0 + c5_b*ps_trop_mn)/100.  ; convert to hPa
 
 ;vaxis_5a = press_lev_5(::-1)

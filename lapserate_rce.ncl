@@ -60,16 +60,16 @@ else
   freq=24
   print("data freq not detected, freq is: "+freq)
 end if
-if (isvar("textfile")) then
-  foutname=textfile
-else
-  foutname="lrfilename.txt"
-end if
-if (isvar("SST")) then
-  seaST=SST
-else
-  seaST=295
-end if
+;if (isvar("textfile")) then
+;  foutname=textfile
+;else
+;  foutname="lrfilename.txt"
+;end if
+;if (isvar("SST")) then
+;  seaST=SST
+;else
+;  seaST=295
+;end if
   print("SST is : "+seaST)
 
 timewindow=ndays*freq
