@@ -24,7 +24,6 @@ begin
 
 ;-----------------
 ; time parameters
-; initially look at 5 day chunks
 ndays=5
 if (isvar("datafreq")) then
   freq=datafreq  ;[time per day] for most models this is 1 hr or 24 times per day, for IPSL it is 1 day
@@ -36,7 +35,6 @@ end if
 
 timewindow=ndays*freq
 
-;echam has 26280
 timelength=8760-timewindow ; 1 year has 8760 hours
 ;startime=endtime-timelength+1
 
@@ -52,12 +50,6 @@ end if
 
 ;numperiods=timelength/timewindow
 
-; nlat and nlon will be model dependent
-; should i write a script that interpolates everything to a common grid 
-; before calling this script?
-
-;print("nlat is: "+nlat)
-;print("dimsizes of wvar_a are: "+dimsizes(wvar_a))
 print("ndays is: "+ndays)
 print("numperiods is: "+numperiods)
 print("timewindow of each period (ndays*freq) is: "+timewindow)
@@ -104,7 +96,7 @@ end if
 end if 
 end if
 
-printVarSummary(wvar_a)
+  ;printVarSummary(wvar_a)
 
 filen_test=model+"_RCE_large300_2D_"+varname+".nc"
 file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
@@ -168,6 +160,7 @@ b_reshape_5dmn=dim_avg_n(b_reshape,0)
 c_reshape_5dmn=dim_avg_n(c_reshape,0)
 
 ; sort into rising and sinking arrays...
+; averaged over the timewindow chunks
 omega_u_a=where((a_reshape_5dmn .le. 0),a_reshape_5dmn,a_reshape_5dmn@_FillValue)
 omega_u_b=where((b_reshape_5dmn .le. 0),b_reshape_5dmn,b_reshape_5dmn@_FillValue)
 omega_u_c=where((c_reshape_5dmn .le. 0),c_reshape_5dmn,c_reshape_5dmn@_FillValue)
@@ -178,6 +171,43 @@ omega_d_c=where((c_reshape_5dmn .ge. 0),c_reshape_5dmn,c_reshape_5dmn@_FillValue
 
   print("dimsizes of omega_u_a are: "+dimsizes(omega_u_a))
   print("dimsizes of omega_d_a are: "+dimsizes(omega_d_a))
+
+;++++++++++++++++++++++++++++++
+; sort into rising and sinking arrays...
+; not averaged over the timewindow chunks
+omega_up_a=where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
+omega_up_b=where((wvar_b .le. 0),wvar_b,wvar_b@_FillValue)
+omega_up_c=where((wvar_c .le. 0),wvar_c,wvar_c@_FillValue)
+
+omega_dn_a=where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
+omega_dn_b=where((wvar_b .ge. 0),wvar_b,wvar_b@_FillValue)
+omega_dn_c=where((wvar_c .ge. 0),wvar_c,wvar_c@_FillValue)
+
+
+if (isvar("CRM")) then
+  clat = 1.0
+else 
+  latit=fin->lat
+  rad  = 4.0*atan(1.0)/180.0
+  clat = cos(latit*rad)
+end if
+
+omega_bar_u_a_ts  = wgt_areaave(omega_up_a,clat,1.0,0)
+omega_bar_u_a     = dim_avg_n(omega_bar_u_a_ts,0)
+omega_bar_u_b_ts  = wgt_areaave(omega_up_b,clat,1.0,0)
+omega_bar_u_b     = dim_avg_n(omega_bar_u_b_ts,0)
+omega_bar_u_c_ts  = wgt_areaave(omega_up_c,clat,1.0,0)
+omega_bar_u_c     = dim_avg_n(omega_bar_u_c_ts,0)
+omega_bar_d_a_ts  = wgt_areaave(omega_dn_a,clat,1.0,0)
+omega_bar_d_a     = dim_avg_n(omega_bar_d_a_ts,0)
+omega_bar_d_b_ts  = wgt_areaave(omega_dn_b,clat,1.0,0)
+omega_bar_d_b     = dim_avg_n(omega_bar_d_b_ts,0)
+omega_bar_d_c_ts  = wgt_areaave(omega_dn_c,clat,1.0,0)
+omega_bar_d_c     = dim_avg_n(omega_bar_d_c_ts,0)
+circ_a = omega_bar_d_a - omega_bar_u_a
+circ_b = omega_bar_d_b - omega_bar_u_b
+circ_c = omega_bar_d_c - omega_bar_u_c
+;++++++++++++++++++++++++++++++
 
 omega_full_up   =new((/3,numperiods,nlat,nlon/),float)
 omega_full_down =new((/3,numperiods,nlat,nlon/),float)
@@ -210,11 +240,14 @@ down_plu_up=omega_dn+omega_up
   print("omega down: "+omega_dn)
   print("!@#$%@%^@#%$")
   print("omega down for 300K: "+omega_dn(1))
-  print("Circulation Strength: omega down minus omega up")
+  print("Old Circulation Strength: omega down minus omega up")
   print(down_min_up)
-;  print("Circulation Strength: omega down plus omega up")
-;  print(down_plu_up)
-;  print("!@#$%@%^@#%$")
+  print("++++++++++++")
+  print("New Circulation Strength: omega down minus omega up")
+  print("I for 295K: "+circ_a)
+  print("I for 300K: "+circ_b)
+  print("I for 305K: "+circ_c)
+  print("++++++++++++")
 
 
 end
