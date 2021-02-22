@@ -1,7 +1,15 @@
 ;-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
-; omega500_1SST_pdf.ncl
+; omega500_1SST_pdf_chunks.ncl
 ;
 ; originally run by omega_gcm_pdf.sh
+;
+; output from script: 
+; -->creates figure showing a PDF from single model at 1 SST computed in 3 ways
+;      - solid line shows pdf of data after applying time mean over chunks of days
+;      - two dashed lines show pdf of data on native and interpolated (1x1 deg) grid
+; -->computes and prints to std out circulation intensity of interpolated data.
+;
+; meant to show dependence of pdf on the chunk size over which averages are taken
 ; 
 ; - open file
 ; - read vertical velocity variable
@@ -20,7 +28,7 @@
 ;
 ; goal: write out the pdf, circulation intensity, and SST to a ascii array
 ;
-; levi silvers                                                       dec 2020
+; levi silvers                                                       feb 2021
 ;-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -219,13 +227,6 @@ if (isvar("RCE_GCM"))
     print("interpolation finished")
     printVarSummary(intvar_out)
 else
-  ; for SAM
-  ;y_new=fspan(0,288000,4)
-  ;x_new=fspan(0,6048000,64)
-  ; for ICON-LEM
-  ;y_new=fspan(0,288000,4)
-  ;x_new=fspan(0,5856000,62)
-  ; would this work?
   if (isvar("flippeddim")) then  ; ICON LEM
     x_new=fspan(0,384000,5)
     y_new=fspan(0,5952000,63)
@@ -246,7 +247,7 @@ end if  ; end interpolation loop
 ; parse out the ascending and descending regions and comp SF
 ;-------------------------------------------------------------
 
-;intvar_out(time lat lon)
+;intvar_out(timexlatxlon)
 ; compute mean upwelling and downwelling without chunks
 omega_u_a      =where((intvar_out .le. 0),intvar_out,intvar_out@_FillValue)
 omega_u_a_frac =where((intvar_out .le. 0),1.0,0.0)
@@ -318,11 +319,10 @@ circulation_int = av_dn-av_up
 ;*************************************************************
 ; first reshape the time dimension, then compute the pdf
 ;
-; almost certainly, the omega parameters should be computed 
-; using the same array as the pdf is calculated with...
 
 if (CRM .lt. 1)
   ; cosine weighted
+  ;  total time = timewindow*numperiods
   a_reshape=new((/timewindow,numperiods,180,360/),float)
   a_reshape=reshape(intvar_out,(/timewindow,numperiods,180,360/))
   a_reshape_tmn=dim_avg_n(a_reshape,0)
@@ -385,30 +385,7 @@ pdf_c=pdfx(wvar_a,numbins,opt)
 ;  print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 
-;new_pdf   =new((/dim_om(0)/),float)
-;do tt=0,dim_om(0)-1
-;  omega_temp3=omega_d_a_frac(tt,:,:)
-;  sfrac(tt)=sum(omega_temp3)/total_area
-;end do
-
-;  print("mean of -omega for 295K is: "+avg(pdf_a(0:21)))
-;  print("mean of omega for 295K is: "+avg(pdf_a(22:41)))
-;  print("mean of -omega for 300K is: "+avg(pdf_b(0:21)))
-;  print("mean of omega for 300K is: "+avg(pdf_b(22:41)))
-;  print("mean of -omega for 305K is: "+avg(pdf_c(0:21)))
-;  print("mean of omega for 305K is: "+avg(pdf_c(22:41)))
-;
-;  print("bin centers are: "+pdf_a@bin_center)
-
 binsb2=numbins/2
-; below is a work in progress trying to weight as in bony et al. 
-;do i=0,binsb2-1
-;  omegaup(i)=pdf_a@bin_center(i)*pdf_a(i)
-;  omegadn(i)=pdf_a@bin_center(i+binsb2)*pdf_a(i+binsb2)
-;end do
-;;omegaup/sum(pdf_a@bin_center)
-;omegaupbar=sum(omegaup)/sum(pdf_a@bin_center)
-;omegadnbar=sum(omegadn)/sum(pdf_a@bin_center)
 
 ;*************************************************************
 ; plot the pdf
@@ -431,13 +408,6 @@ res@trXMaxF = 100.0
 res@trYMinF = 0.0
 res@trYMaxF = 25.0
 
-;  printVarSummary(pdf_a)
-;  print("pdf_a values are: "+pdf_a)
-;  print("sum of pdf_a? is: "+sum(pdf_a))
-;  print("sum of pdf_a bin_center values is: "+sum(pdf_a@bin_center))
-;  print("sum of pdf_b? is: "+sum(pdf_b))
-;  print("sum of pdf_b? is: "+sum(pdf_c))
-;
 ;res@gsnCenterString    = "default bins"
 res@xyLineColors = colors(0)
 res@xyDashPattern =  0
