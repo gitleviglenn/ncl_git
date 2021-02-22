@@ -1,7 +1,14 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-; open_file_cesm
+; cf_profile_cesm.ncl
 ;
-; just open a file on casper and print out basic info
+; the purpose of looking at these cloud profiles is for comparison with RCE cloud 
+; profiles from CAM5 and CAM6 RCE studies.
+;
+; plot tropical cloud profiles from the amip and piControl experiments as simulated 
+; by the CAM5,CAM6,CESM1, and CESM2 models.
+;
+; after reading in the 3D cloud fraction data, apply a land-sea mask so that we only
+; plot points over oceans. 
 ;
 ; levi silvers                                                           feb 2021
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
@@ -12,66 +19,60 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 begin
   
 path_cmip6="/glade/campaign/collections/cmip/CMIP6/"
-exp_file_c6="timeseries-cmip6/b.e21.B1850.f09_g17.CMIP6-piControl.001/atm/proc/tseries/day_1/"
+tocmip ="/glade/collections/cmip/"
+;exp_file_c6="timeseries-cmip6/b.e21.B1850.f09_g17.CMIP6-piControl.001/atm/proc/tseries/day_1/"
 
-path_cmip5="/glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/"
-exp_file_c5="piControl/mon/atmos/Amon/r1i1p1/v20130313/cl/"
-file_c5="cl_Amon_CESM1-CAM5_piControl_r1i1p1_031001-031912.nc"
+path_cmip5=tocmip+"cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/"
 
-file_lsmask="/glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/amip/fx/atmos/fx/r0i0p0/files/sftlf_20120614/sftlf_fx_CESM1-CAM5_amip_r0i0p0.nc"
+file_lsmask=tocmip+"cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/amip/fx/atmos/fx/r0i0p0/files/sftlf_20120614/sftlf_fx_CESM1-CAM5_amip_r0i0p0.nc"
 
-if (isvar("filen")) then
-  filename=filen
-else 
-  filename="b.e21.B1850.f09_g17.CMIP6-piControl.001.cam.h1.TS.16900101-16991231.nc"
-end if
-
-; read in monthly data in stead of the raw data on daily frequencies...
+plotAmip=True ; default is 0, which results in piControl experiment plots
 
 ;; amip paths
-;file_c5_in ="/glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/amip/mon/atmos/Amon/r1i1p1/latest/cl/cl_Amon_CESM1-CAM5_amip_r1i1p1_197901-200512.nc"
-;file_c6_in="/glade/collections/cmip/CMIP6/CMIP/NCAR/CESM2/amip/r1i1p1f1/Amon/cl/gn/latest/cl_Amon_CESM2_amip_r1i1p1f1_gn_195001-201412.nc"
-
-; picontrol paths
-;file_c6_in =path_cmip6+exp_file_c6+filename
-file_c6_in="/glade/collections/cmip/CMIP6/CMIP/NCAR/CESM2/piControl/r1i1p1f1/Amon/cl/gn/latest/cl_Amon_CESM2_piControl_r1i1p1f1_gn_060001-069912.nc"
-
-file_c5_in =path_cmip5+exp_file_c5+file_c5
-c5_picontrol_fils=systemfunc("ls /glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/piControl/mon/atmos/Amon/r1i1p1/v20130313/cl/cl_Amon_CESM1-CAM5_piControl_r1i1p1_*nc")
-f_test   =addfiles(c5_picontrol_fils,"r")
-ListSetType(f_test,"cat")
-
+if (plotAmip) then
+    print("using AMIP data")
+  filen5="cl_Amon_CESM1-CAM5_amip_r1i1p1_197901-200512.nc"
+  filen6="cl_Amon_CESM2_amip_r1i1p1f1_gn_195001-201412.nc"
+  file_c5_in=tocmip+"cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/amip/mon/atmos/Amon/r1i1p1/latest/cl/"+filen5
+  file_c6_in=tocmip+"CMIP6/CMIP/NCAR/CESM2/amip/r1i1p1f1/Amon/cl/gn/latest/"+filen6
+  endtime =239
+  endtime2=239
+else ; picontrol patha
+    print("using piControl data")
+  endtime =1199
+  endtime2=1199
+  filen6="cl_Amon_CESM2_piControl_r1i1p1f1_gn_060001-069912.nc"
+  exp_file_c5="piControl/mon/atmos/Amon/r1i1p1/v20130313/cl/"
+  file_c6_in=tocmip+"CMIP6/CMIP/NCAR/CESM2/piControl/r1i1p1f1/Amon/cl/gn/latest/"+filen6
+  filen5="cl_Amon_CESM1-CAM5_piControl_r1i1p1_031001-031912.nc"
+  file_c5_in =path_cmip5+exp_file_c5+filen5
+  ; use addfiles to read multiple files at once...
+  c5_picontrol_fils=systemfunc("ls /glade/collections/cmip/cmip5/output1/NSF-DOE-NCAR/CESM1-CAM5/piControl/mon/atmos/Amon/r1i1p1/v20130313/cl/cl_Amon_CESM1-CAM5_piControl_r1i1p1_02*nc")
+  f_test   =addfiles(c5_picontrol_fils,"r")
+  ListSetType(f_test,"cat")
+  c5_cl = f_test[:]->cl    ; read 3D cloud fraction
+end if
 
 f_in     =addfile(file_c6_in,"r")
-f_in_2   =addfile(file_c5_in,"r")
+f_in_2   =addfile(file_c5_in,"r") ; reads from a single file for the vertical dimension creation.
 f_in_lsm =addfile(file_lsmask,"r")
   print("incoming file is: "+file_c6_in)
   print("incoming file is: "+file_c5_in)
 
-endtime=119
-endtime2=1199
-;endtime=139
+c6_cl     =f_in->cl(0:endtime2,:,:,:)   ; read 3D cloud fraction 
 
-;c5_test_cl = f_test[:]->cl
-;f_in_2 = f_test[:]->cl
-c5_cl = f_test[:]->cl
-dc5=dimsizes(c5_cl)
-endtime=3827
-  print("first dimension of dc5 is: "+dc5(0))
-;endtime=dc5(0)-1  ; 3828
-  print("dc5 are the dimensions of c5_cl: "+dc5)
-  printVarSummary(c5_cl)
-;c6_cl     =f_in->CLOUD(0:endtime,:,:,:)
-;c6_cl     =f_in->CLOUD(:,:,:,:)
-c6_cl     =f_in->cl(0:endtime2,:,:,:)
-;c5_cl     =f_in_2->cl(0:endtime,:,:,:)
-;c5_cl     =f_in_2->cl(:,:,:,:)
+if (plotAmip) then
+  c5_cl     =f_in_2->cl(0:endtime,:,:,:)
+end if
+
 c5_sftlf  =f_in_lsm->sftlf ; land area fraction
+;-------------------------------------------------
 
+dc5=dimsizes(c5_cl)
 dims5=dimsizes(c5_cl)
 dims6=dimsizes(c6_cl)
 
-;-------------------------------------
+;-------------------------------------------------
 ; calculate the pressure values of at each model level for cesm1
 
 press_lev_5 = new(dims5(1),float)
@@ -153,6 +154,9 @@ c6_cl_pm5trop  = 9.96921e+36   ;c6_cl@missing_value
 printVarSummary(c6_cl_pm5trop)
 
 ; apply landsea mask...
+  print("what in the dickens is going on here? ")
+  print("dimsizes of c5_cl_noland are: "+dimsizes(c5_cl_noland))
+  print("dimsizes of c5_cl are: "+dimsizes(c5_cl))
 c5_cl_noland=mask(c5_cl,conform(c5_cl,binary_lsmask,(/2,3/)),0)
 c6_cl_noland=mask(c6_cl,conform(c6_cl,binary_lsmask,(/2,3/)),0)
 
@@ -320,8 +324,19 @@ plot(0) =plot1a
   lgres@lgMonoDashIndex      = False
   lgres@lgDashIndexes          = (/"0","0"/)
 ;
+if (plotAmip) then
   title1="CAM6"
   title2="CAM5"
+  title3="+/-30"
+  title4="+/-10"
+  title5="+/-5"
+else
+  title1="CESM2"
+  title2="CESM1"
+  title3="+/-30"
+  title4="+/-10"
+  title5="+/-5"
+end if
   labels = (/title1,title2/)
   legend  = gsn_create_legend (wks, 2, labels, lgres)
 
