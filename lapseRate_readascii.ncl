@@ -1,7 +1,7 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 ; read in ascii files from the driver script on casper
 ; 
-; this script should read in data from various gcms and produce a profile plot 
+; this script should read in data from CAM5 and CAM6 and produce a profile plot 
 ; that includes data from multiple incoming gcm data streams.  
 ;
 ; calculates the height at which radiative cooling equals zero and the height at
@@ -23,9 +23,6 @@ array03=asciiread("out_305_CAM5.txt",(/30,10/),"float")
 array1=asciiread("out_295_CAM6.txt",(/31,10/),"float")
 array2=asciiread("out_300_CAM6.txt",(/31,10/),"float")
 array3=asciiread("out_305_CAM6.txt",(/31,10/),"float")
-;array1=asciiread("out_295_ECHAM.txt",(/31,10/),"float")
-;array2=asciiread("out_300_ECHAM.txt",(/31,10/),"float")
-;array3=asciiread("out_305_ECHAM.txt",(/31,10/),"float")
 
 ;  printVarSummary(array1)
 ; gamma_a; gamma_m; sbycp; sigma; hur_tmn; lev_a
