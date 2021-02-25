@@ -2,7 +2,8 @@
 ; omega500_1model.ncl
 ;
 ; analysis for 1 model to determine circulation strength.
-; this script is used with a driver ncl program
+; this script is used with a driver ncl program (e.g. omega500_driver.sh)
+; output to stdout: circulation strength, omega bar up, omega bar down
 ;
 ; most models have output at hourly frequencies, IPSL outputs on daily frequencies
 ;
@@ -23,10 +24,8 @@
 ;   scalef
 ;   howmanyperiods ; number of periods of chunked days to analyze
 ;   
-;
-; so far this only works for averaging over 5 day chunks before creating the pdf...
-;
 ; levi silvers                                                          june 2020
+; modified feb 2021
 ;-==-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -59,8 +58,6 @@ if (isvar("howmanyperiods")) then
 else
   numperiods=timelength/timewindow
 end if
-
-;numperiods=timelength/timewindow
 
 print("ndays is: "+ndays)
 print("numperiods is: "+numperiods)
@@ -108,8 +105,6 @@ end if
 end if 
 end if
 
-  ;printVarSummary(wvar_a)
-
 filen_test=model+"_RCE_large300_2D_"+varname+".nc"
 file_testmodel=path_cheyenne+"swift.dkrz.de/"+model+"/"+filen_test
 fin=addfile(file_testmodel,"r")
@@ -146,8 +141,6 @@ wvar_a=scalef*wvar_a
 wvar_b=scalef*wvar_b
 wvar_c=scalef*wvar_c
 
-;; is this the spot to interpolate?  
-;
 ;;ntim=fin->time
 ;
 ;; reshape data arrays to allow for averaging over a particular time period
@@ -263,10 +256,11 @@ circ_c = omega_bar_d_c - omega_bar_u_c
 ;  print("Old Circulation Strength: omega down minus omega up")
 ;  print(down_min_up)
   print("++++++++++++")
+  print("======= "+model+"=======")
   print("New Circulation Strength: omega down minus omega up")
-  print("I for 295K: "+circ_a)
-  print("I for 300K: "+circ_b)
-  print("I for 305K: "+circ_c)
+  print("I for 295K: "+circ_a+" omega_bar_d: "+omega_bar_d_a+" omega_bar_u: "+omega_bar_u_a)
+  print("I for 300K: "+circ_b+" omega_bar_d: "+omega_bar_d_b+" omega_bar_u: "+omega_bar_u_b)
+  print("I for 295K: "+circ_c+" omega_bar_d: "+omega_bar_d_c+" omega_bar_u: "+omega_bar_u_c)
   print("++++++++++++")
 
 

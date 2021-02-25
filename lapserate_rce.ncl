@@ -1,7 +1,12 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; lapserate_rce.ncl
 ;
+; calculates vertical profiles and equilibrium RCE states and saves them to an 
+; array that is written to a txt file
+;
 ; initially only set up to work with CAM5 and CAM6
+; 
+; used with the lapseRatedriver.sh driver script on casper.
 ;
 ; calculate domain mean profiles of the: 
 ; 1. lapse rate    % dT/dp
@@ -60,16 +65,7 @@ else
   freq=24
   print("data freq not detected, freq is: "+freq)
 end if
-;if (isvar("textfile")) then
-;  foutname=textfile
-;else
-;  foutname="lrfilename.txt"
-;end if
-;if (isvar("SST")) then
-;  seaST=SST
-;else
-;  seaST=295
-;end if
+
   print("SST is : "+seaST)
 
 timewindow=ndays*freq

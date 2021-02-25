@@ -23,16 +23,16 @@ end if
 
 longdim=binnum+4
 
-array01=asciiread("arrayout_CAM5.txt",(/2,longdim/),"float")
-array02=asciiread("arrayout_CAM6.txt",(/2,longdim/),"float")
-array03=asciiread("arrayout_SPCAM.txt",(/2,longdim/),"float")
-array04=asciiread("arrayout_ECHAM.txt",(/2,longdim/),"float")
-;array05=asciiread("arrayout_ICON.txt",(/2,longdim/),"float")
-array06=asciiread("arrayout_SPXCAM.txt",(/2,longdim/),"float")
-array07=asciiread("arrayout_SAMUNICON.txt",(/2,longdim/),"float")
-;array08=asciiread("arrayout_UKMO.txt",(/2,longdim/),"float")
-array09=asciiread("arrayout_CNRM.txt",(/2,longdim/),"float")
-array10=asciiread("arrayout_GEOS.txt",(/2,longdim/),"float")
+array01=asciiread("PDF_arrayout_CAM5_295.txt",(/2,longdim/),"float")
+array02=asciiread("PDF_arrayout_CAM6_295.txt",(/2,longdim/),"float")
+array03=asciiread("PDF_arrayout_SPCAM_295.txt",(/2,longdim/),"float")
+array04=asciiread("PDF_arrayout_ECHAM_295.txt",(/2,longdim/),"float")
+;array05=asciiread("PDF_arrayout_ICON.txt",(/2,longdim/),"float")
+array06=asciiread("PDF_arrayout_SPXCAM_295.txt",(/2,longdim/),"float")
+array07=asciiread("PDF_arrayout_SAM0-UNICON_295.txt",(/2,longdim/),"float")
+;array08=asciiread("PDF_arrayout_UKMO.txt",(/2,longdim/),"float")
+array09=asciiread("PDF_arrayout_CNRM_295.txt",(/2,longdim/),"float")
+array10=asciiread("PDF_arrayout_GEOS_295.txt",(/2,longdim/),"float")
 ; IPSL
 ; ICON has corrupted latitudes
 ; UKMO looks wrong...

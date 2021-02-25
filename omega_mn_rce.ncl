@@ -3,6 +3,8 @@
 ;
 ; calculate the mean upward omega, mean downward omega, and the diab driven omega
 ;
+; output file is: profiles_mn.txt unless otherwise specified by the "textfile" switch
+;
 ; uses ncl function vibeta to compute the vertical integral, or vertical average
 ;
 ; read RH profiles, compute sigma profiles
@@ -49,7 +51,7 @@ end if
 if (isvar("textfile")) then
   foutname=textfile
 else
-  foutname="nofilename.txt"
+  foutname="profiles_mn.txt"
 end if
 if (isvar("chunkdays")) then
   ndays=chunkdays
@@ -398,6 +400,7 @@ omega_db = scalef*(Q_tmn/sigma)
 ptop = 20000.
 pbot = 60000.
 press_tmn!0  ="lev"
+temp_tmn!0   ="lev"
 omega_db!0   ="lev"
 sigma!0      ="lev"
 hur_tmn!0    ="lev"
@@ -446,15 +449,16 @@ do z=0,dims(1)-1
   arrayout(z,2)=hur_tmn(z)
   arrayout(z,3)=rscs_tmn(z)
   arrayout(z,4)=rlcs_tmn(z)
-  arrayout(z,5)=press_tmn(z)
+  arrayout(z,5)=temp_tmn(z)
+  arrayout(z,6)=press_tmn(z)
 end do 
 ;
 ;;==========================
 ;; write out data to a txt file...
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
-option@title   = "omega_d, sigma, hur_tmn, rscs, rlcs, press_mn"
-write_matrix (arrayout, "6f14.4", option)
+option@title   = "omega_d, sigma, hur_tmn, rscs, rlcs, temp_mn, press_mn"
+write_matrix (arrayout, "7f14.4", option)
 
   print("write a paper numskull")
 

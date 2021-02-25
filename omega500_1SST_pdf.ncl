@@ -1,8 +1,10 @@
 ;-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; omega500_1SST_pdf.ncl
 ;
-; originally run by omega_gcm_pdf.sh
+; used with the script omega_gcm_pdf.sh
 ; 
+; output both an .eps and a .txt file
+;
 ; - open file
 ; - read vertical velocity variable
 ; - rescale to hPa/day
@@ -339,7 +341,7 @@ else
   a_reshape_tmn=dim_avg_n(a_reshape,0)
 end if
 
-numbins =  24; originally 48 
+numbins =  48; originally 48 
 
 ; should we compute the pdf of the time averaged data 
 ; or should we compute the time average of the pdfs? 
@@ -468,21 +470,22 @@ gsn_panel(wks,plot,(/1,1/),resP)
 arrdim=numbins+4
 arrayout  =new((/2,arrdim/),double)
 tarray    =new((/1,numbins/),double)
-;tarray = pdf_a@bin_center
+;tarray = pdf_b@bin_center
 arrayout = -999.
-tarray = pdf_a
+tarray = pdf_b
   ;print("dimsizes of arrayout: "+dimsizes(arrayout))
 do z=0,numbins-1
   ;print("temp at z= "+z+" is: "+temp_tmn(z)+" gamma is: "+gamma_a(z)+" press is: "+press_tmn(z)+" rho is: "+rho(z)+" and gamma_m is: "+gamma_m(z)+" num: "+numer(z)+" den: "+denom(z))
   print(" value of pdf_a for z = "+z+" is: "+pdf_a(z))
   ;arrayout(0,z)=pdf_a@bin_center(z)
   arrayout(0,z)=tarray(0,z)
-  arrayout(1,z)=pdf_a@bin_center(z)
+  arrayout(1,z)=pdf_b@bin_center(z)
 end do
-  arrayout(0,numbins)   = 34. ;I
-  arrayout(0,numbins+1) = 35. ;Iup
-  arrayout(0,numbins+2) = 36. ;Idn
-  arrayout(0,numbins+3) = seaST
+;circulation_int = av_dn-av_up
+arrayout(0,numbins)   = circulation_int ;I
+arrayout(0,numbins+1) = av_up ;Iup
+arrayout(0,numbins+2) = av_dn ;Idn
+arrayout(0,numbins+3) = seaST
 
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
