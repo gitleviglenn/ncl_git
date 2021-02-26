@@ -339,7 +339,7 @@ else
   a_reshape_tmn=dim_avg_n(a_reshape,0)
 end if
 
-numbins =  24; originally 48 
+numbins =  48; originally 48 
 
 ; should we compute the pdf of the time averaged data 
 ; or should we compute the time average of the pdfs? 
@@ -347,11 +347,13 @@ numbins =  24; originally 48
 opt = True
 opt@bin_min=-120
 opt@bin_max=120
-;opt@bin_spacing=5
+;;opt@bin_spacing=5
 opt@bin_spacing=10
+
 pdf_a=pdfx(a_reshape_tmn,numbins,opt)
 pdf_b=pdfx(intvar_out,numbins,opt)
 pdf_c=pdfx(wvar_a,numbins,opt)
+
   print("dimsizes of pdf_a are: "+dimsizes(pdf_a))
   print("dimsizes of pdf_b are: "+dimsizes(pdf_b))
   print("dimsizes of pdf_c are: "+dimsizes(pdf_c))

@@ -12,6 +12,16 @@
 ; normal = 0 can refer to cam5, cam6, or geos
 ; normal = 1 refers to SP-CAM
 ;
+; variables needed for this script: 
+;   2D_psl
+;   2D_wap500
+;
+;   1D_pa_avg
+;   1D_ta_avg
+;   1D_tntrlcs_avg
+;   1D_tntrscs_avg
+;   1D_hur_avg
+;
 ; across the model ensemble, some variables have different names and/or dimensions: 
 ; wap500
 ; zg_avg
@@ -230,7 +240,7 @@ sbycp     =new((/dims(1)/),float)
 sigma     =new((/dims(1)/),float)
 omega_db  =new((/dims(1)/),float)
 Q_tmn     =new((/dims(1)/),float)
-arrayout  =new((/dims(1),6/),float)
+arrayout  =new((/dims(1),7/),float)
 
 ; compute the net clear sky radiative heating of atmosphere
 Q_tmn        =rlcs_tmn+rscs_tmn
