@@ -241,6 +241,7 @@ sigma     =new((/dims(1)/),float)
 omega_db  =new((/dims(1)/),float)
 Q_tmn     =new((/dims(1)/),float)
 arrayout  =new((/dims(1),7/),float)
+;mnvalout  =new((/4/),float)
 
 ; compute the net clear sky radiative heating of atmosphere
 Q_tmn        =rlcs_tmn+rscs_tmn
@@ -464,11 +465,42 @@ do z=0,dims(1)-1
 end do 
 ;
 ;;==========================
-;; write out data to a txt file...
+  print(">>>>>>>>>>>> writing first text file")
+;; write out profile data to a txt file...
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
 option@title   = "omega_d, sigma, hur_tmn, rscs, rlcs, temp_mn, press_mn"
 write_matrix (arrayout, "7f14.4", option)
+;
+;;==========================
+;; write out mean data to a txt file...
+  print(">>>>>>>>>>>> writing second text file")
+
+;mnvalout(0)=omega_db_wva
+;mnvalout(1)=circulation_int
+;mnvalout(2)=omega_dn
+;mnvalout(3)=omega_up
+
+;option         = True   ; if False then output is sent to standard out
+;option@fout    = "mean_vals.txt"
+filenameout    = "mean_vals_"+model+"_"+SST+".txt"
+;filenamestr    = tostring(filenameout)
+;option@fout    = filenameout
+;option@title   = "mn diab omega, circ int, mn omega dn, mn omega up"
+;write_matrix (mnvalout, "4f14.4", option)
+header = (/">>>>> go stink it up boy <<<<<<"/)
+hlist = [/header/]
+foot = (/"========stickittoem==========="/)
+flist = [/foot/]
+val_a=(/omega_db_wva/)
+val_b=(/circulation_int/)
+val_c=(/omega_dn/)
+val_d=(/omega_up/)
+alist = [/val_a,val_b,val_c,val_d/]
+;alist = [/omega_db_wva,circulation_int,omega_dn,omega_up/]
+write_table(filenameout,"w",hlist, "%s")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
 
