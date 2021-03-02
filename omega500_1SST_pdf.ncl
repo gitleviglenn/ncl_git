@@ -23,6 +23,7 @@
 ; goal: write out the pdf, circulation intensity, and SST to a ascii array
 ;
 ; levi silvers                                                       dec 2020
+; modified feb 2021
 ;-=-=-=-=-=-=-=-=--=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -280,12 +281,10 @@ if (CRM .lt. 1)
   lat  = LAT_out
   rad  = 4.0*atan(1.0)/180.0
   clat = cos(lat*rad)
-  
+
+; WARNING!!!  the following 4 lines should be uncommented!! this was only a test!  
   intvar_u_ave  = wgt_areaave(omega_u_a,clat,1.0,0)
   intvar_d_ave  = wgt_areaave(omega_d_a,clat,1.0,0)
-  ; test no weighting...
-  ;intvar_u_ave  = wgt_areaave(omega_u_a,1.0,1.0,0)
-  ;intvar_d_ave  = wgt_areaave(omega_d_a,1.0,1.0,0)
   
     printVarSummary(intvar_u_ave)
 else
@@ -318,10 +317,11 @@ circulation_int = av_dn-av_up
   print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 ;*************************************************************
-; first reshape the time dimension, then compute the pdf
+; reshape according to chunks of days... 
 ;
 ; almost certainly, the omega parameters should be computed 
 ; using the same array as the pdf is calculated with...
+;-------------------------------------------------------------
 
 if (CRM .lt. 1)
   ; cosine weighted
@@ -341,16 +341,19 @@ else
   a_reshape_tmn=dim_avg_n(a_reshape,0)
 end if
 
-numbins =  48; originally 48 
-
+;*************************************************************
+; compute PDFs of data
 ; should we compute the pdf of the time averaged data 
 ; or should we compute the time average of the pdfs? 
+;-------------------------------------------------------------
+
+numbins =  48; originally 48 
 
 opt = True
-opt@bin_min=-120
-opt@bin_max=120
-;opt@bin_spacing=5
-opt@bin_spacing=10
+;opt@bin_min=-120  ; It seems like limiting the extent of the bins changes to total sum of the pdf.
+;opt@bin_max=120
+;;opt@bin_spacing=5
+;opt@bin_spacing=10
 pdf_a=pdfx(a_reshape_tmn,numbins,opt)
 pdf_b=pdfx(intvar_out,numbins,opt)
 pdf_c=pdfx(wvar_a,numbins,opt)
@@ -358,49 +361,39 @@ pdf_c=pdfx(wvar_a,numbins,opt)
   print("dimsizes of pdf_b are: "+dimsizes(pdf_b))
   print("dimsizes of pdf_c are: "+dimsizes(pdf_c))
 
-;;********************************************************************
+;;************************************************************
 ;printVarSummary(a_reshape_tmn)
 ;; compute mean up and down using chunks...
-;om_u_a      =where((a_reshape_tmn .le. 0),a_reshape_tmn,a_reshape_tmn@_FillValue)
-;om_d_a      =where((a_reshape_tmn .ge. 0),a_reshape_tmn,a_reshape_tmn@_FillValue)
+om_u_a      =where((a_reshape_tmn .le. 0),a_reshape_tmn,a_reshape_tmn@_FillValue)
+om_d_a      =where((a_reshape_tmn .ge. 0),a_reshape_tmn,a_reshape_tmn@_FillValue)
 ;
-;om_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
-;om_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
+om_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
+om_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 ;
-;; calculate the cosine weighted mean
-;if (CRM .lt. 1)
-;  om_u_mn = wgt_areaave(omega_u_a,clat,1.0,0)
-;  om_d_mn = wgt_areaave(omega_d_a,clat,1.0,0)
-;else
-;  om_u_mn = wgt_areaave(omega_u_a,1.0,1.0,0)
-;  om_d_mn = wgt_areaave(omega_d_a,1.0,1.0,0)
-;end if
+; calculate the cosine weighted mean
+if (CRM .lt. 1)
+  om_u_mn = wgt_areaave(om_u_a,clat,1.0,0)
+  om_d_mn = wgt_areaave(om_d_a,clat,1.0,0)
+else
+  om_u_mn = wgt_areaave(om_u_a,1.0,1.0,0)
+  om_d_mn = wgt_areaave(om_d_a,1.0,1.0,0)
+end if
 ;
 ;; calculate the time mean
-;om_u_tmn = dim_avg_n(om_u_mn,0)
-;om_d_tmn = dim_avg_n(om_d_mn,0)
+om_u_tmn = dim_avg_n(om_u_mn,0)
+om_d_tmn = dim_avg_n(om_d_mn,0)
 ;
-;circ2=om_d_tmn-om_u_tmn
-;  print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-;  print("omega bar up equals: "+om_u_tmn+" and omega bar down equals: "+om_d_tmn)
-;  print("Circulation strength computed without any chunking is: "+circ2)
-;  print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
+circ2=om_d_tmn-om_u_tmn
+  print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+  print("omega bar up equals: "+om_u_tmn+" and omega bar down equals: "+om_d_tmn)
+  print("Circulation strength computed after averaging over chunks is: "+circ2)
+  print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 
 ;new_pdf   =new((/dim_om(0)/),float)
 ;do tt=0,dim_om(0)-1
 ;  omega_temp3=omega_d_a_frac(tt,:,:)
 ;  sfrac(tt)=sum(omega_temp3)/total_area
 ;end do
-
-;  print("mean of -omega for 295K is: "+avg(pdf_a(0:21)))
-;  print("mean of omega for 295K is: "+avg(pdf_a(22:41)))
-;  print("mean of -omega for 300K is: "+avg(pdf_b(0:21)))
-;  print("mean of omega for 300K is: "+avg(pdf_b(22:41)))
-;  print("mean of -omega for 305K is: "+avg(pdf_c(0:21)))
-;  print("mean of omega for 305K is: "+avg(pdf_c(22:41)))
-;
-;  print("bin centers are: "+pdf_a@bin_center)
 
 binsb2=numbins/2
 ; below is a work in progress trying to weight as in bony et al. 
@@ -434,13 +427,12 @@ res@trYMinF = 0.0
 res@trYMaxF = 25.0
 
 ;  printVarSummary(pdf_a)
-;  print("pdf_a values are: "+pdf_a)
-;  print("sum of pdf_a? is: "+sum(pdf_a))
-;  print("sum of pdf_a bin_center values is: "+sum(pdf_a@bin_center))
-;  print("sum of pdf_b? is: "+sum(pdf_b))
-;  print("sum of pdf_b? is: "+sum(pdf_c))
+  print("pdf_a values are: "+pdf_a)
+  print("sum of pdf_a? is: "+sum(pdf_a))
+  print("sum of pdf_a bin_center values is: "+sum(pdf_a@bin_center))
+  print("sum of pdf_b? is: "+sum(pdf_b))
+  print("sum of pdf_c? is: "+sum(pdf_c))
 ;
-;res@gsnCenterString    = "default bins"
 res@xyLineColors = colors(0)
 res@xyDashPattern =  0
 res@xyLineThicknessF = 4.
@@ -464,16 +456,12 @@ gsn_panel(wks,plot,(/1,1/),resP)
 
 ;==========================
 ; write out data to a txt file...
-; what should we write?  Perhaps the PDF, I,Iup,Idn, SST, and Model name?  
-; although the Model name would require writing different data types to the same arr
 ;
 arrdim=numbins+4
 arrayout  =new((/2,arrdim/),double)
 tarray    =new((/1,numbins/),double)
-;tarray = pdf_b@bin_center
 arrayout = -999.
 tarray = pdf_b
-  ;print("dimsizes of arrayout: "+dimsizes(arrayout))
 do z=0,numbins-1
   ;print("temp at z= "+z+" is: "+temp_tmn(z)+" gamma is: "+gamma_a(z)+" press is: "+press_tmn(z)+" rho is: "+rho(z)+" and gamma_m is: "+gamma_m(z)+" num: "+numer(z)+" den: "+denom(z))
   print(" value of pdf_a for z = "+z+" is: "+pdf_a(z))
@@ -490,8 +478,6 @@ arrayout(0,numbins+3) = seaST
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
 ;option@title   = "gamma_a, gamma_m, sbycp, sigma, hur_tmn, press, rscs, rlcs, diabdiv"
-;write_matrix (arrayout, "7f7.2", option)
 write_matrix (arrayout, "1f14.4", option)
-
 
 end
