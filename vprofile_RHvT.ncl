@@ -71,12 +71,11 @@ t_4b    =array4b(0:vlevs,5)
 t_4c    =array4c(0:vlevs,5)
 
 
-; only do this for temperature greater than 235K...
 print("for experiments with SST=295K: ")
-print("minimum RH is: "+min(hur_1a(14:29)))
-print("minimum RH is: "+min(hur_2a(14:31)))
-print("minimum RH is: "+100*min(hur_3a(40:71)))
-print("minimum RH is: "+min(hur_4a(14:25)))
+print("minimum RH is: "+min(hur_1a(14:29)))      ; cam5
+print("minimum RH is: "+min(hur_2a(14:31)))      ; cam6
+print("minimum RH is: "+100*min(hur_3a(40:71)))  ; GEOS
+print("minimum RH is: "+min(hur_4a(14:25)))      ; SP-CAM
 
 print("for experiments with SST=300K: ")
 print("minimum RH is: "+min(hur_1b(14:29)))
