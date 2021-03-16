@@ -390,6 +390,8 @@ omega_dn = dim_avg_n(intvar_d_ave,0)
 
 circulation_int = omega_dn-omega_up
 
+;-------------------------------------------------------------
+
 ; sfrac_dn is subsidence fraction.  use it to weight the up and down omega
 w_up=intvar_u_ave*sfrac_up
 w_dn=intvar_d_ave*sfrac_up

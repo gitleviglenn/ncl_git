@@ -1,11 +1,9 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=- 
-; vprofile_cldfracRHliqice.ncl
+; vprofile_RHvT.ncl
 ;
-; produce a figure that shows the vertical profile of clouds, RH, cloud 
-; liquid, cloud ice, and temperature from the 
-; rcemip simulations run with CAM5 and CAM6
+; plots RH profiles from GCM RCE runs vs. temperature
 ;
-; initially the focus is to plot the profiles in temperature coordinates
+; reads txt files that have been produced from a different ncl script
 ; 
 ; this script should also be able to plot the profiles in pressure, height, 
 ; or temperature coordinates.
@@ -33,6 +31,9 @@ array3c=readAsciiTable("profiles_GEOS_305_mn.txt",7,"float",1)
 array4a=readAsciiTable("profiles_SPCAM_295_mn.txt",7,"float",1)
 array4b=readAsciiTable("profiles_SPCAM_300_mn.txt",7,"float",1)
 array4c=readAsciiTable("profiles_SPCAM_305_mn.txt",7,"float",1)
+array5a=readAsciiTable("profiles_SPXCAM_295_mn.txt",7,"float",1)
+array5b=readAsciiTable("profiles_SPXCAM_300_mn.txt",7,"float",1)
+array5c=readAsciiTable("profiles_SPXCAM_305_mn.txt",7,"float",1)
 ;
 ;array01=asciiread("profiles_CAM5_295_mn.txt",(/30,10/),"float")
   printVarSummary(array1a)
@@ -70,24 +71,35 @@ t_4a    =array4a(0:vlevs,5)
 t_4b    =array4b(0:vlevs,5)
 t_4c    =array4c(0:vlevs,5)
 
+vlevs=25;
+hur_5a  =array5a(0:vlevs,2)
+hur_5b  =array5b(0:vlevs,2)
+hur_5c  =array5c(0:vlevs,2)
+t_5a    =array5a(0:vlevs,5)
+t_5b    =array5b(0:vlevs,5)
+t_5c    =array5c(0:vlevs,5)
+
 
 print("for experiments with SST=295K: ")
-print("minimum RH is: "+min(hur_1a(14:29)))      ; cam5
-print("minimum RH is: "+min(hur_2a(14:31)))      ; cam6
-print("minimum RH is: "+100*min(hur_3a(40:71)))  ; GEOS
-print("minimum RH is: "+min(hur_4a(14:25)))      ; SP-CAM
+print("minimum RH is: "+min(hur_1a(14:29))+" cam5")      ; cam5
+print("minimum RH is: "+min(hur_2a(14:31))+" cam6")      ; cam6
+print("minimum RH is: "+100*min(hur_3a(40:71))+" geos")  ; GEOS
+print("minimum RH is: "+min(hur_4a(14:25))+" sp-cam")    ; SP-CAM
+print("minimum RH is: "+min(hur_5a(14:25))+" spx-cam")   ; SPX-CAM
 
 print("for experiments with SST=300K: ")
 print("minimum RH is: "+min(hur_1b(14:29)))
 print("minimum RH is: "+min(hur_2b(14:31)))
 print("minimum RH is: "+100*min(hur_3b(40:71)))
 print("minimum RH is: "+min(hur_4b(14:25)))
+print("minimum RH is: "+min(hur_5b(14:25)))
 
 print("for experiments with SST=305K: ")
 print("minimum RH is: "+min(hur_1c(14:29)))
 print("minimum RH is: "+min(hur_2c(14:31)))
 print("minimum RH is: "+100*min(hur_3c(40:71)))
 print("minimum RH is: "+min(hur_4c(14:25)))
+print("minimum RH is: "+min(hur_5c(14:25)))
 
 ;
 ;
@@ -96,7 +108,8 @@ print("minimum RH is: "+min(hur_4c(14:25)))
 ;**************************************************************************
 
 wks=gsn_open_wks("eps","testplot")
-gsn_define_colormap(wks,"CBR_drywet")
+;gsn_define_colormap(wks,"CBR_drywet")
+gsn_define_colormap(wks,"cb_9step")
 plot=new(4,graphic)
 
 res                                     = True
@@ -146,7 +159,8 @@ res                                     = True
   res@vpWidthF               = 0.3
   res@vpHeightF              = 0.49
 
-  res@xyLineColors = "chocolate2"
+  ;res@xyLineColors = "chocolate2"
+  res@xyLineColors = 67
   res@xyLineThicknessF  = 1.0
   plot0a = gsn_csm_xy(wks,hur_1a(:),t_1a,res)
   res@xyLineThicknessF  = 2.5
@@ -154,7 +168,8 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0c = gsn_csm_xy(wks,hur_1c(:),t_1c,res)
 
-  res@xyLineColors = "aquamarine3"
+  ;res@xyLineColors = "aquamarine3"
+  res@xyLineColors = 19
   res@xyLineThicknessF  = 1.0
   plot0d = gsn_csm_xy(wks,hur_2a(:),t_2a,res)
   res@xyLineThicknessF  = 2.5
@@ -162,7 +177,8 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0f = gsn_csm_xy(wks,hur_2c(:),t_2c,res)
   
-  res@xyLineColors = "skyblue3"
+;  res@xyLineColors = "skyblue3"
+  res@xyLineColors = 35
   res@xyLineThicknessF  = 1.0
   plot0g = gsn_csm_xy(wks,100*hur_3a(:),t_3a,res)
   res@xyLineThicknessF  = 2.5
@@ -170,13 +186,23 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0i = gsn_csm_xy(wks,100*hur_3c(:),t_3c,res)
 
-  res@xyLineColors = "orangered3"
+  ;res@xyLineColors = "orangered3"
+  res@xyLineColors = 51
   res@xyLineThicknessF  = 1.0
   plot0j = gsn_csm_xy(wks,hur_4a(:),t_4a,res)
   res@xyLineThicknessF  = 2.5
   plot0k = gsn_csm_xy(wks,hur_4b(:),t_4b,res)
   res@xyLineThicknessF  = 4.0
   plot0l = gsn_csm_xy(wks,hur_4c(:),t_4c,res)
+
+;  res@xyLineColors = "plum3"
+  res@xyLineColors = 60
+  res@xyLineThicknessF  = 1.0
+  plot0m = gsn_csm_xy(wks,hur_5a(:),t_5a,res)
+  res@xyLineThicknessF  = 2.5
+  plot0n = gsn_csm_xy(wks,hur_5b(:),t_5b,res)
+  res@xyLineThicknessF  = 4.0
+  plot0o = gsn_csm_xy(wks,hur_5c(:),t_5c,res)
 
   overlay(plot0a,plot0b) 
   overlay(plot0a,plot0c) 
@@ -189,6 +215,9 @@ res                                     = True
   overlay(plot0a,plot0j) 
   overlay(plot0a,plot0k) 
   overlay(plot0a,plot0l) 
+  overlay(plot0a,plot0m) 
+  overlay(plot0a,plot0n) 
+  overlay(plot0a,plot0o) 
 
   plot(0) =plot0a
 
@@ -197,29 +226,32 @@ res                                     = True
   lgres                      = True
   lgres@xyLabelMode            = "Custom"
   lgres@xyLineLabelFontHeightF = 0.015                ; font height
-  lgres@lgLineColors         = (/"orangered3","skyblue3","aquamarine3","chocolate2"/)
+  ;lgres@lgLineColors         = (/"plum3","orangered3","skyblue3","aquamarine3","chocolate2"/)
+  ;lgres@lgLineColors         = (/59,50,34,18,66/)
+  lgres@lgLineColors         = (/60,51,35,19,67/)
   lgres@lgItemType           = "Lines"
   lgres@lgLabelFontHeightF   = .04
-  lgres@vpWidthF             = 0.13        ; width of legend
+  lgres@vpWidthF             = 0.1        ; width of legend
   lgres@vpHeightF            = 0.14        ; height of legend
   lgres@lgPerimOn            = False                         ; turn off box around
   lgres@lgLineThicknessF     = 3.0
 ;  lgres@lgPerimThicknessF    = 2.0
   lgres@lgMonoDashIndex      = False 
-  lgres@lgDashIndexes          = (/"0","0","0","0"/)
+  lgres@lgDashIndexes          = (/"0","0","0","0","0"/)
 
+  title00 ="SPXCAM"
   title ="SPCAM"
   title0="GEOS"
   title1="CAM6"
   title2="CAM5"
-  labels = (/title,title0,title1,title2/)
-  legend  = gsn_create_legend (wks, 4, labels, lgres)
+  labels = (/title00,title,title0,title1,title2/)
+  legend  = gsn_create_legend (wks, 5, labels, lgres)
 
   amres = True
   amres@amJust = "BottomRight"
 
   amres@amParallelPosF   = 0.44    ; Move legend to right
-  amres@amOrthogonalPosF = 0.27     ; Move legend down
+  amres@amOrthogonalPosF = 0.2     ; Move legend down
 
   annoid = gsn_add_annotation(plot(0),legend,amres) ; add legend to plot
 
