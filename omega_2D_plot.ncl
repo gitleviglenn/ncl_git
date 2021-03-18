@@ -6,6 +6,15 @@
 ;
 ; this script can also plot a coarsened plot based on a particular block size.
 ;
+; the SAM RCEMIP experiments used a grid-spacing of 3km on a grid of 128x2048 grid points
+; that corresponds to 384x6144 km^2.
+; 
+; a grid that is coarsened to grid spacing of 96km the resulting grid would have 
+; 4x64 grid points
+;
+; a grid that is coarsened to grid spacing of 192km (as in Cronin and Wing, 2017) would 
+; have a grid with 2x32 grid points.
+;
 ; levi silvers                                                                 mar 2021
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
@@ -31,21 +40,21 @@ begin
 ;  plot_time = 1*24*365*3   ; this will need to be changed evenutally...
   plot_time = 26200; 
 ; set SST used with i: 
-  temp = "295"
-  model = "SAM_CRM"
+if (isvar("seaST")) then
+  temp=seaST
+else
+  temp="295"
+end if
+model = "SAM_CRM"
 
-  ntemp = dimsizes(temp)
-  nmodel= dimsizes(model)
+  print("{{{{{{{{{{ The SST value is: "+temp+"}}}}}}}}}}")
+
+;ntemp = dimsizes(temp)
+;nmodel= dimsizes(model)
 
 ;  filein_c5 = addfile(RCEMIP_dir+model(0)+"_GCM/RCE_large"+temp(tempindex)+"/2D/"+model(0)+"_GCM_RCE_large"+temp(tempindex)+"_2D_wap500.nc","r")
 ;  filein_c6 = addfile(RCEMIP_dir+model(1)+"_GCM/RCE_large"+temp(tempindex)+"/2D/"+model(1)+"_GCM_RCE_large"+temp(tempindex)+"_2D_wap500.nc","r")
 ;
-;  testdims=filein_c5->wap500(plot_time,:,:)
-;  testdims2=filein_c6->wap500(plot_time,:,:)
-;  ;printVarSummary(testdims)
-;  ;printVarSummary(testdims2)
-;  nlat = filein_c5->lat
-;  nlon = filein_c5->lon
  
 ;do j = 0,nmodel-1
 ;  omega_array = new((/3,192,288/),"float") 
@@ -55,9 +64,11 @@ begin
   file_omega = addfile(RCEMIP_dir+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+temp+"_2D_wa500.nc","r")
   
 ;  omega      = file_omega->wap500(plot_time,:,:)
+
+; grab data over a one day period of time: 
   omega_raw = file_omega->wa500(2000:2023,:,:)
-;  omega_slice = omega_raw(2000:2005,:,:)
     printVarSummary(omega_raw)
+; average over time
   omega = dim_avg_n(omega_raw,0)
     printVarSummary(omega)
 ;  omega_full = file_omega->wap500(:,:,:)
@@ -91,37 +102,54 @@ begin
   omega_coarse = omega
 ;  omega_coarse = omega@_FillValue
 
-;  block_array = new((/2,32/),float)
+;; parameters for grid blocks of 192km 
+block_array = new((/2,32/),float)
+block=floattointeger(64) ; block size for grid spacing of 192km
+iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
+jend = 31 ; for 128 gridpoints, there are two blocks of 64 
 
-  block_array = new((/4,64/),float)
-  block=floattointeger(32)
+;; parameters for grid blocks of 96km 
+;block_array = new((/4,64/),float)
+;block=floattointeger(32) ; block size for grid spacing of 96km
+;iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
+;jend = 63 ; for 128 gridpoints, there are two blocks of 64 
 
-  ;i=0
-  ;iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
-  iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-  ;j=0
-  ;jend = 31 ; for 128 gridpoints, there are two blocks of 64 
-  jend = 63 ; for 128 gridpoints, there are two blocks of 64 
-  do i=0,iend
-    icounter=i*block
-    do j=0,jend  
-      jcounter=j*block
-      print("current i counter is: "+icounter)
-      print("current j counter is: "+jcounter)
-      block_single   =omega_coarse(icounter:icounter+block-1,jcounter:jcounter+block-1)
-      block_array(i,j)=avg(block_single)
-    end do
+do i=0,iend
+  icounter=i*block
+  do j=0,jend  
+    jcounter=j*block
+    ;  print("current i counter is: "+icounter)
+    ;  print("current j counter is: "+jcounter)
+    block_single   =omega_coarse(icounter:icounter+block-1,jcounter:jcounter+block-1)
+    block_array(i,j)=avg(block_single)
   end do
+end do
+
+block_array@_FillValue = default_fillvalue("float")
 
   printVarSummary(block_array)
+
+; sort into rising and sinking arrays...
+omega_up_a=where((block_array .le. 0),block_array,block_array@_FillValue)
+
+omega_dn_a=where((block_array .ge. 0),block_array,block_array@_FillValue)
+
+omega_bar_u_a  = wgt_areaave(omega_up_a,1.0,1.0,0)
+omega_bar_d_a  = wgt_areaave(omega_dn_a,1.0,1.0,0)
+circ_a = omega_bar_d_a - omega_bar_u_a 
 
   print("max of omega_coarse is: "+max(omega_coarse))
   print("max of block_array is: "+max(block_array))
   print("min of omega_coarse is: "+min(omega_coarse))
   print("min of block_array is: "+min(block_array))
+  print("min omega: "+min(omega))
+  print("max omega: "+max(omega))
+  print("{{{{{{{{{{{{{{   }}}}}}}}}}}}}}") 
+  print("bar omega dn: "+omega_bar_d_a)
+  print("bar omega up: "+omega_bar_u_a)
+  print("intensity of the circulation is: "+circ_a)
+  print("{{{{{{{{{{{{{{   }}}}}}}}}}}}}}") 
   
-    print("min omega: "+min(omega))
-    print("max omega: "+max(omega))
    
 
 ; we need one more color than level
@@ -177,7 +205,7 @@ panelres1@gsnFrame                   = False   ; save panel until both ready
 panelres1@gsnPanelBottom             = 0.2     ; shrink panel plot by setting bottom edge of plot
 panelres1@gsnPanelTop                = 0.9     ; shrink panel plot by setting top edge of plot
 panelres1@gsnPanelLabelBar           = True
-panelres1@vpXF                       = 0.518-.22 ; Position labelbar at
+;panelres1@vpXF                       = 0.518-.22 ; Position labelbar at
 panelres1@vpHeightF                  = 0.095     ; Height of labelbar
 panelres1@vpWidthF                   = 0.44      ; Width of labelbar
 panelres1@lbLabelFontHeightF         = 0.01
