@@ -1,4 +1,6 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
+; lapseRate_readascii.ncl
+;
 ; read in ascii files from the driver script on casper
 ; 
 ; this script should read in data from CAM5 and CAM6 and produce a profile plot 
@@ -7,7 +9,8 @@
 ; tnt rad, and the diabatic divergnce.  Profiles come from the 3 RCEMIP experiments using the CAM5 and 
 ; CAM6 GCM.  
 ;
-; It would be best to leave this script, lapserate_rce.ncl, and lapseRate_readascii.ncl as they are
+; It would be best to leave this script, lapserate_rce.ncl, and lapseRatedriver.sh as 
+; they are
 ;
 ; calculates the height at which radiative cooling equals zero and the height at
 ; which the difference between the lapse rate and adiabatic lapse rate differ by
