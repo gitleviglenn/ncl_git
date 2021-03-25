@@ -170,30 +170,25 @@ fcj         =addfile(file_tntrscs,"r")
 fck         =addfile(file_tntrlcs,"r")
 fc_om       =addfile(file_om,"r")
 
-;if (isvar("notnormal")) then
-  normal = notnormal
-  if (normal .lt. 1) then
-    if (isvar("messeddims")) then
-      press_a     =fca->pa_avg(:)
-      zg_a        =fcg->zg(:)  ; GEOS uses zg instead of zg_avg
-      press_tmn   =press_a
-      zg_tmn      =zg_a
-    else
-      press_a     =fca->pa_avg(startime:endtime,:)
-      zg_a        =fcg->zg_avg(startime:endtime,:)
-      press_tmn   =dim_avg_n(press_a,0)
-      zg_tmn      =dim_avg_n(zg_a,0)
-    end if
-  else ; normal =1
-;    if (isvar("SP-CAM")) then
-      press_a     =fca->pa_avg(startime:endtime,:)
-      press_tmn   =dim_avg_n(press_a,0)
-;      zg_tmn      =dim_avg_n(zg_a,0)
-      zg_a          =fcg->z_avg(:)
-      zg_tmn      =zg_a
-;    end if
+normal = notnormal
+if (normal .lt. 1) then
+  if (isvar("messeddims")) then
+    press_a     =fca->pa_avg(:)
+    zg_a        =fcg->zg(:)  ; GEOS uses zg instead of zg_avg
+    press_tmn   =press_a
+    zg_tmn      =zg_a
+  else
+    press_a     =fca->pa_avg(startime:endtime,:)
+    zg_a        =fcg->zg_avg(startime:endtime,:)
+    press_tmn   =dim_avg_n(press_a,0)
+    zg_tmn      =dim_avg_n(zg_a,0)
   end if
-;end if
+else ; normal =1
+    press_a     =fca->pa_avg(startime:endtime,:)
+    press_tmn   =dim_avg_n(press_a,0)
+    zg_a          =fcg->z_avg(:)
+    zg_tmn      =zg_a
+end if
 
 temp_a      =fcb->ta_avg(startime:endtime,:)
 psl_a       =fce->psl(startime:endtime,:,:)
@@ -220,12 +215,9 @@ wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 scaleR = 86400.;
 
 temp_tmn     =dim_avg_n(temp_a,0)
-;zg_tmn       =dim_avg_n(zg_a,0)
 hur_tmn      =dim_avg_n(hur_a,0)
 rscs_tmn     =scaleR*dim_avg_n(rscs_a,0)
 rlcs_tmn     =scaleR*dim_avg_n(rlcs_a,0)
-;press_tmn    =dim_avg_n(press_a,0)
-;press_tmn    =press_a
 
 psl_b        =dim_avg_n(psl_a,0)
 psl_c        =dim_avg_n(psl_b,0)

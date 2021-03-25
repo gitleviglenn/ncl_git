@@ -66,35 +66,17 @@ model = "SAM_CRM"
 ;  omega      = file_omega->wap500(plot_time,:,:)
 
 ; grab data over a one day period of time: 
-  omega_raw = file_omega->wa500(2000:2023,:,:)
+  ;omega_raw = file_omega->wa500(2000:2023,:,:)
+; grab data over a 20 day period of time: 
+  ;omega_raw = file_omega->wa500(1920:2399,:,:)
+; grab data over 50 days
+  ;omega_raw = file_omega->wa500(1200:2399,:,:)
+  omega_raw = file_omega->wa500(600:2399,:,:)
     printVarSummary(omega_raw)
 ; average over time
   omega = dim_avg_n(omega_raw,0)
     printVarSummary(omega)
-;  omega_full = file_omega->wap500(:,:,:)
-;  omega_5d   = omega_full(26081:26200,:,:)
-;  omega_10d  = omega_full(25960:26200,:,:)
-;  omega_30d  = omega_full(25480:26200,:,:)
-;  time       = file_omega->time(plot_time)
 
-;  omega_5dmn  = dim_avg_n(omega_5d,0)
-;  omega_10dmn = dim_avg_n(omega_10d,0)
-;  omega_30dmn = dim_avg_n(omega_30d,0)
-
-;  copy_VarMeta(omega,omega_5dmn)
-;  copy_VarMeta(omega,omega_10dmn)
-;  copy_VarMeta(omega,omega_30dmn)
-
-;  omega_array(0,:,:)=omega(:,:)
-;  omega_array(1,:,:)=omega_5dmn(:,:)  
-;  omega_array(2,:,:)=omega_30dmn(:,:)  
-;
-;  omega_array!0 = "ChunkPeriod"
-;  omega_array!1 = "lat"
-;  omega_array!2 = "lon"
-;  omega_array&lat = omega&lat    
-;  omega_array&lon = omega&lon    
-;;      copy_VarMeta(omega,omega_array)
 
   omega = -scalef*omega ; should scale Pa/s to hPa/day
 
@@ -102,17 +84,17 @@ model = "SAM_CRM"
   omega_coarse = omega
 ;  omega_coarse = omega@_FillValue
 
-;; parameters for grid blocks of 192km 
-block_array = new((/2,32/),float)
-block=floattointeger(64) ; block size for grid spacing of 192km
-iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
-jend = 31 ; for 128 gridpoints, there are two blocks of 64 
+;;; parameters for grid blocks of 192km 
+;block_array = new((/2,32/),float)
+;block=floattointeger(64) ; block size for grid spacing of 192km
+;iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
+;jend = 31 ; for 128 gridpoints, there are two blocks of 64 
 
-;; parameters for grid blocks of 96km 
-;block_array = new((/4,64/),float)
-;block=floattointeger(32) ; block size for grid spacing of 96km
-;iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-;jend = 63 ; for 128 gridpoints, there are two blocks of 64 
+;;; parameters for grid blocks of 96km 
+block_array = new((/4,64/),float)
+block=floattointeger(32) ; block size for grid spacing of 96km
+iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
+jend = 63 ; for 128 gridpoints, there are two blocks of 64 
 
 do i=0,iend
   icounter=i*block

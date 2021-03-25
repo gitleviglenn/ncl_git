@@ -19,8 +19,11 @@
 ; should the time averaging come before or after the other analysis?
 ;
 ; note: CRM models used a channel shaped domain and were run for 100 days.  
-;
+;       
 ; goal: write out the pdf, circulation intensity, and SST to a ascii array
+;
+; parameters:    CRM = 1 -> CRM data is expected
+;                CRM = 0 -> GCM data is expected
 ;
 ; levi silvers                                                       dec 2020
 ; modified feb 2021
@@ -156,9 +159,9 @@ else ; case for CRM data
     x_new=fspan(0,5952000,63)
   end if
 
-  print("original y array is: "+y_orig)
-  print("new y array is: "+y_new)
-  print("new x array is: "+x_new)
+  ;print("original y array is: "+y_orig)
+  ;print("new y array is: "+y_new)
+  ;print("new x array is: "+x_new)
 
 end if
 end if
@@ -221,7 +224,7 @@ if (isvar("RCE_GCM"))
   intvar_out!2="lon"
     print("interpolation finished")
     printVarSummary(intvar_out)
-else
+else  ; don't regrid to 1x1 put do perhaps coarsen the grid
   ; for SAM
   ;y_new=fspan(0,288000,4)
   ;x_new=fspan(0,6048000,64)
@@ -236,12 +239,13 @@ else
     y_new=fspan(0,384000,5)
     x_new=fspan(0,5952000,63)
   end if
-    print("original y array is: "+y_orig)
-    print("new y array is: "+y_new)
-    print("new x array is: "+x_new)
+    ;print("original y array is: "+y_orig)
+    ;print("new y array is: "+y_new)
+    ;print("new x array is: "+x_new)
   var_to_interpolate=wvar_a ; incoming CRM data
   ; var_to_interpolate must have y,x as its two rightmost dimensions...
   juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,False)
+    print("---data has been interpolated to a coarser grid using area_hi2lores---")
   intvar_out=juljack
 end if  ; end interpolation loop
 
@@ -286,7 +290,7 @@ if (CRM .lt. 1)
   intvar_u_ave  = wgt_areaave(omega_u_a,clat,1.0,0)
   intvar_d_ave  = wgt_areaave(omega_d_a,clat,1.0,0)
   
-    printVarSummary(intvar_u_ave)
+    ;printVarSummary(intvar_u_ave)
 else
   intvar_u_ave  = wgt_areaave(omega_u_a,1.0,1.0,0)
   intvar_d_ave  = wgt_areaave(omega_d_a,1.0,1.0,0)
@@ -306,10 +310,10 @@ wav_dn = dim_avg_n(w_dn,0)
 
   print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 ;  print(down_min_up)   ; this is the circulation intensity
-  print("av_dn is equal to: "+av_dn)
+  print("omega bar down (av_dn) is equal to: "+av_dn)
   print("weighted by sf, w_dn at 1 time is equal to: "+w_dn(10)+" and weighted w_up is equal to: "+w_up(10))
   print("ave weighted by sf, wav_dn, is equal to: "+wav_dn+" and weighted wav_up is equal to: "+wav_up)
-  print("av_up is equal to: "+av_up)
+  print("omega bar up (av_up) is equal to: "+av_up)
  ; print("av_dn2 is equal to: "+av_dn2)
  ; print("av_up2 is equal to: "+av_up2)
 circulation_int = av_dn-av_up
@@ -347,7 +351,7 @@ end if
 ; or should we compute the time average of the pdfs? 
 ;-------------------------------------------------------------
 
-numbins =  48; originally 48 
+numbins =  148; originally 48 
 
 opt = True
 ;opt@bin_min=-120  ; It seems like limiting the extent of the bins changes to total sum of the pdf.
