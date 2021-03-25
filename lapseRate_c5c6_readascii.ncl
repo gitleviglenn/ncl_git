@@ -2,6 +2,7 @@
 ; read in ascii files from the driver script on casper
 ; 
 ; this script should read in data from CAM5 and CAM6 and produce a profile plot 
+; named:  "testplot_lapse_c5c6.eps"
 ;
 ; this script creates a 5 panel plot showing profiles of RH, lapse rate, the static stability parameter,
 ; tnt rad, and the diabatic divergnce.  Profiles come from the 3 RCEMIP experiments using the CAM5 and 
