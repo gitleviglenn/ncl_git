@@ -19,21 +19,34 @@ begin
 ; labels for each of the columns in the incoming txt files:
 ; omega_d, sigma, hur_tmn, rscs, rlcs, temp_mn, press_mn
 
-array1a=readAsciiTable("profiles_CAM5_295_mn.txt",7,"float",1)
-array1b=readAsciiTable("profiles_CAM5_300_mn.txt",7,"float",1)
-array1c=readAsciiTable("profiles_CAM5_305_mn.txt",7,"float",1)
-array2a=readAsciiTable("profiles_CAM6_295_mn.txt",7,"float",1)
-array2b=readAsciiTable("profiles_CAM6_300_mn.txt",7,"float",1)
-array2c=readAsciiTable("profiles_CAM6_305_mn.txt",7,"float",1)
-array3a=readAsciiTable("profiles_GEOS_295_mn.txt",7,"float",1)
-array3b=readAsciiTable("profiles_GEOS_300_mn.txt",7,"float",1)
-array3c=readAsciiTable("profiles_GEOS_305_mn.txt",7,"float",1)
-array4a=readAsciiTable("profiles_SPCAM_295_mn.txt",7,"float",1)
-array4b=readAsciiTable("profiles_SPCAM_300_mn.txt",7,"float",1)
-array4c=readAsciiTable("profiles_SPCAM_305_mn.txt",7,"float",1)
-array5a=readAsciiTable("profiles_SPXCAM_295_mn.txt",7,"float",1)
-array5b=readAsciiTable("profiles_SPXCAM_300_mn.txt",7,"float",1)
-array5c=readAsciiTable("profiles_SPXCAM_305_mn.txt",7,"float",1)
+array1a=readAsciiTable("profiles_CAM5_295_mn.txt",8,"float",1)
+array1b=readAsciiTable("profiles_CAM5_300_mn.txt",8,"float",1)
+array1c=readAsciiTable("profiles_CAM5_305_mn.txt",8,"float",1)
+
+array2a=readAsciiTable("profiles_CAM6_295_mn.txt",8,"float",1)
+array2b=readAsciiTable("profiles_CAM6_300_mn.txt",8,"float",1)
+array2c=readAsciiTable("profiles_CAM6_305_mn.txt",8,"float",1)
+
+array3a=readAsciiTable("profiles_GEOS_295_mn.txt",8,"float",1)
+array3b=readAsciiTable("profiles_GEOS_300_mn.txt",8,"float",1)
+array3c=readAsciiTable("profiles_GEOS_305_mn.txt",8,"float",1)
+
+array4a=readAsciiTable("profiles_SPCAM_295_mn.txt",8,"float",1)
+array4b=readAsciiTable("profiles_SPCAM_300_mn.txt",8,"float",1)
+array4c=readAsciiTable("profiles_SPCAM_305_mn.txt",8,"float",1)
+
+array5a=readAsciiTable("profiles_SPXCAM_295_mn.txt",8,"float",1)
+array5b=readAsciiTable("profiles_SPXCAM_300_mn.txt",8,"float",1)
+array5c=readAsciiTable("profiles_SPXCAM_305_mn.txt",8,"float",1)
+
+array6a=readAsciiTable("profiles_ECHAM_GCM_295_mn.txt",8,"float",1)
+array6b=readAsciiTable("profiles_ECHAM_GCM_300_mn.txt",8,"float",1)
+array6c=readAsciiTable("profiles_ECHAM_GCM_305_mn.txt",8,"float",1)
+
+array7a=readAsciiTable("profiles_SAM_CRM_295.txt",8,"float",1)
+array7b=readAsciiTable("profiles_SAM_CRM_300.txt",8,"float",1)
+array7c=readAsciiTable("profiles_SAM_CRM_305.txt",8,"float",1)
+
 ;
 ;array01=asciiread("profiles_CAM5_295_mn.txt",(/30,10/),"float")
   printVarSummary(array1a)
@@ -43,41 +56,57 @@ vlevs=29; actual vertical dimensions are vlevs+1
 hur_1a  =array1a(0:vlevs,2)
 hur_1b  =array1b(0:vlevs,2)
 hur_1c  =array1c(0:vlevs,2)
-t_1a    =array1a(0:vlevs,5)
-t_1b    =array1b(0:vlevs,5)
-t_1c    =array1c(0:vlevs,5)
+t_1a    =array1a(0:vlevs,4)
+t_1b    =array1b(0:vlevs,4)
+t_1c    =array1c(0:vlevs,4)
 
 vlevs=31;
 hur_2a  =array2a(0:vlevs,2)
 hur_2b  =array2b(0:vlevs,2)
 hur_2c  =array2c(0:vlevs,2)
-t_2a    =array2a(0:vlevs,5)
-t_2b    =array2b(0:vlevs,5)
-t_2c    =array2c(0:vlevs,5)
+t_2a    =array2a(0:vlevs,4)
+t_2b    =array2b(0:vlevs,4)
+t_2c    =array2c(0:vlevs,4)
 
 vlevs=71;
 hur_3a  =array3a(0:vlevs,2)
 hur_3b  =array3b(0:vlevs,2)
 hur_3c  =array3c(0:vlevs,2)
-t_3a    =array3a(0:vlevs,5)
-t_3b    =array3b(0:vlevs,5)
-t_3c    =array3c(0:vlevs,5)
+t_3a    =array3a(0:vlevs,4)
+t_3b    =array3b(0:vlevs,4)
+t_3c    =array3c(0:vlevs,4)
 
 vlevs=25;
 hur_4a  =array4a(0:vlevs,2)
 hur_4b  =array4b(0:vlevs,2)
 hur_4c  =array4c(0:vlevs,2)
-t_4a    =array4a(0:vlevs,5)
-t_4b    =array4b(0:vlevs,5)
-t_4c    =array4c(0:vlevs,5)
+t_4a    =array4a(0:vlevs,4)
+t_4b    =array4b(0:vlevs,4)
+t_4c    =array4c(0:vlevs,4)
 
 vlevs=25;
 hur_5a  =array5a(0:vlevs,2)
 hur_5b  =array5b(0:vlevs,2)
 hur_5c  =array5c(0:vlevs,2)
-t_5a    =array5a(0:vlevs,5)
-t_5b    =array5b(0:vlevs,5)
-t_5c    =array5c(0:vlevs,5)
+t_5a    =array5a(0:vlevs,4)
+t_5b    =array5b(0:vlevs,4)
+t_5c    =array5c(0:vlevs,4)
+
+vlevs=47;  ECHAM
+hur_6a  =array6a(0:vlevs,2)
+hur_6b  =array6b(0:vlevs,2)
+hur_6c  =array6c(0:vlevs,2)
+t_6a    =array6a(0:vlevs,4)
+t_6b    =array6b(0:vlevs,4)
+t_6c    =array6c(0:vlevs,4)
+
+vlevs=74; SAM CRM 
+hur_7a  =array7a(0:vlevs,2)
+hur_7b  =array7b(0:vlevs,2)
+hur_7c  =array7c(0:vlevs,2)
+t_7a    =array7a(0:vlevs,4)
+t_7b    =array7b(0:vlevs,4)
+t_7c    =array7c(0:vlevs,4)
 
 
 print("for experiments with SST=295K: ")
@@ -86,6 +115,8 @@ print("minimum RH is: "+min(hur_2a(14:31))+" cam6")      ; cam6
 print("minimum RH is: "+100*min(hur_3a(40:71))+" geos")  ; GEOS
 print("minimum RH is: "+min(hur_4a(14:25))+" sp-cam")    ; SP-CAM
 print("minimum RH is: "+min(hur_5a(14:25))+" spx-cam")   ; SPX-CAM
+print("minimum RH is: "+min(hur_6a(19:47))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7a(45:74))+" sam crm")   ; SAM CRM
 
 print("for experiments with SST=300K: ")
 print("minimum RH is: "+min(hur_1b(14:29)))
@@ -93,6 +124,8 @@ print("minimum RH is: "+min(hur_2b(14:31)))
 print("minimum RH is: "+100*min(hur_3b(40:71)))
 print("minimum RH is: "+min(hur_4b(14:25)))
 print("minimum RH is: "+min(hur_5b(14:25)))
+print("minimum RH is: "+min(hur_6b(19:47))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7b(45:74))+" sam crm")   ; SAM CRM
 
 print("for experiments with SST=305K: ")
 print("minimum RH is: "+min(hur_1c(14:29)))
@@ -100,6 +133,8 @@ print("minimum RH is: "+min(hur_2c(14:31)))
 print("minimum RH is: "+100*min(hur_3c(40:71)))
 print("minimum RH is: "+min(hur_4c(14:25)))
 print("minimum RH is: "+min(hur_5c(14:25)))
+print("minimum RH is: "+min(hur_6c(19:47))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7c(45:74))+" sam crm")   ; SAM CRM
 
 ;
 ;
@@ -123,7 +158,6 @@ res                                     = True
   ;res@xyExplicitLegendLabels = (/ "we","are","not"/)
   ;res@tiMainString           = "Where are the Anvils?"
 ;  res@tiYAxisString          = "Pressure (hPa)"
-;  res@tiXAxisString          = "Cloud Fraction"
   res@tiXAxisString          = "RH (%)"
   res@tmXBMinorOn          = False
 
@@ -146,8 +180,6 @@ res                                     = True
   res@tiYAxisString          = "Temperature (K)"
   res@tmYRBorderOn      = False
   res@tmXTBorderOn      = False
-;  res@trYMinF                =  20.0
-;  res@trYMaxF                =  30.0
 
 ;  res@tmYUseLeft             = False
   ;res@tmYRLabelsOn           = True
@@ -177,7 +209,7 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0f = gsn_csm_xy(wks,hur_2c(:),t_2c,res)
   
-;  res@xyLineColors = "skyblue3"
+; light purple 
   res@xyLineColors = 35
   res@xyLineThicknessF  = 1.0
   plot0g = gsn_csm_xy(wks,100*hur_3a(:),t_3a,res)
@@ -186,7 +218,7 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0i = gsn_csm_xy(wks,100*hur_3c(:),t_3c,res)
 
-  ;res@xyLineColors = "orangered3"
+; light red
   res@xyLineColors = 51
   res@xyLineThicknessF  = 1.0
   plot0j = gsn_csm_xy(wks,hur_4a(:),t_4a,res)
@@ -195,7 +227,7 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0l = gsn_csm_xy(wks,hur_4c(:),t_4c,res)
 
-;  res@xyLineColors = "plum3"
+; dirty yellow
   res@xyLineColors = 60
   res@xyLineThicknessF  = 1.0
   plot0m = gsn_csm_xy(wks,hur_5a(:),t_5a,res)
@@ -204,20 +236,52 @@ res                                     = True
   res@xyLineThicknessF  = 4.0
   plot0o = gsn_csm_xy(wks,hur_5c(:),t_5c,res)
 
+; pinkish
+  res@xyLineColors =44 
+  res@xyLineThicknessF  = 1.0
+  plot0p = gsn_csm_xy(wks,hur_6a(:),t_6a,res)
+  res@xyLineThicknessF  = 2.5
+  plot0q = gsn_csm_xy(wks,hur_6b(:),t_6b,res)
+  res@xyLineThicknessF  = 4.0
+  plot0r = gsn_csm_xy(wks,hur_6c(:),t_6c,res)
+
+; greay
+  res@xyLineColors = 77 
+  res@xyLineThicknessF  = 1.0
+  plot0s = gsn_csm_xy(wks,hur_7a(:),t_7a,res)
+  res@xyLineThicknessF  = 2.5
+  plot0t = gsn_csm_xy(wks,hur_7b(:),t_7b,res)
+  res@xyLineThicknessF  = 4.0
+  plot0u = gsn_csm_xy(wks,hur_7c(:),t_7c,res)
+
+
+
   overlay(plot0a,plot0b) 
   overlay(plot0a,plot0c) 
+
   overlay(plot0a,plot0d) 
   overlay(plot0a,plot0e) 
   overlay(plot0a,plot0f) 
+
   overlay(plot0a,plot0g) 
   overlay(plot0a,plot0h) 
   overlay(plot0a,plot0i) 
+
   overlay(plot0a,plot0j) 
   overlay(plot0a,plot0k) 
   overlay(plot0a,plot0l) 
+
   overlay(plot0a,plot0m) 
   overlay(plot0a,plot0n) 
   overlay(plot0a,plot0o) 
+
+  overlay(plot0a,plot0p) 
+  overlay(plot0a,plot0q) 
+  overlay(plot0a,plot0r) 
+
+  overlay(plot0a,plot0s) 
+  overlay(plot0a,plot0t) 
+  overlay(plot0a,plot0u) 
 
   plot(0) =plot0a
 
