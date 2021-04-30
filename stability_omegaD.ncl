@@ -23,6 +23,7 @@
 ;
 ; CAM5 has 30 vertical levels that follow hybrid-pressure coordinates
 ; level 1 corresponds to the top of the model
+; Most of the GCMs have level 1 at the top of the model except for CNRM and the UKMO
 ;
 ; variables needed for this script:  
 ; 2D vars:  omega/w, ta, psl
@@ -94,8 +95,6 @@ else
   print("lasttime var not detected, endtime is:  "+endtime)
 end if
 
-;ndtime=25000 ; ICON GCM has fewer timesteps that CAM or ECHAM
-timelenght=endtime-timewindow*numperiods
 startime  =endtime-timewindow*numperiods+1
 
 ; physical constants: 
@@ -124,7 +123,7 @@ path_C6="CAM6_GCM/"
 ;*************************************************************
 ; read variables
 ;---------------------------------------------------------
-if (fileconglomerate .lt. 1) then
+if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON 
   if (isvar("CAMGCM")) then
     whichCAM=CAMGCM
   ;;;; see omega_mn_rce.ncl for reference.  
@@ -142,8 +141,15 @@ if (fileconglomerate .lt. 1) then
     file_hur    =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_hur_avg.nc"
     file_tntrscs=pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
     file_tntrlcs=pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
+    ;fca          =addfile(file_p,"r")
+    ;press_a      =fca->pa_avg(startime:endtime,:)
+    ;press_tmn    =dim_avg_n(press_a,0)   
   else
   ;  file_testmodel=pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_"+varname+".nc"
+    if (VertDimFix .eq. 0) then; default
+      file_p         =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
+      file_zg        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_zg_avg.nc"
+    end if
     if (VertDimFix .eq. 1) then
         print("no pressure file is being opened")
         print("no zg file is being opened")
@@ -151,10 +157,6 @@ if (fileconglomerate .lt. 1) then
     if (VertDimFix .eq. 2) then ; SP-CAM
       file_p       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
       file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_z_avg.nc"
-    end if
-    if (VertDimFix .eq. 0) then; default
-      file_p         =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
-      file_zg        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_zg_avg.nc"
     end if
     if (omega .lt. 1) then
       omvar="wap500"
@@ -172,39 +174,49 @@ if (fileconglomerate .lt. 1) then
   
   fcb         =addfile(file_ta,"r")
   fce         =addfile(file_psl,"r")
-  ;fcf         =addfile(file_tas,"r")
-  ;fcg         =addfile(file_zg,"r")
   fch         =addfile(file_hur,"r")
   fcj         =addfile(file_tntrscs,"r")
   fck         =addfile(file_tntrlcs,"r")
   fc_om       =addfile(file_om,"r")
 
-; the z variable has at least three different names: zg_avg(CAM5), z_avg(SP-CAM), zg(GEOS), and z(SAM) 
-; should I organize the models into 3 or so 'types' for which z and p and sometimes t 
-; are defined, read, and averaged in particular ways?  
-
-  if (VertDimFix .eq. 1) then
+  ; the z variable has at least three different names: zg_avg(CAM5), z_avg(SP-CAM), zg(GEOS), and z(SAM) 
+  ; should I organize the models into 3 or so 'types' for which z,p, and sometimes t 
+  ; are defined, read, and averaged in particular ways?  
+  
+  ;----  Dealing with the different ways of writing zg and pa among the models -----;
+  if (isvar("VertDimFix")) then
+    if (VertDimFix .eq. 0) then
+      fcg          =addfile(file_zg,"r")
+      fca          =addfile(file_p,"r")
+      if (isvar("stupidp")) then
+        specialp = stupidp 
+        if (specialp .eq. 1) then  ; GEOS has a pressure field with only height, no time
+            print("inside stupid and special p loop")
+          press_tmn =fca->pa_avg(:)
+          zg_tmn    =fcg->zg(:)
+        end if
+      else ; no stupidp
+        zg_a    = fcg->zg_avg(startime:endtime,:)
+        zg_tmn  = dim_avg_n(zg_a,0)  
+        ;fcg          =addfile(file_zg,"r")
+        press_a      =fca->pa_avg(startime:endtime,:)
+        press_tmn    =dim_avg_n(press_a,0)  ; CAM uses Pa for p, no conversion
+      end if
+    end if
+    if (VertDimFix .eq. 1) then
         print("probably using SAM.  who are the others?")
       press_tmn    =fcb->p(:)
       press_tmn    = 100.*press_tmn ; SAM uses mb for p, convert to Pa
       zg_tmn       =fcb->z(:)
-  end if
-  if (VertDimFix .eq. 2) then
-    zg_tmn       =fcg->z_avg(:) ; SP-CAM
-  end if
-  fcg          =addfile(file_zg,"r")
-  fca          =addfile(file_p,"r")
-  if (isvar("stupidp")) then
-    specialp = stupidp 
-    if (specialp .eq. 1) then  ; GEOS has a pressure field with only height, no time
-        print("inside stupid and special p loop")
-      press_tmn =fca->pa_avg(:)
-      zg_tmn    =fcg->zg(:)
     end if
-  else
-    press_a      =fca->pa_avg(startime:endtime,:)
-    press_tmn    =dim_avg_n(press_a,0)  ; CAM uses Pa for p, no conversion
-  end if
+    if (VertDimFix .eq. 2) then
+      fcg          =addfile(file_zg,"r")
+      fca          =addfile(file_p,"r")
+      zg_tmn       =fcg->z_avg(:) ; SP-CAM
+      press_a      =fca->pa_avg(startime:endtime,:)
+      press_tmn    =dim_avg_n(press_a,0)   
+    end if
+  end if ; end isvar(VertDimFix)
   if (omega .lt. 1) then
     wvar_a=fc_om->wap500(startime:endtime,:,:)
   else if (omega .lt. 2) then
@@ -230,28 +242,40 @@ else if (fileconglomerate .eq. 1) then
   file_1D = addfile(file_1D_con,"r")
   file_2D = addfile(file_2D_con,"r")
   temp_a  = file_1D->ta_avg(startime:endtime,:,0,0)
-  press_a = file_1D->pa_avg(startime:endtime,:,0,0)
-  zg_a    = file_1D->zg_avg(startime:endtime,:,0,0)
-  zg_tmn  = dim_avg_n(zg_a,0)  
+  if (isvar("stupidp")) then
+    specialp = stupidp 
+    if (specialp .eq. 2) then  ; ICON special case
+      press_a = file_1D->p_avg(startime:endtime,:,0,0)
+      zg_a    = file_1D->height_avg(:,0,0)
+      zg_tmn  = doubletofloat(zg_a)  
+      wvar_a  = file_2D->wa500(startime:endtime,0,:,:)
+    end if
+  else
+    press_a = file_1D->pa_avg(startime:endtime,:,0,0)
+    zg_a    = file_1D->zg_avg(startime:endtime,:,0,0)
+    zg_tmn  = dim_avg_n(zg_a,0)  
+    wvar_a  = file_2D->wap500(startime:endtime,0,:,:)
+  end if
+  ;zg_tmn  = dim_avg_n(zg_a,0)  
   press_tmn = dim_avg_n(press_a,0)  
   psl_a   = file_2D->psl(startime:endtime,:,:)
   hur_a   = file_1D->hur_avg(startime:endtime,:,0,0)
     print("WARNING!! it looks like ECHAM does not have clear sky radiative fluxes!! ")
+    print("WARNING!! it looks like ICON does not have clear sky radiative fluxes!! ")
   rscs_a  = file_1D->tntrs_avg(startime:endtime,:,0,0)
   rlcs_a  = file_1D->tntrl_avg(startime:endtime,:,0,0)
-  wvar_a  = file_2D->wap500(startime:endtime,0,:,:)
+  ;wvar_a  = file_2D->wap500(startime:endtime,0,:,:)
 end if
 end if 
 
 wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 dims      = dimsizes(temp_a)
+  print("!- check the lowest level, it could have an error because of 'lowestlev'!!!! -!")
 lowestlev = dims(1)-1
 
-;==========================
-; process vertical velocity
-; compute the mean upward and downward omega velocities
 
+;*************************************************************
 ; scale vertical velocity
 ; convert units to hPa/d?  
 ; for models with Pa/s conversion factor is 864
@@ -260,50 +284,83 @@ lowestlev = dims(1)-1
 wvar_a=scalef*wvar_a
 
 ;*************************************************************
+; perform regridding to 1x1 degree lat lon or regrid CRM 
+; models to a coarse gird...
 ;----------------------------
-;if (isvar("RCE_GCM"))
-if (CRM .lt. 1)
-; perform regridding to 1x1 degree lat lon
-  print("begin interpolation...")
-
-  var_to_interpolate=wvar_a
-  if (isvar("longdimnames")) then
-    var_to_interpolate!1="lat"
-    var_to_interpolate&lat=wvar_a&latitude
-    var_to_interpolate!2="lon"
-    var_to_interpolate&lon=wvar_a&longitude
-  else
-    var_to_interpolate!1="lat"
-    var_to_interpolate&lat=wvar_a&lat
-    var_to_interpolate!2="lon"
-    var_to_interpolate&lon=wvar_a&lon
-  end if
-
-  dim_orig=dimsizes(var_to_interpolate)
-  nlat=dim_orig(1)
-  nlon=dim_orig(2)
-
-  latS=var_to_interpolate&lat(0)                      ; southern extent of input grid
-  latN=var_to_interpolate&lat(nlat-1)                 ; northern extent of input grid
-
-  opt = False
-  NLAT1x1       = 180                               ; RES   = "180x288"
-  MLON1x1       = 360
-  LAT_out       = latGlobeFo(NLAT1x1, "LAT_out_temp", "latitude" , "degrees_north")
-  LON_out       = lonGlobeFo(MLON1x1, "LON_out", "longitude", "degrees_east" )
-
-  interpolated_var = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_out, LAT_out, opt)
-
-  intvar_out=interpolated_var
-  intvar_out!0="time"
-  intvar_out!1="lat"
-  intvar_out!2="lon"
+;interpswitch = 1; default, perform interpolation, ICON is an exception
+if (isvar("interp")) then
+  interpswitch = interp 
+    print("interpswitch is: "+interpswitch)
 else
-end if  ; end interpolation loop
-  print("interpolation finished")
+  interpswitch = 1; default, perform interpolation, ICON is an exception
+    print("interpswitch is: "+interpswitch)
+end if
+if (interpswitch .eq. 1) then  ; perform interpolation
+  if (CRM .lt. 1)  ; case for GCMs
+      print("begin interpolation...")
+    var_to_interpolate=wvar_a
+    if (isvar("longdimnames")) then
+      var_to_interpolate!1="lat"
+      var_to_interpolate&lat=wvar_a&latitude
+      var_to_interpolate!2="lon"
+      var_to_interpolate&lon=wvar_a&longitude
+    else
+      var_to_interpolate!1="lat"
+      var_to_interpolate&lat=wvar_a&lat
+      var_to_interpolate!2="lon"
+      var_to_interpolate&lon=wvar_a&lon
+    end if
+  
+    dim_orig=dimsizes(var_to_interpolate)
+    nlat=dim_orig(1)
+    nlon=dim_orig(2)
+  
+    latS=var_to_interpolate&lat(0)                      ; southern extent of input grid
+    latN=var_to_interpolate&lat(nlat-1)                 ; northern extent of input grid
+  
+    opt = False
+    NLAT1x1       = 180                               ; RES   = "180x288"
+    MLON1x1       = 360
+    LAT_out       = latGlobeFo(NLAT1x1, "LAT_out_temp", "latitude" , "degrees_north")
+    LON_out       = lonGlobeFo(MLON1x1, "LON_out", "longitude", "degrees_east" )
+  
+    interpolated_var = area_conserve_remap_Wrap (var_to_interpolate&lon, var_to_interpolate&lat, var_to_interpolate,LON_out, LAT_out, opt)
+  
+    intvar_out=interpolated_var
+    intvar_out!0="time"
+    intvar_out!1="lat"
+    intvar_out!2="lon"
+      print("interpolation finished")
+  else  ; case for CRMs
+    print("interpolation to 1x1 degree grid not computed.")
+  ;  ;; parameters for grid blocks of 96km
+  ;  var_to_interpolate=wvar_a   ; we will likely need to do this with omega, stability, and Q
+  ;
+  ;  cors_array  = new((/dims(0),4,64/),float)
+  ;  block = floattointeger(32) ; block size for grid spacing of 96km
+  ;  iend  = 3 ; for 2048 gridpoints, there are 32 blocks of 64
+  ;  jend  = 63 ; for 128 gridpoints, there are two blocks of 64
+  ;  ; without blocks
+  ;  tend = dims(0)
+  ;  do t=0,tend-1
+  ;    do i=0,iend
+  ;      icounter=i*block
+  ;      do j=0,jend
+  ;        jcounter=j*block
+  ;        cors_single   =var_to_interpolate(t,icounter:icounter+block-1,jcounter:jcounter+block-1)
+  ;        cors_array(t,i,j)=avg(cors_single)
+  ;      end do
+  ;    end do
+  ;  end do
+  end if  ; end interpolation loop
+else ; end interpswitch .eq. 1
+  print("------Warning!  Interpolation not performed.  ICON?------")
+    intvar_out=wvar_a
+end if
+
 ;======================================
 
-dims = dimsizes(temp_a)
+;dims = dimsizes(temp_a)
 
 rho_test  =new((/dims(0),dims(1)/),float)
 gamma_a   =new(dims(1),float)
@@ -364,6 +421,29 @@ sigma(lowestlev) = ((sbycp(lowestlev-1)-tsfc)/(press_tmn(lowestlev-1)-psl_avg))
 omega_db = (1./100.)*Q_tmn/sigma
   print("debugging: first omega_db: "+omega_db+" then Q_tmn: "+Q_tmn+" and then sigma: "+sigma)
 
+;; probably shouldn't go here, at this point, Q and sigma are only profiles...
+;if (CRM .eq. 1)
+;  var_to_interpolate=omega_db ; we will likely need to do this with omega, stability, and Q
+;
+;  cors_array  = new((/dims(0),4,64/),float)
+;  block = floattointeger(32) ; block size for grid spacing of 96km
+;  iend  = 3 ; for 2048 gridpoints, there are 32 blocks of 64
+;  jend  = 63 ; for 128 gridpoints, there are two blocks of 64
+;  ; without blocks
+;  tend = dims(0)
+;  do t=0,tend-1
+;    do i=0,iend
+;      icounter=i*block
+;      do j=0,jend
+;        jcounter=j*block
+;        cors_single   =var_to_interpolate(t,icounter:icounter+block-1,jcounter:jcounter+block-1)
+;        cors_array(t,i,j)=avg(cors_single)
+;      end do
+;    end do
+;  end do
+;end if
+
+
 ;==========================
 ; lapse rate of temperature
 do z = 1,dims(1)-2
@@ -373,10 +453,6 @@ end do
 gamma_a(0)   = gamma_a(1)
 ; bc for surface
 gamma_a(lowestlev)  = -grav*rho(lowestlev)*((temp_tmn(lowestlev)-tsfc)/(press_tmn(lowestlev)-psl_avg))
-
-;==========================
-; compute the radiative heating using clear sky fluxes
-;qrad=rscs_tmn+rlcs_tmn
 
 ;==========================
 ; compute the diabatically driven divergence
@@ -411,16 +487,43 @@ omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 dim_om=dimsizes(omega_u_a)
 
+; compute subsidence fraction
+  ;printVarSummary(omega_u_a)
+dim_om=dimsizes(omega_u_a)
+  print("first dimension of omega_u_a: "+dim_om(1))
+  print("second dimension of omega_u_a: "+dim_om(2))
+total_area=dim_om(1)*dim_om(2)
+;omega_temp =new((/1,nlat,nlon/),float)
+sfrac      =new((/dim_om(0)/),float)
+sfrac_up   =new((/dim_om(0)/),float)
+do tt=0,dim_om(0)-1
+  ;omega_temp(1,:,:)=omega_u_a_frac(tt,:,:)
+  omega_temp2=omega_u_a_frac(tt,:,:)
+  omega_temp3=omega_d_a_frac(tt,:,:)
+  sfrac_up(tt)=sum(omega_temp2)/total_area
+  sfrac(tt)=sum(omega_temp3)/total_area
+end do
+subsidenceF=dim_avg_n(sfrac,0)
+  ;print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" and fraction of ascending air is: "+sfrac_up(10))
+  print("subs frac is: "+dim_avg_n(sfrac,0)+" and fraction of ascending air is: "+dim_avg_n(sfrac_up,0))
+
+
 ;-------------------------------------------------------------
 if (CRM .lt. 1)
-    print("applying cosine weighted averaging")
-  lat  = LAT_out
-  rad  = 4.0*atan(1.0)/180.0
-  clat = cos(lat*rad)
-  
-  intvar_u_ave  = wgt_areaave(omega_u_a,clat,1.0,0)
-  intvar_d_ave  = wgt_areaave(omega_d_a,clat,1.0,0)
-    ;printVarSummary(intvar_u_ave)
+  if (interpswitch .eq. 1) then  ; perform interpolation
+      print("applying cosine weighted averaging")
+    lat  = LAT_out
+    rad  = 4.0*atan(1.0)/180.0
+    clat = cos(lat*rad)
+    
+    intvar_u_ave  = wgt_areaave(omega_u_a,clat,1.0,0)
+    intvar_d_ave  = wgt_areaave(omega_d_a,clat,1.0,0)
+      ;printVarSummary(intvar_u_ave)
+  else
+      print("not applying cosine weighted averaging")
+    intvar_u_ave  = wgt_areaave(omega_u_a,1.0,1.0,0)
+    intvar_d_ave  = wgt_areaave(omega_d_a,1.0,1.0,0)
+  end if  
 else;  no weighting for CRM models
     print("not applying cosine weighted averaging")
   intvar_u_ave  = wgt_areaave(omega_u_a,1.0,1.0,0)
@@ -539,10 +642,11 @@ val_a=(/omega_db_wva/)
 val_b=(/circulation_int/)
 val_c=(/omega_dn/)
 val_d=(/omega_up/)
-alist = [/val_a,val_b,val_c,val_d/]
+val_e=(/subsidenceF/)
+alist = [/val_a,val_b,val_c,val_d,val_e/]
 ;alist = [/omega_db_wva,circulation_int,omega_dn,omega_up/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
