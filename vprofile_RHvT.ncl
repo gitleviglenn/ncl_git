@@ -39,13 +39,13 @@ array5a=readAsciiTable("profiles_SPXCAM_295_mn.txt",8,"float",1)
 array5b=readAsciiTable("profiles_SPXCAM_300_mn.txt",8,"float",1)
 array5c=readAsciiTable("profiles_SPXCAM_305_mn.txt",8,"float",1)
 
-array6a=readAsciiTable("profiles_ECHAM_GCM_295_mn.txt",8,"float",1)
-array6b=readAsciiTable("profiles_ECHAM_GCM_300_mn.txt",8,"float",1)
-array6c=readAsciiTable("profiles_ECHAM_GCM_305_mn.txt",8,"float",1)
+array6a=readAsciiTable("profiles_ECHAM_295_mn.txt",8,"float",1)
+array6b=readAsciiTable("profiles_ECHAM_300_mn.txt",8,"float",1)
+array6c=readAsciiTable("profiles_ECHAM_305_mn.txt",8,"float",1)
 
-array7a=readAsciiTable("profiles_SAM_CRM_295.txt",8,"float",1)
-array7b=readAsciiTable("profiles_SAM_CRM_300.txt",8,"float",1)
-array7c=readAsciiTable("profiles_SAM_CRM_305.txt",8,"float",1)
+array7a=readAsciiTable("profiles_SAM_295.txt",8,"float",1)
+array7b=readAsciiTable("profiles_SAM_300.txt",8,"float",1)
+array7c=readAsciiTable("profiles_SAM_305.txt",8,"float",1)
 
 ;
 ;array01=asciiread("profiles_CAM5_295_mn.txt",(/30,10/),"float")
@@ -92,7 +92,7 @@ t_5a    =array5a(0:vlevs,4)
 t_5b    =array5b(0:vlevs,4)
 t_5c    =array5c(0:vlevs,4)
 
-vlevs=47;  ECHAM
+vlevs=46;  ECHAM
 hur_6a  =array6a(0:vlevs,2)
 hur_6b  =array6b(0:vlevs,2)
 hur_6c  =array6c(0:vlevs,2)
@@ -100,7 +100,7 @@ t_6a    =array6a(0:vlevs,4)
 t_6b    =array6b(0:vlevs,4)
 t_6c    =array6c(0:vlevs,4)
 
-vlevs=74; SAM CRM 
+vlevs=73; SAM CRM 
 hur_7a  =array7a(0:vlevs,2)
 hur_7b  =array7b(0:vlevs,2)
 hur_7c  =array7c(0:vlevs,2)
@@ -115,8 +115,8 @@ print("minimum RH is: "+min(hur_2a(14:31))+" cam6")      ; cam6
 print("minimum RH is: "+100*min(hur_3a(40:71))+" geos")  ; GEOS
 print("minimum RH is: "+min(hur_4a(14:25))+" sp-cam")    ; SP-CAM
 print("minimum RH is: "+min(hur_5a(14:25))+" spx-cam")   ; SPX-CAM
-print("minimum RH is: "+min(hur_6a(19:47))+" echam")     ; ECHAM
-print("minimum RH is: "+min(hur_7a(45:74))+" sam crm")   ; SAM CRM
+print("minimum RH is: "+min(hur_6a(19:46))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7a(45:73))+" sam crm")   ; SAM CRM
 
 print("for experiments with SST=300K: ")
 print("minimum RH is: "+min(hur_1b(14:29)))
@@ -124,8 +124,8 @@ print("minimum RH is: "+min(hur_2b(14:31)))
 print("minimum RH is: "+100*min(hur_3b(40:71)))
 print("minimum RH is: "+min(hur_4b(14:25)))
 print("minimum RH is: "+min(hur_5b(14:25)))
-print("minimum RH is: "+min(hur_6b(19:47))+" echam")     ; ECHAM
-print("minimum RH is: "+min(hur_7b(45:74))+" sam crm")   ; SAM CRM
+print("minimum RH is: "+min(hur_6b(19:46))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7b(45:73))+" sam crm")   ; SAM CRM
 
 print("for experiments with SST=305K: ")
 print("minimum RH is: "+min(hur_1c(14:29)))
@@ -133,8 +133,8 @@ print("minimum RH is: "+min(hur_2c(14:31)))
 print("minimum RH is: "+100*min(hur_3c(40:71)))
 print("minimum RH is: "+min(hur_4c(14:25)))
 print("minimum RH is: "+min(hur_5c(14:25)))
-print("minimum RH is: "+min(hur_6c(19:47))+" echam")     ; ECHAM
-print("minimum RH is: "+min(hur_7c(45:74))+" sam crm")   ; SAM CRM
+print("minimum RH is: "+min(hur_6c(19:46))+" echam")     ; ECHAM
+print("minimum RH is: "+min(hur_7c(45:73))+" sam crm")   ; SAM CRM
 
 ;
 ;
@@ -146,6 +146,11 @@ wks=gsn_open_wks("eps","testplot")
 ;gsn_define_colormap(wks,"CBR_drywet")
 gsn_define_colormap(wks,"cb_9step")
 plot=new(4,graphic)
+
+; specify line thickness  (originally these were 1.0, 2.5, and 4.0, respectively)
+thick1 = 4.0
+thick2 = 4.0
+thick3 = 4.0
 
 res                                     = True
 
@@ -192,107 +197,141 @@ res                                     = True
   res@vpHeightF              = 0.49
 
   ;res@xyLineColors = "chocolate2"
+; CAM5
   res@xyLineColors = 67
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0a = gsn_csm_xy(wks,hur_1a(:),t_1a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0b = gsn_csm_xy(wks,hur_1b(:),t_1b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0c = gsn_csm_xy(wks,hur_1c(:),t_1c,res)
 
-  ;res@xyLineColors = "aquamarine3"
+;aquamarine3
+; CAM6
   res@xyLineColors = 19
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0d = gsn_csm_xy(wks,hur_2a(:),t_2a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0e = gsn_csm_xy(wks,hur_2b(:),t_2b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0f = gsn_csm_xy(wks,hur_2c(:),t_2c,res)
   
 ; light purple 
+; GEOS
   res@xyLineColors = 35
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0g = gsn_csm_xy(wks,100*hur_3a(:),t_3a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0h = gsn_csm_xy(wks,100*hur_3b(:),t_3b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0i = gsn_csm_xy(wks,100*hur_3c(:),t_3c,res)
 
 ; light red
+; SPCAM
   res@xyLineColors = 51
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0j = gsn_csm_xy(wks,hur_4a(:),t_4a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0k = gsn_csm_xy(wks,hur_4b(:),t_4b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0l = gsn_csm_xy(wks,hur_4c(:),t_4c,res)
 
 ; dirty yellow
+; SPXCAM
   res@xyLineColors = 60
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0m = gsn_csm_xy(wks,hur_5a(:),t_5a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0n = gsn_csm_xy(wks,hur_5b(:),t_5b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0o = gsn_csm_xy(wks,hur_5c(:),t_5c,res)
 
 ; pinkish
+; ECHAM
   res@xyLineColors =44 
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0p = gsn_csm_xy(wks,hur_6a(:),t_6a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2
   plot0q = gsn_csm_xy(wks,hur_6b(:),t_6b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0r = gsn_csm_xy(wks,hur_6c(:),t_6c,res)
 
 ; greay
+; SAM
   res@xyLineColors = 77 
-  res@xyLineThicknessF  = 1.0
+  res@xyLineThicknessF  = thick1
   plot0s = gsn_csm_xy(wks,hur_7a(:),t_7a,res)
-  res@xyLineThicknessF  = 2.5
+  res@xyLineThicknessF  = thick2 
   plot0t = gsn_csm_xy(wks,hur_7b(:),t_7b,res)
-  res@xyLineThicknessF  = 4.0
+  res@xyLineThicknessF  = thick3
   plot0u = gsn_csm_xy(wks,hur_7c(:),t_7c,res)
 
 
+;; if plotting everything: 
+;; 295
+;  overlay(plot0a,plot0b) ; 1 
+;  overlay(plot0a,plot0d) ; 2 
+;  overlay(plot0a,plot0g) ; 3
+;  overlay(plot0a,plot0j) ; 4 
+;  overlay(plot0a,plot0m) ; 5 
+;  overlay(plot0a,plot0p) ; 6
+;  overlay(plot0a,plot0s) ; 7
+;
+;; 300
+;  overlay(plot0a,plot0c) ; 1
+;  overlay(plot0a,plot0e) ; 2 
+;  overlay(plot0a,plot0h) ; 3
+;  overlay(plot0a,plot0k) ; 4 
+;  overlay(plot0a,plot0n) ; 5
+;  overlay(plot0a,plot0q) ; 6
+;  overlay(plot0a,plot0t) ; 7
+;; 305
+;  overlay(plot0a,plot0c) ; 1
+;  overlay(plot0a,plot0f) ; 2
+;  overlay(plot0a,plot0i) ; 3
+;  overlay(plot0a,plot0l) ; 4 
+;  overlay(plot0a,plot0o) ; 5 
+;  overlay(plot0a,plot0r) ; 6
+;  overlay(plot0a,plot0u) ; 7
+;
+;  plot(0) =plot0a
 
-  overlay(plot0a,plot0b) 
-  overlay(plot0a,plot0c) 
+;--------
+;; if only plotting 295
+;;  overlay(plot0a,plot0b) ; 1 
+;  overlay(plot0a,plot0d) ; 2 
+;  overlay(plot0a,plot0g) ; 3
+;  overlay(plot0a,plot0j) ; 4 
+;  overlay(plot0a,plot0m) ; 5 
+;  overlay(plot0a,plot0p) ; 6
+;  overlay(plot0a,plot0s) ; 7
+;  plot(0) = plot0a
+;; if only plotting 300
+;;  overlay(plot0a,plot0c) ; 1
+;  overlay(plot0b,plot0e) ; 2 
+;  overlay(plot0b,plot0h) ; 3
+;  overlay(plot0b,plot0k) ; 4 
+;  overlay(plot0b,plot0n) ; 5
+;  overlay(plot0b,plot0q) ; 6
+;  overlay(plot0b,plot0t) ; 7
+;  plot(0) = plot0b
+;; if only plotting 305:
+;;  overlay(plot0a,plot0c) ; 1
+  overlay(plot0c,plot0f) ; 2
+  overlay(plot0c,plot0i) ; 3
+  overlay(plot0c,plot0l) ; 4 
+  overlay(plot0c,plot0o) ; 5 
+  overlay(plot0c,plot0r) ; 6
+  overlay(plot0c,plot0u) ; 7
+  plot(0) = plot0c
 
-  overlay(plot0a,plot0d) 
-  overlay(plot0a,plot0e) 
-  overlay(plot0a,plot0f) 
-
-  overlay(plot0a,plot0g) 
-  overlay(plot0a,plot0h) 
-  overlay(plot0a,plot0i) 
-
-  overlay(plot0a,plot0j) 
-  overlay(plot0a,plot0k) 
-  overlay(plot0a,plot0l) 
-
-  overlay(plot0a,plot0m) 
-  overlay(plot0a,plot0n) 
-  overlay(plot0a,plot0o) 
-
-  overlay(plot0a,plot0p) 
-  overlay(plot0a,plot0q) 
-  overlay(plot0a,plot0r) 
-
-  overlay(plot0a,plot0s) 
-  overlay(plot0a,plot0t) 
-  overlay(plot0a,plot0u) 
-
-  plot(0) =plot0a
 
 ;maintitle="try again bafoon"
 
   lgres                      = True
   lgres@xyLabelMode            = "Custom"
   lgres@xyLineLabelFontHeightF = 0.015                ; font height
-  ;lgres@lgLineColors         = (/"plum3","orangered3","skyblue3","aquamarine3","chocolate2"/)
-  ;lgres@lgLineColors         = (/59,50,34,18,66/)
-  lgres@lgLineColors         = (/60,51,35,19,67/)
+  lgres@lgLineColors         = (/77,44,60,51,35,19,67/)
   lgres@lgItemType           = "Lines"
   lgres@lgLabelFontHeightF   = .04
   lgres@vpWidthF             = 0.1        ; width of legend
@@ -301,15 +340,17 @@ res                                     = True
   lgres@lgLineThicknessF     = 3.0
 ;  lgres@lgPerimThicknessF    = 2.0
   lgres@lgMonoDashIndex      = False 
-  lgres@lgDashIndexes          = (/"0","0","0","0","0"/)
+  lgres@lgDashIndexes          = (/"0","0","0","0","0","0","0"/)
 
+  title4  ="SAM CRM"
+  title3  ="ECHAM"
   title00 ="SPXCAM"
   title ="SPCAM"
   title0="GEOS"
   title1="CAM6"
   title2="CAM5"
-  labels = (/title00,title,title0,title1,title2/)
-  legend  = gsn_create_legend (wks, 5, labels, lgres)
+  labels = (/title4,title3,title00,title,title0,title1,title2/)
+  legend  = gsn_create_legend (wks, 7, labels, lgres)
 
   amres = True
   amres@amJust = "BottomRight"
