@@ -23,7 +23,6 @@ begin
 plot_map     = False
 plot_profile = True
 
-
 ; central pac
 ;lon1=150
 ;lon2=270
@@ -143,6 +142,8 @@ if (plot_map) then
 ;  ;resmap@mpProjection      = "Mollweide"       ; choose projection
 ;  resmap@mpProjection      = "Robinson"       ; choose projection
 ;  resmap@mpCenterLonF      = 180;
+  resmap@gsnDraw           = False
+  resmap@gsnFrame          = False
   resmap@mpGridAndLimbOn   = True              ; turn on lat/lon lines
   resmap@mpPerimOn         = False             ; turn off box around plot
   resmap@mpGridLatSpacingF = 30.               ; spacing for lat lines
@@ -206,7 +207,8 @@ if (plot_map) then
   resmap@tiMainString       = " "; add a title
   resmap@tiMainFontHeightF  = .018                               ; font height
 
-  contour = gsn_csm_contour_map(wks,t_c,resmap)  ; create the plot
+  ;contour = gsn_csm_contour_map(wks,t_c,resmap)  ; create the plot
+  plot = gsn_csm_contour_map(wks,t_c,resmap)  ; create the plot
   
 ;  gnres                   = True
 ;  gnres@gsFillColor       = "white"
@@ -225,8 +227,13 @@ if (plot_map) then
 ;  ;dum1c=gsn_add_polygon(wks, contour, lonbox1, latbox1, gnres)
 ;  dum1c=gsn_add_polygon(wks, contour, lonbox1, latbox1, gnres)
 
-  plot = contour
+  ;plot = contour
   ;draw(contour)
+  respanel   = True
+  respanel@gsnPanelFigureStrings = (/"a."/)
+  respanel@gsnPanelFigureStringsFontHeightF = 0.024
+  respanel@amJust                = "TopLeft"
+  gsn_panel(wks,plot,(/1,1/),respanel)
 end if
 
 ;=====================
@@ -289,6 +296,9 @@ if (plot_profile) then
   annoid = gsn_add_annotation(plot,legend,resP) ; add legend to plot
 
   respanel   = True
+  respanel@gsnPanelFigureStrings = (/"b."/)
+  respanel@gsnPanelFigureStringsFontHeightF = 0.035
+  respanel@amJust                = "TopLeft"
   gsn_panel(wks,plot,(/1,1/),respanel)
 end if
 
