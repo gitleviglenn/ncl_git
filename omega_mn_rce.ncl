@@ -58,6 +58,13 @@ if (isvar("seaST")) then
 else 
   SST="295"
 end if
+
+if (isvar("UKMOfix")) then
+  vfix=1
+else
+  vfix=0
+end if
+
 if (isvar("textfile")) then
   foutname=textfile
 else
@@ -147,16 +154,18 @@ else
   file_hur       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_hur_avg.nc"
   file_tntrscs   =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
   file_tntrlcs   =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
-;  if (isvar("notnormal")) then
   ;normal = notnormal
   if (normal .lt. 1) then  ; for non CAM models with 'normal' data files
     file_zg        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_zg_avg.nc"
   else ; something about the model data is abnormal (e.g. z_avg instead of zg_avg)
-    ;  if (isvar("SP-CAM")) then  ; notnormal =1 corresponds to SP-CAM 
-    file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_z_avg.nc"
-    ;  end if
+    if (vfix .lt. 1) then
+      file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_z_avg.nc"
+    else
+      file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_height_rho.nc"
+      file_p       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_plevrho_avg.nc"
+      file_om      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
+    end if
   end if
-;  end if
 end if
 
   print("file_p is: "+file_p)
@@ -184,23 +193,42 @@ if (normal .lt. 1) then
     zg_tmn      =dim_avg_n(zg_a,0)
   end if
 else ; normal =1
-    press_a     =fca->pa_avg(startime:endtime,:)
-    press_tmn   =dim_avg_n(press_a,0)
-    zg_a          =fcg->z_avg(:)
-    zg_tmn      =zg_a
+    if (vfix .lt. 1) then
+      press_a     =fca->pa_avg(startime:endtime,:)
+      press_tmn   =dim_avg_n(press_a,0)
+      zg_a        =fcg->z_avg(:)
+      zg_tmn      =zg_a
+    else ; this was originally written to acomodate the UKMO
+      press_a     =fca->air_pressure(startime:endtime,:,0,0)
+      press_tmn   =dim_avg_n(press_a,0)
+      zg_a        =fcg->level_height(:)
+      zg_tmn      =zg_a
+    end if
 end if
 
-temp_a      =fcb->ta_avg(startime:endtime,:)
-psl_a       =fce->psl(startime:endtime,:,:)
-;tas_a       =fcf->tas(startime:endtime,:,:)
-hur_a       =fch->hur_avg(startime:endtime,:)
-rscs_a      =fcj->tntrscs_avg(startime:endtime,:)
-rlcs_a      =fck->tntrlcs_avg(startime:endtime,:)
+if (vfix .lt. 1) then
+  temp_a      =fcb->ta_avg(startime:endtime,:)
+  psl_a       =fce->psl(startime:endtime,:,:)
+  hur_a       =fch->hur_avg(startime:endtime,:)
+  rscs_a      =fcj->tntrscs_avg(startime:endtime,:)
+  rlcs_a      =fck->tntrlcs_avg(startime:endtime,:)
+else; below is tailored to the UKMO
+  temp_a      =fcb->air_temperature(startime:endtime,:,0,0)
+  psl_a       =fce->air_pressure_at_sea_level(startime:endtime,0,0)
+  hur_a       =fch->relative_humidity(startime:endtime,:,0,0)
+  rscs_a      =fcj->tendency_of_air_temperature_due_to_shortwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
+  rlcs_a      =fck->tendency_of_air_temperature_due_to_longwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
+end if
 
+  print("OMEGA VALUES IS: "+omega)
 if (omega .lt. 1) then
   wvar_a=fc_om->wap500(startime:endtime,:,:)
 else if (omega .lt. 2) then
-  wvar_a=fc_om->wa500(startime:endtime,:,:)
+  if (vfix .lt. 1) then
+    wvar_a=fc_om->wa500(startime:endtime,:,:)
+  else 
+    wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,:,:)
+  end if
 else if (omega .lt. 3) then
   wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,:,:)
 end if 
@@ -352,6 +380,16 @@ do tt=0,dim_om(0)-1
   sfrac_up(tt)=sum(omega_temp2)/total_area
   sfrac(tt)=sum(omega_temp3)/total_area
 end do
+if (scalef .gt. 1000)
+  sf=dim_avg_n(sfrac,0)
+  subsidenceF=1-sf
+else
+  sf=dim_avg_n(sfrac,0)
+  subsidenceF=sf
+end if
+
+;subsidenceF=
+  print("time averaged subsidence fraction: "+subsidenceF)
   print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" and fraction of ascending air is: "+sfrac_up(10))
 
 ;*************************************************************
@@ -412,10 +450,22 @@ hur_tmn!0    ="lev"
 rscs_tmn!0   ="lev"
 rlcs_tmn!0   ="lev"
 
-sigma_wva    = vibeta(press_tmn(lev|::-1), sigma(lev|::-1), 1, psl_avg , pbot, ptop) 
-sigma_wva    = sigma_wva/(pbot-ptop); 
-omega_db_wva = vibeta(press_tmn(lev|::-1), omega_db(lev|::-1), 1, psl_avg , pbot, ptop) 
-omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
+;if (CRM .lt. 1)
+;else;  no weighting for CRM models
+;end if
+;*************************************************************
+; certain models, like CNRM have the first vertical level at the sfc instead of TOA
+if (vertrev .gt. 0); if reverse the vertical dimension....
+  sigma_wva    = vibeta(press_tmn, sigma, 1, psl_avg , pbot, ptop) 
+  sigma_wva    = sigma_wva/(pbot-ptop); 
+  omega_db_wva = vibeta(press_tmn, omega_db, 1, psl_avg , pbot, ptop) 
+  omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
+else;  if the orientation in the vertical starts at the TOA (default)
+  sigma_wva    = vibeta(press_tmn(lev|::-1), sigma(lev|::-1), 1, psl_avg , pbot, ptop) 
+  sigma_wva    = sigma_wva/(pbot-ptop); 
+  omega_db_wva = vibeta(press_tmn(lev|::-1), omega_db(lev|::-1), 1, psl_avg , pbot, ptop) 
+  omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
+end if
 
   print("diabatic omega is: "+omega_db+" and the pressure is :"+press_tmn)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
@@ -490,10 +540,11 @@ val_a=(/omega_db_wva/)
 val_b=(/circulation_int/)
 val_c=(/omega_dn/)
 val_d=(/omega_up/)
-alist = [/val_a,val_b,val_c,val_d/]
+val_e=(/subsidenceF/)
+alist = [/val_a,val_b,val_c,val_d,val_e/]
 ;alist = [/omega_db_wva,circulation_int,omega_dn,omega_up/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
