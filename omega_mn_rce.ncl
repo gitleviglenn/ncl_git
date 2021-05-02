@@ -1,7 +1,7 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; omega_mn_rce.ncl
 ;
-; calculate the mean upward omega, mean downward omega, and the diab driven omega
+; calculate the mean upward omega, mean downward omega, diab omega, and subsidence frac
 ;
 ; output file is: profiles_mn.txt unless otherwise specified by the "textfile" switch
 ;
@@ -333,21 +333,6 @@ if (isvar("RCE_GCM"))
   intvar_out!1="lat"
   intvar_out!2="lon"
 else
-;  print("the crm loop doesn't do anything yet")
-;  if (isvar("flippeddim")) then  ; ICON LEM
-;    x_new=fspan(0,384000,5)
-;    y_new=fspan(0,5952000,63)
-;  else                           ; SAM
-;    y_new=fspan(0,384000,5)
-;    x_new=fspan(0,5952000,63)
-;  end if
-;    print("original y array is: "+y_orig)
-;    print("new y array is: "+y_new)
-;    print("new x array is: "+x_new)
-;  var_to_interpolate=wvar_a ; incoming CRM data
-;  ; var_to_interpolate must have y,x as its two rightmost dimensions...
-;  juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,False)
-;  intvar_out=juljack
 end if  ; end interpolation loop
   print("interpolation finished")
   ;printVarSummary(intvar_out)
@@ -527,7 +512,7 @@ write_matrix (arrayout, "7f14.4", option)
 
 ;option         = True   ; if False then output is sent to standard out
 ;option@fout    = "mean_vals.txt"
-filenameout    = "mean_vals_"+model+"_"+SST+".txt"
+filenameout    = "mean_vals_B"+model+"_"+SST+".txt"
 ;filenamestr    = tostring(filenameout)
 ;option@fout    = filenameout
 ;option@title   = "mn diab omega, circ int, mn omega dn, mn omega up"

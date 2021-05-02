@@ -333,25 +333,6 @@ if (interpswitch .eq. 1) then  ; perform interpolation
       print("interpolation finished")
   else  ; case for CRMs
     print("interpolation to 1x1 degree grid not computed.")
-  ;  ;; parameters for grid blocks of 96km
-  ;  var_to_interpolate=wvar_a   ; we will likely need to do this with omega, stability, and Q
-  ;
-  ;  cors_array  = new((/dims(0),4,64/),float)
-  ;  block = floattointeger(32) ; block size for grid spacing of 96km
-  ;  iend  = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-  ;  jend  = 63 ; for 128 gridpoints, there are two blocks of 64
-  ;  ; without blocks
-  ;  tend = dims(0)
-  ;  do t=0,tend-1
-  ;    do i=0,iend
-  ;      icounter=i*block
-  ;      do j=0,jend
-  ;        jcounter=j*block
-  ;        cors_single   =var_to_interpolate(t,icounter:icounter+block-1,jcounter:jcounter+block-1)
-  ;        cors_array(t,i,j)=avg(cors_single)
-  ;      end do
-  ;    end do
-  ;  end do
   end if  ; end interpolation loop
 else ; end interpswitch .eq. 1
   print("------Warning!  Interpolation not performed.  ICON?------")
@@ -420,28 +401,6 @@ sigma(lowestlev) = ((sbycp(lowestlev-1)-tsfc)/(press_tmn(lowestlev-1)-psl_avg))
 ; should be in hPa/day
 omega_db = (1./100.)*Q_tmn/sigma
   print("debugging: first omega_db: "+omega_db+" then Q_tmn: "+Q_tmn+" and then sigma: "+sigma)
-
-;; probably shouldn't go here, at this point, Q and sigma are only profiles...
-;if (CRM .eq. 1)
-;  var_to_interpolate=omega_db ; we will likely need to do this with omega, stability, and Q
-;
-;  cors_array  = new((/dims(0),4,64/),float)
-;  block = floattointeger(32) ; block size for grid spacing of 96km
-;  iend  = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-;  jend  = 63 ; for 128 gridpoints, there are two blocks of 64
-;  ; without blocks
-;  tend = dims(0)
-;  do t=0,tend-1
-;    do i=0,iend
-;      icounter=i*block
-;      do j=0,jend
-;        jcounter=j*block
-;        cors_single   =var_to_interpolate(t,icounter:icounter+block-1,jcounter:jcounter+block-1)
-;        cors_array(t,i,j)=avg(cors_single)
-;      end do
-;    end do
-;  end do
-;end if
 
 
 ;==========================
@@ -629,7 +588,7 @@ option@title   = "gamma, sigma, hur_tmn, press, temp, rscs, rlcs, diabdiv"
 write_matrix (arrayout, "8f14.4", option)
 
 ; write out mean values to txt file...
-filenameout    = "mean_vals_"+model+"_"+SST+".txt"
+filenameout    = "mean_vals_A_"+model+"_"+SST+".txt"
 ;filenamestr    = tostring(filenameout)
 ;option@fout    = filenameout
 ;option@title   = "mn diab omega, circ int, mn omega dn, mn omega up"
