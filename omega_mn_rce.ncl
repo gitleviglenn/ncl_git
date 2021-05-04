@@ -9,6 +9,9 @@
 ;
 ; read RH profiles, compute sigma profiles
 ;
+; Should I not calculate omega_db in this script?  THen this script could focus entirely on 2D 
+; at the 500hPa level, not worry about radiation or stability....
+;
 ; normal = 0 can refer to cam5, cam6, or geos
 ; normal = 1 refers to SP-CAM
 ;
@@ -282,7 +285,7 @@ sigma(lowestlev) = ((sbycp(lowestlev-1)-tsfc)/(press_tmn(lowestlev-1)-psl_avg))
 
 ; scale the static stability as desired
 ;sigma=10000*sigma ;   scale to K/100hPa as in Mapes, 2001
-sigma=-100000*sigma ; scale to mK/hPa and convert to S from Bony et al
+;sigma=-100000*sigma ; scale to mK/hPa and convert to S from Bony et al
 
 ;==========================
 ; process vertical velocity
@@ -400,10 +403,15 @@ end if
 ;
 omega_up = dim_avg_n(intvar_u_ave,0)
 omega_dn = dim_avg_n(intvar_d_ave,0)
-  ;print("omega_dn is equal to: "+omega_dn)
-  ;print("omega_up is equal to: "+omega_up)
 
 circulation_int = omega_dn-omega_up
+
+;-------------------------------------------------------------
+
+  print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
+  print("omega_dn is equal to: "+omega_dn+" and omega_up is equal to: "+omega_up)
+  print("is the circulation intensity at "+seaST+" equal to: "+circulation_int+"?")
+  print(">>>>>>>>>>>>")
 
 ;-------------------------------------------------------------
 
@@ -419,7 +427,8 @@ wav_dn = dim_avg_n(w_dn,0)
 
 ; diabatically driven omega
 ; omega_db = Q/sigma
-omega_db = scalef*(Q_tmn/sigma)
+;omega_db = scalef*(Q_tmn/sigma)
+omega_db = (1./100.)*(Q_tmn/sigma)
 
 ;opt_avg=(/0, 20000, 60000/) 
 ;omega_db_wva = wgt_vert_avg_beta(press_tmn, omega_db, psl_avg , 1, opt_avg) 
@@ -435,9 +444,6 @@ hur_tmn!0    ="lev"
 rscs_tmn!0   ="lev"
 rlcs_tmn!0   ="lev"
 
-;if (CRM .lt. 1)
-;else;  no weighting for CRM models
-;end if
 ;*************************************************************
 ; certain models, like CNRM have the first vertical level at the sfc instead of TOA
 if (vertrev .gt. 0); if reverse the vertical dimension....
@@ -481,8 +487,7 @@ end if
 ; compute the diabatically driven omega
 
 ;=====================================
-;; what should the dimensions of omega_up be?
-  print(" what are the dimensions of output array and omega_db? "+dimsizes(arrayout)+" and "+dimsizes(omega_db))
+
 do z=0,dims(1)-1
   arrayout(z,0)=omega_db(z)
   arrayout(z,1)=sigma(z)
@@ -492,32 +497,21 @@ do z=0,dims(1)-1
   arrayout(z,5)=temp_tmn(z)
   arrayout(z,6)=press_tmn(z)
 end do 
-;
+
 ;;==========================
-  print(">>>>>>>>>>>> writing first text file")
 ;; write out profile data to a txt file...
+  print(">>>>>>>>>>>> writing first text file")
+
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
 option@title   = "omega_d, sigma, hur_tmn, rscs, rlcs, temp_mn, press_mn"
 write_matrix (arrayout, "7f14.4", option)
-;
-;;==========================
+
 ;; write out mean data to a txt file...
   print(">>>>>>>>>>>> writing second text file")
-
-;mnvalout(0)=omega_db_wva
-;mnvalout(1)=circulation_int
-;mnvalout(2)=omega_dn
-;mnvalout(3)=omega_up
-
-;option         = True   ; if False then output is sent to standard out
-;option@fout    = "mean_vals.txt"
-filenameout    = "mean_vals_B"+model+"_"+SST+".txt"
-;filenamestr    = tostring(filenameout)
-;option@fout    = filenameout
-;option@title   = "mn diab omega, circ int, mn omega dn, mn omega up"
+filenameout    = "mean_vals_B_"+model+"_"+SST+".txt"
 ;write_matrix (mnvalout, "4f14.4", option)
-header = (/">>>>> go stink it up boy <<<<<<"/)
+header = (/"omega_d, CircI, omega_d, omega_u, SF"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
@@ -527,13 +521,13 @@ val_c=(/omega_dn/)
 val_d=(/omega_up/)
 val_e=(/subsidenceF/)
 alist = [/val_a,val_b,val_c,val_d,val_e/]
-;alist = [/omega_db_wva,circulation_int,omega_dn,omega_up/]
 write_table(filenameout,"w",hlist, "%s")
 write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
 
+  print("{{{{{{{{{{{{{{ leaving omega_mn_rce.ncl }}}}}}}}}}}}}}")
 
 end 
 

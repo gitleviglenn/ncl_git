@@ -271,6 +271,7 @@ end if
 wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 dims      = dimsizes(temp_a)
+
   print("!- check the lowest level, it could have an error because of 'lowestlev'!!!! -!")
 lowestlev = dims(1)-1
 
@@ -355,30 +356,28 @@ rlcs_tmn  =new((/dims(1)/),float)
 numer     =new((/dims(1)/),float)
 denom     =new((/dims(1)/),float)
 stasta    =new((/dims(0),dims(1)/),float)
-arrayout  =new((/dims(1),8/),float)
+arrayout  =new((/dims(1),9/),float)
 
 ; convert from K/s to K/day
 scaleR = 86400.;
 
 ; time average of variables: 
-temp_tmn     =dim_avg_n(temp_a,0)
-;zg_tmn       =dim_avg_n(zg_a,0)
-hur_tmn      =dim_avg_n(hur_a,0)
-rscs_tmn     =scaleR*dim_avg_n(rscs_a,0)
-rlcs_tmn     =scaleR*dim_avg_n(rlcs_a,0)
-;press_tmn    =dim_avg_n(press_a,0)
+temp_tmn     = dim_avg_n(temp_a,0)
+;zg_tmn      = dim_avg_n(zg_a,0)
+hur_tmn      = dim_avg_n(hur_a,0)
+rscs_tmn     = scaleR*dim_avg_n(rscs_a,0)
+rlcs_tmn     = scaleR*dim_avg_n(rlcs_a,0)
+;press_tmn   = dim_avg_n(press_a,0)
  
-psl_b        =dim_avg_n(psl_a,0)
-psl_c        =dim_avg_n(psl_b,0)
-psl_avg      =dim_avg_n(psl_c,0)
+psl_b        = dim_avg_n(psl_a,0)
+psl_c        = dim_avg_n(psl_b,0)
+psl_avg      = dim_avg_n(psl_c,0)
 
 ; calculate density
 rho=press_tmn/(temp_tmn*Rd)
 
 ; calculate net clear sky radiative heating of atmos
 Q_tmn = rlcs_tmn+rscs_tmn  ; if scaleR was used, units will be K/day
-
-lowestlev=dims(1)-1
 
 ; what about surface pressure? 
 ;press_tmn(dims(1))=101480.0  ; define surface pressure as in Wing et al., 2018, page 798
@@ -398,7 +397,7 @@ sigma(lowestlev) = ((sbycp(lowestlev-1)-tsfc)/(press_tmn(lowestlev-1)-psl_avg))
 
 ;=========================
 ; diabatically driven omega  
-; should be in hPa/day
+; converte from Pa/day to hPa/day
 omega_db = (1./100.)*Q_tmn/sigma
   print("debugging: first omega_db: "+omega_db+" then Q_tmn: "+Q_tmn+" and then sigma: "+sigma)
 
@@ -522,6 +521,8 @@ dia_div!0    ="lev"
 ;fields=fields(::-1,:)
 print("dimsizes of sigma are: "+dimsizes(sigma))
 
+; it seems like this should not be here, but it also doesn't seem to 
+; fix the problem with omega_db
 if (isvar("VertDimFix")) then 
   if (VertDimFix .eq. 1) then  ; SAM-CRM
     gamma_a    =gamma_a(::-1)
@@ -565,35 +566,36 @@ omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
 ; 
 ; not output, omega, thetae, subsidence fraction
 
-  printVarSummary(rscs_tmn)
+;==========================
 
 do z=0,dims(1)-1
   ;print("temp at z= "+z+" is: "+temp_tmn(z)+" gamma is: "+gamma_a(z)+" press is: "+press_tmn(z)+" rho is: "+rho(z)+" and gamma_m is: "+gamma_m(z)+" num: "+numer(z)+" den: "+denom(z))
   arrayout(z,0)=gamma_a(z)
-  arrayout(z,1)=sigma(z)
-  arrayout(z,2)=hur_tmn(z)
-  arrayout(z,3)=press_tmn(z)
-  arrayout(z,4)=temp_tmn(z)
+  arrayout(z,1)=dia_div(z)
+  arrayout(z,2)=omega_db(z)
+  arrayout(z,3)=sigma(z)
+  arrayout(z,4)=hur_tmn(z)
   arrayout(z,5)=rscs_tmn(z)
   arrayout(z,6)=rlcs_tmn(z)
-  arrayout(z,7)=dia_div(z)
+  arrayout(z,7)=temp_tmn(z)
+  arrayout(z,8)=press_tmn(z)
 end do 
 
 ;==========================
 ; write out data to a txt file...
-;arrayToWrite   =gamma_m
+  print(">>>>>>>>>>>> writing first text file")
+
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
-option@title   = "gamma, sigma, hur_tmn, press, temp, rscs, rlcs, diabdiv"
-write_matrix (arrayout, "8f14.4", option)
+;option@title   = "gamma, sigma, hur_tmn, press, temp, rscs, rlcs, diabdiv"
+option@title   = "gamma_a, diabdiv, omega_d, sigma, hur_tmn, rscs, rlcs, temp, press"
+write_matrix (arrayout, "9f14.4", option)
 
 ; write out mean values to txt file...
+  print(">>>>>>>>>>>> writing second text file")
 filenameout    = "mean_vals_A_"+model+"_"+SST+".txt"
-;filenamestr    = tostring(filenameout)
-;option@fout    = filenameout
-;option@title   = "mn diab omega, circ int, mn omega dn, mn omega up"
 ;write_matrix (mnvalout, "4f14.4", option)
-header = (/">>>>> go stink it up boy <<<<<<"/)
+header = (/"omega_d, CircI, omega_d, omega_u, SF"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
@@ -603,7 +605,6 @@ val_c=(/omega_dn/)
 val_d=(/omega_up/)
 val_e=(/subsidenceF/)
 alist = [/val_a,val_b,val_c,val_d,val_e/]
-;alist = [/omega_db_wva,circulation_int,omega_dn,omega_up/]
 write_table(filenameout,"w",hlist, "%s")
 write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
@@ -613,3 +614,4 @@ write_table(filenameout,"a",flist, "%s")
   print("{{{{{{{{{{{{{{ leaving stability_omegaD.ncl }}}}}}}}}}}}}}")
        
 end
+
