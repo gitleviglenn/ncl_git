@@ -1,16 +1,12 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; omega_mn_rce.ncl
 ;
-; calculate the mean upward omega, mean downward omega, diab omega, and subsidence frac
+; calculate the mean upward omega, mean downward omega, and subsidence frac
 ;
-; output file is: profiles_mn.txt unless otherwise specified by the "textfile" switch
+; only computes statistics for 2D omega related data.  
+; does not compute omega_db, stability or lapse rates. 
 ;
-; uses ncl function vibeta to compute the vertical integral, or vertical average
-;
-; read RH profiles, compute sigma profiles
-;
-; Should I not calculate omega_db in this script?  THen this script could focus entirely on 2D 
-; at the 500hPa level, not worry about radiation or stability....
+; generalize to chunks?  
 ;
 ; normal = 0 can refer to cam5, cam6, or geos
 ; normal = 1 refers to SP-CAM
@@ -18,12 +14,6 @@
 ; variables needed for this script: 
 ;   2D_psl
 ;   2D_wap500
-;
-;   1D_pa_avg
-;   1D_ta_avg
-;   1D_tntrlcs_avg
-;   1D_tntrscs_avg
-;   1D_hur_avg
 ;
 ; across the model ensemble, some variables have different names and/or dimensions: 
 ; wap500
@@ -40,7 +30,7 @@
 ;
 ; /glade/work/kareed/data_analysis/rce_world/omega_pdf.ncl 
 ;
-; output RH, mn omega up, mn omega dn, diab omega,  sigma, and Q to a txt file.
+; output mn omega up, mn omega dn, I, and subsidence fraction to a txt file.
 ;
 ; levi silvers                                                          feb 2021
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
@@ -68,11 +58,6 @@ else
   vfix=0
 end if
 
-if (isvar("textfile")) then
-  foutname=textfile
-else
-  foutname="profiles_mn.txt"
-end if
 if (isvar("chunkdays")) then
   ndays=chunkdays
 else
@@ -88,7 +73,6 @@ timewindow=ndays*freq
 
   print("data freq not detected, freq is: "+freq)
   print("SST is : "+seaST)
-  print("output txt file name is : "+foutname)
 
 if (isvar("nperiods")) then
   numperiods=nperiods
@@ -106,16 +90,6 @@ end if
 
 timelenght=endtime-timewindow*numperiods
 startime  =endtime-timewindow*numperiods+1
-
-; physical constants: 
-grav      =9.81
-Rd        =287.        ; J/kg K gas constant for dry air
-Rv        =461.; % J/(kg K) gas constant for water vapor
-;latheat  =2.26e6; % J/kg latent heat of vaporization
-latheat   =2.52e6; % J/kg latent heat of vaporization
-cpd       =1000.       ; J/kg K cp for dry air
-epsilon   = Rd/Rv
-tsfc      =stringtofloat(SST) ; surface temperature
 
 ;==========================
 ; path bases
@@ -140,11 +114,6 @@ if (isvar("CAMGCM")) then
   file_p      =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_pa_avg.nc"
   file_ta     =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_ta_avg.nc"
   file_psl    =pch+cam+seaST+"/2D/"+modelname+"_GCM_RCE_large"+seaST+"_2D_psl.nc"
-  ;file_tas    =pch+cam+seaST+"/2D/"+modelname+"_GCM_RCE_large"+seaST+"_2D_tas.nc"
-  ;file_zg     =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_zg_avg.nc"
-  file_hur    =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_hur_avg.nc"
-  file_tntrscs=pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
-  file_tntrlcs=pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
   if (normal .lt. 1) then  ; for non CAM models with 'normal' data files
     file_zg   =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_zg_avg.nc"
   end if
@@ -153,11 +122,6 @@ else
   file_p         =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
   file_ta        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_ta_avg.nc"
   file_psl       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_psl.nc"
-  ;file_tas       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_tas.nc"
-  file_hur       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_hur_avg.nc"
-  file_tntrscs   =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
-  file_tntrlcs   =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
-  ;normal = notnormal
   if (normal .lt. 1) then  ; for non CAM models with 'normal' data files
     file_zg        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_zg_avg.nc"
   else ; something about the model data is abnormal (e.g. z_avg instead of zg_avg)
@@ -175,11 +139,7 @@ end if
 fca         =addfile(file_p,"r")
 fcb         =addfile(file_ta,"r")
 fce         =addfile(file_psl,"r")
-;fcf         =addfile(file_tas,"r")
 fcg         =addfile(file_zg,"r")
-fch         =addfile(file_hur,"r")
-fcj         =addfile(file_tntrscs,"r")
-fck         =addfile(file_tntrlcs,"r")
 fc_om       =addfile(file_om,"r")
 
 normal = notnormal
@@ -212,15 +172,9 @@ end if
 if (vfix .lt. 1) then
   temp_a      =fcb->ta_avg(startime:endtime,:)
   psl_a       =fce->psl(startime:endtime,:,:)
-  hur_a       =fch->hur_avg(startime:endtime,:)
-  rscs_a      =fcj->tntrscs_avg(startime:endtime,:)
-  rlcs_a      =fck->tntrlcs_avg(startime:endtime,:)
 else; below is tailored to the UKMO
   temp_a      =fcb->air_temperature(startime:endtime,:,0,0)
   psl_a       =fce->air_pressure_at_sea_level(startime:endtime,0,0)
-  hur_a       =fch->relative_humidity(startime:endtime,:,0,0)
-  rscs_a      =fcj->tendency_of_air_temperature_due_to_shortwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
-  rlcs_a      =fck->tendency_of_air_temperature_due_to_longwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
 end if
 
   print("OMEGA VALUES IS: "+omega)
@@ -241,58 +195,11 @@ end if
 wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 ;==========================
-; compute time averages
-
-scaleR = 86400.;
-
-temp_tmn     =dim_avg_n(temp_a,0)
-hur_tmn      =dim_avg_n(hur_a,0)
-rscs_tmn     =scaleR*dim_avg_n(rscs_a,0)
-rlcs_tmn     =scaleR*dim_avg_n(rlcs_a,0)
-
-psl_b        =dim_avg_n(psl_a,0)
-psl_c        =dim_avg_n(psl_b,0)
-psl_avg      =dim_avg_n(psl_c,0)
-
-;==========================
-
-dims      = dimsizes(temp_a)
-lowestlev = dims(1)-1
-
-sbycp     =new((/dims(1)/),float)
-sigma     =new((/dims(1)/),float)
-omega_db  =new((/dims(1)/),float)
-Q_tmn     =new((/dims(1)/),float)
-arrayout  =new((/dims(1),7/),float)
-;mnvalout  =new((/4/),float)
-
-; compute the net clear sky radiative heating of atmosphere
-Q_tmn        =rlcs_tmn+rscs_tmn
-
-;==========================
-; dry static energy divided by the specific heat of dry air
-do z = 0,dims(1)-1
-  sbycp(z) = temp_tmn(z)+grav*zg_tmn(z)/(cpd)
-end do
-
-;==========================
-; static stability parameter (pressure derivative of dry static energy divided by cpd)
-do z=1,dims(1)-2
-  sigma(z) = ((sbycp(z+1)-sbycp(z-1))/(press_tmn(z+1)-press_tmn(z-1)))
-end do
-sigma(0)  = sigma(1)
-sigma(lowestlev) = ((sbycp(lowestlev-1)-tsfc)/(press_tmn(lowestlev-1)-psl_avg))
-
-; scale the static stability as desired
-;sigma=10000*sigma ;   scale to K/100hPa as in Mapes, 2001
-;sigma=-100000*sigma ; scale to mK/hPa and convert to S from Bony et al
-
-;==========================
 ; process vertical velocity
 ; compute the mean upward and downward omega velocities
 
 ; scale vertical velocity
-; convert units to hPa/d?  
+; convert units to hPa/d 
 ; for models with Pa/s conversion factor is 864
 ; for models with m/s, conversion factor is 6042 ?!! 
 
@@ -425,104 +332,25 @@ wav_dn = dim_avg_n(w_dn,0)
   print("ave weighted sf is equal to: "+wav_dn+" and weighted wav_up is equal to: "+wav_up)
   print("omega_up is equal to: "+omega_up)
 
-; diabatically driven omega
-; omega_db = Q/sigma
-;omega_db = scalef*(Q_tmn/sigma)
-omega_db = (1./100.)*(Q_tmn/sigma)
-
-;opt_avg=(/0, 20000, 60000/) 
-;omega_db_wva = wgt_vert_avg_beta(press_tmn, omega_db, psl_avg , 1, opt_avg) 
-
-; compute vertical weighted average over a range in pressure
-ptop = 20000.
-pbot = 60000.
-press_tmn!0  ="lev"
-temp_tmn!0   ="lev"
-omega_db!0   ="lev"
-sigma!0      ="lev"
-hur_tmn!0    ="lev"
-rscs_tmn!0   ="lev"
-rlcs_tmn!0   ="lev"
-
-;*************************************************************
-; certain models, like CNRM have the first vertical level at the sfc instead of TOA
-if (vertrev .gt. 0); if reverse the vertical dimension....
-  sigma_wva    = vibeta(press_tmn, sigma, 1, psl_avg , pbot, ptop) 
-  sigma_wva    = sigma_wva/(pbot-ptop); 
-  omega_db_wva = vibeta(press_tmn, omega_db, 1, psl_avg , pbot, ptop) 
-  omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
-else;  if the orientation in the vertical starts at the TOA (default)
-  sigma_wva    = vibeta(press_tmn(lev|::-1), sigma(lev|::-1), 1, psl_avg , pbot, ptop) 
-  sigma_wva    = sigma_wva/(pbot-ptop); 
-  omega_db_wva = vibeta(press_tmn(lev|::-1), omega_db(lev|::-1), 1, psl_avg , pbot, ptop) 
-  omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
-end if
-
-  print("diabatic omega is: "+omega_db+" and the pressure is :"+press_tmn)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
   print("omega_dn is equal to: "+omega_dn+" and omega_up is equal to: "+omega_up)
   print("is the circulation intensity at "+seaST+" equal to: "+circulation_int+"?")
-  print(">>>>>>>>>>>>")
-  print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva)
-  print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
+  print(">>>>>>>>>>>> writing text file")
 
-;-----------------------------------------------------
-; read omega from file                               ;
-; scale omega              			     ;
-; interpolate to appropriate grid  --> intvar_out    ;
-; A) with intvar_out: 				     ;	
-; sort into ascending/descending regions             ;
-; compute subsidence fraction			     ;
-; cosine weight?				     ;
-; compute circulation intensity			     ;
-;    -compute average omega_up, omega_dn	     ;
-;    -compute difference			     ;
-; B) with intvar_out: 				     ;
-; reshape for the purpose of averaging over chunks   ;
-; compute pdf					     ;
-;-----------------------------------------------------
-
-;==========================
-; compute the diabatically driven omega
-
-;=====================================
-
-do z=0,dims(1)-1
-  arrayout(z,0)=omega_db(z)
-  arrayout(z,1)=sigma(z)
-  arrayout(z,2)=hur_tmn(z)
-  arrayout(z,3)=rscs_tmn(z)
-  arrayout(z,4)=rlcs_tmn(z)
-  arrayout(z,5)=temp_tmn(z)
-  arrayout(z,6)=press_tmn(z)
-end do 
-
-;;==========================
-;; write out profile data to a txt file...
-  print(">>>>>>>>>>>> writing first text file")
-
-option         = True   ; if False then output is sent to standard out
-option@fout    = foutname
-option@title   = "omega_d, sigma, hur_tmn, rscs, rlcs, temp_mn, press_mn"
-write_matrix (arrayout, "7f14.4", option)
-
-;; write out mean data to a txt file...
-  print(">>>>>>>>>>>> writing second text file")
-filenameout    = "mean_vals_B_"+model+"_"+SST+".txt"
-;write_matrix (mnvalout, "4f14.4", option)
-header = (/"omega_d, CircI, omega_d, omega_u, SF"/)
+filenameout    = "mean_omega_vals_"+model+"_"+SST+".txt"
+header = (/"CircI, omega_d, omega_u, SF"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
-val_a=(/omega_db_wva/)
-val_b=(/circulation_int/)
-val_c=(/omega_dn/)
-val_d=(/omega_up/)
-val_e=(/subsidenceF/)
-alist = [/val_a,val_b,val_c,val_d,val_e/]
+;val_a=(/omega_db_wva/)
+val_a=(/circulation_int/)
+val_b=(/omega_dn/)
+val_c=(/omega_up/)
+val_d=(/subsidenceF/)
+alist = [/val_a,val_b,val_c,val_d/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
