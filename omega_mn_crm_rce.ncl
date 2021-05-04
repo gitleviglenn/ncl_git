@@ -130,7 +130,7 @@ intvar_out=juljack
 ;*************************************************************
 ; parse out the ascending and descending regions and comp SF
 ;-------------------------------------------------------------
-subfrac_array = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
+;subfrac_array = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
 
 make_coarse = True
 if (make_coarse) then
@@ -139,19 +139,28 @@ if (make_coarse) then
   omega_u_a_frac =where((intvar_out .le. 0),1.0,0.0)
   omega_d_a      =where((intvar_out .ge. 0),intvar_out,intvar_out@_FillValue)
   omega_d_a_frac =where((intvar_out .ge. 0),1.0,0.0)
-  subfrac_array  =reshape(intvar_out,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
+  ;subfrac_array  =reshape(intvar_out,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
 else
     print("using original grid")
   omega_u_a      =where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
   omega_u_a_frac =where((wvar_a .le. 0),1.0,0.0)
   omega_d_a      =where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
   omega_d_a_frac =where((wvar_a .ge. 0),1.0,0.0)
-  subfrac_array  =reshape(wvar_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
+  ;subfrac_array  =reshape(wvar_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
 end if
 
 omega_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 dim_om=dimsizes(omega_u_a)
+
+subfrac_array = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
+if (make_coarse) then
+    print("using coarse grid")
+  subfrac_array  =reshape(intvar_out,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
+else
+    print("using original grid")
+  subfrac_array  =reshape(wvar_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
+end if
 
 ;subfrac_array = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
 ;subfrac_array = reshape(wvar_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
