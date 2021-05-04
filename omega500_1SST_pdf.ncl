@@ -2,6 +2,9 @@
 ; omega500_1SST_pdf.ncl
 ;
 ; used with the script omega_gcm_pdf.sh
+;
+; for GCMs the area_conserve_remap_Wrap function is used to interpolate to a 1x1 deg lat lon
+; for CRMs the area_hi2lores function is used to interpolate to a coarse grid
 ; 
 ; output both an .eps and a .txt file
 ;
@@ -34,6 +37,7 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
+  print("@@@@@@@@@@@@@ entering omega500_1SST_pdf.ncl script @@@@@@@@@@@@@@@@@@@@@@@@@")
   print("scumstash is right.")
 ;-----------------
 ; time parameters
@@ -104,7 +108,7 @@ path_C6="CAM6_GCM/"
 ; read variables
 ;---------------------------------------------------------
 numygp=127
-numxgp=1983
+numxgp=1983 ; why isn't this 2047?
 
 if (isvar("CAMGCM")) then
   whichCAM=CAMGCM
@@ -276,7 +280,11 @@ do tt=0,dim_om(0)-1
   sfrac_up(tt)=sum(omega_temp2)/total_area
   sfrac(tt)=sum(omega_temp3)/total_area
 end do
+
+subfrac  = dim_avg_n(sfrac,0)
+subfrac_u= dim_avg_n(sfrac_up,0)
   print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" and fraction of ascending air is: "+sfrac_up(10))
+  print("time averaged subs frac is: "+subfrac+" and fraction of ascending air is: "+subfrac_u)
 
 ;*************************************************************
 ; compute cosine weighting
@@ -299,8 +307,10 @@ end if
 ; compute circulation intensity 
 ;-------------------------------------------------------------
 
-w_up=intvar_u_ave*sfrac_up
-w_dn=intvar_d_ave*sfrac
+;w_up=intvar_u_ave*sfrac_up
+;w_dn=intvar_d_ave*sfrac
+w_up=intvar_u_ave*subfrac
+w_dn=intvar_d_ave*subfrac_u
 
 av_up = dim_avg_n(intvar_u_ave,0)
 av_dn = dim_avg_n(intvar_d_ave,0)
@@ -483,5 +493,7 @@ option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
 ;option@title   = "gamma_a, gamma_m, sbycp, sigma, hur_tmn, press, rscs, rlcs, diabdiv"
 write_matrix (arrayout, "1f14.4", option)
+
+  print("@@@@@@@@@@@@ leaving omega500_1SST_pdf.ncl script @@@@@@@@@@@@@@@@@@@@@@@@@@")
 
 end

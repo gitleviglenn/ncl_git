@@ -22,6 +22,9 @@
 ; - compute the pdf
 ; - compute the intensity of the overturning circulation
 ;
+; RCE_GCM -> if 1 then interpolate to 1x1 degree grid
+;         -> if 0 then coarsen to a c96 or c192 grid
+;
 ; should the time averaging come before or after the other analysis?
 ;
 ; note: CRM models used a channel shaped domain and were run for 100 days.  
