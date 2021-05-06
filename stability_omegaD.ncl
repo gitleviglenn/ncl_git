@@ -158,9 +158,13 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
       file_p       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
       file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_z_avg.nc"
     end if
+    if (VertDimFix .eq. 3) then ; UKMO
+      file_p       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_plevrho_avg.nc"
+      file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_height_rho.nc"
+    end if
     if (omega .lt. 1) then
       omvar="wap500"
-    else if (omega .lt. 2) then
+    else if (omega .lt. 3) then
       omvar="wa500"
     end if
     end if
@@ -182,12 +186,13 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   ; the z variable has at least three different names: zg_avg(CAM5), z_avg(SP-CAM), zg(GEOS), and z(SAM) 
   ; should I organize the models into 3 or so 'types' for which z,p, and sometimes t 
   ; are defined, read, and averaged in particular ways?  
+
+  fcg          =addfile(file_zg,"r")
+  fca          =addfile(file_p,"r")
   
   ;----  Dealing with the different ways of writing zg and pa among the models -----;
   if (isvar("VertDimFix")) then
     if (VertDimFix .eq. 0) then
-      fcg          =addfile(file_zg,"r")
-      fca          =addfile(file_p,"r")
       if (isvar("stupidp")) then
         specialp = stupidp 
         if (specialp .eq. 1) then  ; GEOS has a pressure field with only height, no time
@@ -198,7 +203,6 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
       else ; no stupidp
         zg_a    = fcg->zg_avg(startime:endtime,:)
         zg_tmn  = dim_avg_n(zg_a,0)  
-        ;fcg          =addfile(file_zg,"r")
         press_a      =fca->pa_avg(startime:endtime,:)
         press_tmn    =dim_avg_n(press_a,0)  ; CAM uses Pa for p, no conversion
       end if
@@ -210,11 +214,15 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
       zg_tmn       =fcb->z(:)
     end if
     if (VertDimFix .eq. 2) then
-      fcg          =addfile(file_zg,"r")
-      fca          =addfile(file_p,"r")
       zg_tmn       =fcg->z_avg(:) ; SP-CAM
       press_a      =fca->pa_avg(startime:endtime,:)
       press_tmn    =dim_avg_n(press_a,0)   
+    end if
+    if (VertDimFix .eq. 3) then
+      press_a     =fca->air_pressure(startime:endtime,:,0,0)
+      press_tmn   =dim_avg_n(press_a,0)
+      zg_a        =fcg->level_height(:)
+      zg_tmn      =zg_a
     end if
   end if ; end isvar(VertDimFix)
   if (omega .lt. 1) then
@@ -227,12 +235,20 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   end if 
   end if
   ;
-  temp_a      =fcb->ta_avg(startime:endtime,:)
-  psl_a       =fce->psl(startime:endtime,:,:)
-  ;tas_a       =fcf->tas(startime:endtime,:,:)
-  hur_a       =fch->hur_avg(startime:endtime,:)
-  rscs_a      =fcj->tntrscs_avg(startime:endtime,:)
-  rlcs_a      =fck->tntrlcs_avg(startime:endtime,:)
+  if (VertDimFix .lt. 3) then
+    temp_a      =fcb->ta_avg(startime:endtime,:)
+    psl_a       =fce->psl(startime:endtime,:,:)
+    hur_a       =fch->hur_avg(startime:endtime,:)
+    rscs_a      =fcj->tntrscs_avg(startime:endtime,:)
+    rlcs_a      =fck->tntrlcs_avg(startime:endtime,:)
+  else if (VertDimFix .eq. 3) then  ; for UKMO
+    temp_a      =fcb->air_temperature(startime:endtime,:,0,0)
+    psl_a       =fce->air_pressure_at_sea_level(startime:endtime,0,0)
+    hur_a       =fch->relative_humidity(startime:endtime,:,0,0)
+    rscs_a      =fcj->tendency_of_air_temperature_due_to_shortwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
+    rlcs_a      =fck->tendency_of_air_temperature_due_to_longwave_heating_assuming_clear_sky(startime:endtime,:,0,0)
+  end if 
+  end if
 else if (fileconglomerate .eq. 1) then
     print("are we reading from ICON or ECHAM???")
   file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-1D.nc"
@@ -523,8 +539,8 @@ print("dimsizes of sigma are: "+dimsizes(sigma))
 
 ; it seems like this should not be here, but it also doesn't seem to 
 ; fix the problem with omega_db
-if (isvar("VertDimFix")) then 
-  if (VertDimFix .eq. 1) then  ; SAM-CRM
+if (isvar("vertrev")) then 
+  if (vertrev .eq. 1) then  
     gamma_a    =gamma_a(::-1)
     sigma      =sigma(::-1)
     hur_tmn    =hur_tmn(::-1)
@@ -593,9 +609,9 @@ write_matrix (arrayout, "9f14.4", option)
 
 ; write out mean values to txt file...
   print(">>>>>>>>>>>> writing second text file")
-filenameout    = "mean_vals_A_"+model+"_"+SST+".txt"
+filenameout    = "mean_vals_"+model+"_"+SST+".txt"
 ;write_matrix (mnvalout, "4f14.4", option)
-header = (/"omega_d, CircI, omega_d, omega_u, SF"/)
+header = (/"omega_db, CircI, omega_d, omega_u, SF"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
