@@ -177,7 +177,7 @@ else
 end if ; make_coarse
 
 ;*************************************************************
-; 2. create chunked arrays
+; 2. reshape arrays to create chunks of days
 ;-------------------------------------------------------------
 
 ; at the moment it looks like data is averaged over daily chunks..
@@ -193,29 +193,47 @@ end if ; make_coarse
 dim_om1=dimsizes(intvar_out)
 dim_om2=dimsizes(wvar_a)
 
-intvar_ch_a = new((/timewindow,numperiods,dim_om1(1),dim_om1(2)/),float)
-wvar_ch_a   = new((/timewindow,numperiods,dim_om2(1),dim_om2(2)/),float)
+;intvar_ch_a = new((/timewindow,numperiods,dim_om1(1),dim_om1(2)/),float)
+;wvar_ch_a   = new((/timewindow,numperiods,dim_om2(1),dim_om2(2)/),float)
+intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
+wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
 
-intvar_ch_a =reshape(intvar_out,(/timewindow,numperiods,dim_om1(1),dim_om1(2)/))
-wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
+;intvar_ch_a =reshape(intvar_out,(/timewindow,numperiods,dim_om1(1),dim_om1(2)/))
+;wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
+intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
+wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
 
 ; take the time average over chunks
-intvar_ch_b = dim_avg_n(intvar_ch_a,0)
-wvar_ch_b   = dim_avg_n(wvar_ch_a,0)
+intvar_ch_b = dim_avg_n(intvar_ch_a,1)
+wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
 
   printVarSummary(intvar_out)
   printVarSummary(intvar_ch_a)
 ;  printVarSummary(intvar_ch_b)
 ;  printVarSummary(wvar_ch_b)
 
-  print(" begin checking the reshapeing... ")
-  print(intvar_out(11,2,10))
-  print(intvar_ch_a(11,0,2,10))
   print("... ... ... ... ... ")
-  print(intvar_out(124,2,10))
-  print(intvar_ch_a(4,1,2,10))
-  print(intvar_ch_a(5,1,2,10))
-  print(intvar_ch_a(6,1,2,10))
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
+  print(" begin checking the reshapeing... ")
+  print(intvar_out(5,2,10))
+  print(intvar_ch_a(0,5,2,10))
+  print("... ... ... ... ... ")
+  print(intvar_out(30,2,10))
+  print(intvar_ch_a(1,6,2,10))
+  print(intvar_ch_a(1,7,2,10))
+  print(intvar_ch_a(1,8,2,10))
+  print("... ... ... ... ... ")
+  print("... first 125 values ... ")
+  print(intvar_out(0:125,2,10))
+  print("... (:,0,2,10) from intvar_out... ")
+  print(intvar_ch_a(:,0,2,10))
+  print("... (:,1,2,10) from intvar_out... ")
+  print(intvar_ch_a(:,1,2,10))
+  print("... (0,:,2,10) from intvar_out... ")
+  print(intvar_ch_a(0,:,2,10))
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
   print("... ... ... ... ... ")
   print(" end checking the reshapeing... ")
 ;*************************************************************
@@ -343,6 +361,14 @@ end do
   print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" frac of ascending air at 1 timestep is: "+sfrac_up(10))
 
 subsidenceF=dim_avg_n(sfrac,0)
+
+if (scalef .gt. 1000.)
+    print("Scale factor larger than 1000!! ")
+  subsidenceF=1-subsidenceF
+else
+  ; no need to change subsidenceF
+end if
+
 
 ;-------------------------------------------------------------
 ; print results to standard out
