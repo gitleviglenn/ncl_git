@@ -32,13 +32,16 @@
 ;
 ; output mn omega up, mn omega dn, I, and subsidence fraction to a txt file.
 ;
-; levi silvers                                                          feb 2021
+; levi silvers                                                          may 2021
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
 load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
+
+;==========================
+; define parameters
 
 ; read input data from calling script:
 if (isvar("model")) then
@@ -91,11 +94,12 @@ end if
 timelenght=endtime-timewindow*numperiods
 startime  =endtime-timewindow*numperiods+1
 
-;==========================
-; path bases
-pch="/glade/scratch/levi/RCEMIP/"
+  print("startime for reading data is: "+startime+" and end time is: "+endtime)
 
-  print("begin adding files...")
+;==========================
+; define file locations via paths 
+
+pch="/glade/scratch/levi/RCEMIP/"
 
 ; this is a confusing  parameter
 normal = notnormal
@@ -111,71 +115,22 @@ if (isvar("CAMGCM")) then
     cam="CAM6_GCM/RCE_large"
   end if
   file_om     =pch+cam+seaST+"/2D/"+modelname+"_GCM_RCE_large"+seaST+"_2D_wap500.nc"
-  file_p      =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_pa_avg.nc"
-  file_ta     =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_ta_avg.nc"
-  file_psl    =pch+cam+seaST+"/2D/"+modelname+"_GCM_RCE_large"+seaST+"_2D_psl.nc"
   if (normal .lt. 1) then  ; for non CAM models with 'normal' data files
-    file_zg   =pch+cam+seaST+"/1D/"+modelname+"_GCM_RCE_large"+seaST+"_1D_zg_avg.nc"
   end if
 else
   file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wap500.nc"
-  file_p         =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_pa_avg.nc"
-  file_ta        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_ta_avg.nc"
-  file_psl       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_psl.nc"
   if (normal .lt. 1) then  ; for non CAM models with 'normal' data files
-    file_zg        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_zg_avg.nc"
   else ; something about the model data is abnormal (e.g. z_avg instead of zg_avg)
     if (vfix .lt. 1) then
-      file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_z_avg.nc"
     else
-      file_zg      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_height_rho.nc"
-      file_p       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_plevrho_avg.nc"
       file_om      =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
     end if
   end if
 end if
 
-  print("file_p is: "+file_p)
-fca         =addfile(file_p,"r")
-fcb         =addfile(file_ta,"r")
-fce         =addfile(file_psl,"r")
-fcg         =addfile(file_zg,"r")
 fc_om       =addfile(file_om,"r")
 
 normal = notnormal
-if (normal .lt. 1) then
-  if (isvar("messeddims")) then
-    press_a     =fca->pa_avg(:)
-    zg_a        =fcg->zg(:)  ; GEOS uses zg instead of zg_avg
-    press_tmn   =press_a
-    zg_tmn      =zg_a
-  else
-    press_a     =fca->pa_avg(startime:endtime,:)
-    zg_a        =fcg->zg_avg(startime:endtime,:)
-    press_tmn   =dim_avg_n(press_a,0)
-    zg_tmn      =dim_avg_n(zg_a,0)
-  end if
-else ; normal =1
-    if (vfix .lt. 1) then
-      press_a     =fca->pa_avg(startime:endtime,:)
-      press_tmn   =dim_avg_n(press_a,0)
-      zg_a        =fcg->z_avg(:)
-      zg_tmn      =zg_a
-    else ; this was originally written to acomodate the UKMO
-      press_a     =fca->air_pressure(startime:endtime,:,0,0)
-      press_tmn   =dim_avg_n(press_a,0)
-      zg_a        =fcg->level_height(:)
-      zg_tmn      =zg_a
-    end if
-end if
-
-if (vfix .lt. 1) then
-  temp_a      =fcb->ta_avg(startime:endtime,:)
-  psl_a       =fce->psl(startime:endtime,:,:)
-else; below is tailored to the UKMO
-  temp_a      =fcb->air_temperature(startime:endtime,:,0,0)
-  psl_a       =fce->air_pressure_at_sea_level(startime:endtime,0,0)
-end if
 
   print("OMEGA VALUES IS: "+omega)
 if (omega .lt. 1) then
@@ -275,7 +230,8 @@ do tt=0,dim_om(0)-1
   sfrac_up(tt)=sum(omega_temp2)/total_area
   sfrac(tt)=sum(omega_temp3)/total_area
 end do
-if (scalef .gt. 1000)
+if (scalef .gt. 1000.)
+    print("Scale factor larger than 1000!! ")
   sf=dim_avg_n(sfrac,0)
   subsidenceF=1-sf
 else

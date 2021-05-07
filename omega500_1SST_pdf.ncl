@@ -8,6 +8,9 @@
 ; 
 ; output both an .eps and a .txt file
 ;
+; output to standard out includes the omega_up, omega_dn, and circulation intensity computed
+; both with and without chunks.
+;
 ; - open file
 ; - read vertical velocity variable
 ; - rescale to hPa/day
