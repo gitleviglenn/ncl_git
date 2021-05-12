@@ -8,7 +8,7 @@
 ; output: circulation intensity, subsidence fraction, mean upward and downward velocity
 ;
 ; Methodology:
-; 1.  interpolate to GCM like grid 
+; 1. interpolate to GCM like grid 
 ; 2. create chunked arrays
 ; 3. sort into ascending and descending regions
 ; 4. compute mn omega_u, omega_d, circulation intensity, and SF
@@ -103,16 +103,24 @@ fc_om       =addfile(file_om,"r")
 if (omega .lt. 1) then
   wvar_a=fc_om->wap500(startime:endtime,:,:)
 else if (omega .lt. 2) then
-  wvar_a=fc_om->wa500(startime:endtime,:,:)
+  if (isvar("ICON_LEMfix")) then
+    wvar_a=fc_om->wa500(startime:endtime,0,:,:)
+  else
+    wvar_a=fc_om->wa500(startime:endtime,:,:)
+  end if
 else if (omega .lt. 3) then
   wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,:,:)
 end if 
 end if 
 end if
 
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
 wvar_a=scalef*wvar_a
   print("scaleing by factor: "+scalef)
-wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
+;wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 ;*************************************************************
 ; 1.  interpolate to GCM like grid
@@ -120,34 +128,105 @@ wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 ; first method to coarsen the grid of the CRM
 
-x_orig = fc_om->x
-y_orig = fc_om->y
+if (isvar("UCLAfix")) then
+    print("fixing things for UCLA CRM...")
+  x_orig = fc_om->xt
+  y_orig = fc_om->yt
+else if (isvar("ICON_LEMfix")) then
+  x_orig = fspan(1500,400500,134)
+  y_orig = fspan(1500,5998500,2000)
+else
+  x_orig = fc_om->x
+  y_orig = fc_om->y
+end if
+end if
 
+; for ICON_LEM_CRM
+;if (isvar("ICON_LEMfix")) then
+;x_orig = fspan(1500,400500,134)
+;y_orig = fspan(1500,5998500,2000)
+
+; UCLA horizontal grid is 128x1984
+; ICON LEM CRM horizontal grid is 2000x134
+; SCALE hirozontal grid is 128x2048
+
+; fspan creates an array from the first to last point, evenly spaced into the number of points given.
 ;y_new=fspan(0,384000,5)
 ;x_new=fspan(0,5952000,63)
 ;
-y_new=fspan(0,384000,3)
-x_new=fspan(0,6144000,63)
+;y_new=fspan(0,384000,3)
+;x_new=fspan(0,6144000,63)
+
+; for a grid representing 96x96km blocks
+; in km
+if (isvar("ICON_LEMfix")) then
+  y_new=fspan(48000,5952000,64)
+  x_new=fspan(48000,354000,4)
+else
+  y_new=fspan(48000,336000,4)
+  x_new=fspan(48000,6096000,64)
+end if
+
+; scale for SCALE.  it has the coordinates in km instead of m.  
+; ICON LEM CRM has meaningless latitude like coordinates instead of m, although they do appear to be about 3 km apart...
+if (isvar("SCALEfix")) then
+  scaleaxis=1000.
+else
+  scaleaxis=1.
+end if
+
+y_orig=scaleaxis*y_orig
+x_orig=scaleaxis*x_orig
+
+;block_array = new((/timewindow*numperiods,4,64/),float)
+juljack_t     = new((/timewindow*numperiods,4,64/),float)
+
+;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+;  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
+;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
 
 var_to_interpolate=wvar_a ; incoming CRM data
+;var_to_interpolate@_FillValue = default_fillvalue("float")    ; set devault FillValue
 ; var_to_interpolate must have y,x as its two rightmost dimensions...
 
-juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,False)
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of var_to_interpolate are: "+max(var_to_interpolate)+" and "+min(var_to_interpolate))
+  print("dimsizes of var_to_interpolate are: "+dimsizes(var_to_interpolate))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+option = False
+option@critpc = 50
+notmissing=num(.not.ismissing(var_to_interpolate))
+  print("number of NOT MISSING values are: "+notmissing)
+;  print("array orig: "+x_orig)
+;  print("array final: "+x_new)
+juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,option)
+  print("dimsizes of juljack are: "+dimsizes(juljack))
 intvar_out=juljack
 
   print("-----------Variable that will be interpolated----------------")
   printVarSummary(var_to_interpolate)
-  print("-----------Variable after being interpolated-----------------")
-  printVarSummary(intvar_out)
-  print("-------------------------------------------------------------")
+;  print("sample of var_to_interpolate: "+var_to_interpolate(500,:,1024))
+;  print("sample of edge 1 var_to_interpolate: "+var_to_interpolate(500,:,0))
+;  print("sample of edge 2 var_to_interpolate: "+var_to_interpolate(500,:,2047))
+;  print("sample of first time of var_to_interpolate: "+var_to_interpolate(0,:,0))
+;  print("sample of last time of var_to_interpolate: "+var_to_interpolate(1199,:,0))
+;  print("-----------Variable after being interpolated-----------------")
+;  printVarSummary(juljack)
+;  print("sample of juljack: "+juljack(500,:,31))
+;  printVarSummary(intvar_out)
+;  print("sample of intvar_out: "+intvar_out(500,:,31))
+;  print("-------------------------------------------------------------")
 
 ;----------------
 ; second method to coarsen the grid of the CRM to something like a GCM
 ;----------------
 ;
-if (make_coarse) then
-else
-  lentime = ndays*numperiods
+;if (make_coarse) then
+;else
+if (.not.isvar("ICON_LEMfix"))
+  ;lentime = ndays*numperiods
+  lentime = timewindow*numperiods
   ;
   ;; parameters for grid blocks of 192km
   ;block_array = new((/lentime,2,32/),float)
@@ -161,7 +240,7 @@ else
   iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
   jend = 63 ; for 128 gridpoints, there are two blocks of 64
   
-    printVarSummary(subfrac_a)
+    ;printVarSummary(subfrac_a)
     ;print("lentime is :"+lentime)
   ; subfrac_a is 3D
   do tindex=0,lentime-1
@@ -169,12 +248,18 @@ else
       icounter=i*block
       do j=0,jend
         jcounter=j*block
-        block_single   =subfrac_a(tindex,icounter:icounter+block-1,jcounter:jcounter+block-1)
+        ;block_single   =subfrac_a(tindex,icounter:icounter+block-1,jcounter:jcounter+block-1)
+        block_single   =var_to_interpolate(tindex,icounter:icounter+block-1,jcounter:jcounter+block-1)
         block_array(tindex,i,j)=avg(block_single)
       end do
     end do
   end do
-end if ; make_coarse
+;end if ; make_coarse
+  print("-----------Variable after being interpolated-----------------")
+  printVarSummary(block_array)
+  print("sample of block_array: "+block_array(500,:,31))
+  print("-------------------------------------------------------------")
+end if
 
 ;*************************************************************
 ; 2. reshape arrays to create chunks of days
@@ -190,6 +275,12 @@ end if ; make_coarse
 ; timewindow = ndays*frequency
 ; test_array = new((/timewindow,numperiods,dim_om(1),dim_om(2)/),float)
 
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of intvar_out are: "+max(intvar_out)+" and "+min(intvar_out))
+  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+
 dim_om1=dimsizes(intvar_out)
 dim_om2=dimsizes(wvar_a)
 
@@ -202,6 +293,14 @@ wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
 ;wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
 intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
 wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("dimsizes of intvar_ch_a are: "+dimsizes(intvar_ch_a))
+  print(" which should be derivable from the dimensions of intvar_out: ")
+  print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
+  print("max and min of intvar_ch_a are: "+max(intvar_ch_a)+" and "+min(intvar_ch_a))
+  print("max and min of wvar_ch_a are: "+max(wvar_ch_a)+" and "+min(wvar_ch_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
 
 ; take the time average over chunks
 intvar_ch_b = dim_avg_n(intvar_ch_a,1)
@@ -226,11 +325,11 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
   print("... ... ... ... ... ")
   print("... first 125 values ... ")
   print(intvar_out(0:125,2,10))
-  print("... (:,0,2,10) from intvar_out... ")
+  print("... (:,0,2,10) from intvar_ch_a... ")
   print(intvar_ch_a(:,0,2,10))
-  print("... (:,1,2,10) from intvar_out... ")
+  print("... (:,1,2,10) from intvar_ch_a... ")
   print(intvar_ch_a(:,1,2,10))
-  print("... (0,:,2,10) from intvar_out... ")
+  print("... (0,:,2,10) from intvar_ch_a... ")
   print(intvar_ch_a(0,:,2,10))
   print("... ... ... ... ... ")
   print("... ... ... ... ... ")
@@ -358,7 +457,7 @@ do tt=0,tend-1
   sfrac_up(tt) =sum(omega_temp2)/total_area
   sfrac(tt)    =sum(omega_temp3)/total_area
 end do
-  print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" frac of ascending air at 1 timestep is: "+sfrac_up(10))
+;  print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" frac of ascending air at 1 timestep is: "+sfrac_up(10))
 
 subsidenceF=dim_avg_n(sfrac,0)
 
