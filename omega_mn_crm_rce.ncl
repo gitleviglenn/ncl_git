@@ -63,6 +63,11 @@ if (isvar("datafreq")) then
 else
   freq=24
 end if
+if (isvar("blocks")) then
+  blocksize=blocks
+else
+  blocksize=1
+end if
 
 timewindow=ndays*freq
 
@@ -175,25 +180,17 @@ end if
 ;y_new=fspan(0,384000,3)
 ;x_new=fspan(0,6144000,63)
 
-;; for a grid representing 192x192km2 blocks
-;if (isvar("ICON_LEMfix")) then
-;  y_new=fspan(96000,5808000,32)
-;  x_new=fspan(96000,288000,2)
-;else
-;  y_new=fspan(96000,288000,2)
-;  x_new=fspan(96000,6048000,32)
-;end if
+; everything should be on a grid that is 384X5952 km^2
 
-; for a grid representing 96x96km2 blocks
-; in km
-if (isvar("ICON_LEMfix")) then
-  ;x_new=fspan(48000,5952000,64)
-  ;y_new=fspan(48000,354000,4)
-  x_new=fspan(48000,336000,4)
-  y_new=fspan(48000,5904000,62)
+;blocksize=1
+if (blocksize .eq. 2) then
+    print("!!!!!! Interpolating to a 192km by 192km block size !!!!!!")
+  blocksz="192km_"
+  y_new=fspan(96000,288000,2)
+  x_new=fspan(96000,5856000,32)
 else
-;;  y_new=fspan(0,384000,3) -> this was used to produce original circulation numbers for SAM
-;;  x_new=fspan(0,6144000,63)
+    print("!!!!!! Interpolating to a 96km by 96km block size !!!!!!")
+  blocksz="96km_"
   y_new=fspan(48000,336000,4)
   x_new=fspan(48000,5904000,62)
 end if
@@ -253,27 +250,23 @@ intvar_out=juljack
 ; second method to coarsen the grid of the CRM to something like a GCM
 ;----------------
 ;
-;if (make_coarse) then
-;else
 if (.not.isvar("ICON_LEMfix"))
   ;lentime = ndays*numperiods
   lentime = timewindow*numperiods
   ;
-  ;; parameters for grid blocks of 192km
-  ;block_array = new((/lentime,2,32/),float)
-  ;block=floattointeger(64) ; block size for grid spacing of 192km
-  ;iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
-  ;jend = 31 ; for 128 gridpoints, there are two blocks of 64
-  
-  ; parameters for grid blocks of 96km
-  block_array = new((/lentime,4,64/),float)
-  block=floattointeger(32) ; block size for grid spacing of 96km
-  iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-  jend = 61 ; for 128 gridpoints, there are two blocks of 64
-  
-    ;printVarSummary(subfrac_a)
-    ;print("lentime is :"+lentime)
-  ; subfrac_a is 3D
+  if (blocksize .eq. 2) then
+    ;; parameters for grid blocks of 192km
+    block_array = new((/lentime,2,32/),float)
+    block=floattointeger(64) ; block size for grid spacing of 192km
+    iend = 1 ; for 2048 gridpoints, there are 32 blocks of 64
+    jend = 30 ; for 128 gridpoints, there are two blocks of 64
+  else  
+    ; parameters for grid blocks of 96km
+    block_array = new((/lentime,4,64/),float)
+    block=floattointeger(32) ; block size for grid spacing of 96km
+    iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
+    jend = 61 ; for 128 gridpoints, there are two blocks of 64
+  end if 
   do tindex=0,lentime-1
     do i=0,iend
       icounter=i*block
@@ -285,7 +278,7 @@ if (.not.isvar("ICON_LEMfix"))
       end do
     end do
   end do
-;end if ; make_coarse
+
   print("-----------Variable after being interpolated-----------------")
   printVarSummary(block_array)
   print("sample of block_array: "+block_array(500,:,31))
@@ -314,22 +307,10 @@ end if
 dim_om1=dimsizes(intvar_out)
 dim_om2=dimsizes(wvar_a)
 
-;intvar_ch_a = new((/timewindow,numperiods,dim_om1(1),dim_om1(2)/),float)
-;wvar_ch_a   = new((/timewindow,numperiods,dim_om2(1),dim_om2(2)/),float)
-;intvar_ch_a =reshape(intvar_out,(/timewindow,numperiods,dim_om1(1),dim_om1(2)/))
-;wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
-
-;if (isvar("ICON_LEMfix")) then
-;  intvar_ch_a = new((/numperiods,timewindow,dim_om1(2),dim_om1(1)/),float)
-;  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(2),dim_om2(1)/),float)
-;  intvar_ch_a = reshape(intvar_out,(/numperiods,timewindow,dim_om1(2),dim_om1(1)/))
-;  wvar_ch_a   = reshape(wvar_a,(/numperiods,timewindow,dim_om2(2),dim_om2(1)/))
-;else
-  intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
-  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
-  intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
-  wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
-;end if
+intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
+wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
+intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
+wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
 
   print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
   print("dimsizes of intvar_ch_a are: "+dimsizes(intvar_ch_a))
@@ -348,34 +329,34 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
 ;  printVarSummary(intvar_ch_b)
 ;  printVarSummary(wvar_ch_b)
 
+  print(" begin checking the reshapeing... ")
 if (isvar("ICON_LEMfix")) then
   print("... ... ... ... ... ")
 else
   print("... ... ... ... ... ")
   print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+  print(intvar_out(5,1,10))
+  print(intvar_ch_a(0,5,1,10))
   print("... ... ... ... ... ")
-  print(" begin checking the reshapeing... ")
-  print(intvar_out(5,2,10))
-  print(intvar_ch_a(0,5,2,10))
-  print("... ... ... ... ... ")
-  print(intvar_out(30,2,10))
-  print(intvar_ch_a(1,6,2,10))
-  print(intvar_ch_a(1,7,2,10))
-  print(intvar_ch_a(1,8,2,10))
-  print("... ... ... ... ... ")
-  print("... first 125 values ... ")
-  print(intvar_out(0:125,2,10))
-  print("... (:,0,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(:,0,2,10))
-  print("... (:,1,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(:,1,2,10))
-  print("... (0,:,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(0,:,2,10))
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print(" end checking the reshapeing... ")
+  print(intvar_out(30,1,10))
+  print(intvar_ch_a(1,6,1,10))
+  print(intvar_ch_a(1,7,1,10))
+  print(intvar_ch_a(1,8,1,10))
+;  print("... ... ... ... ... ")
+;  print("... first 125 values ... ")
+;  print(intvar_out(0:125,2,10))
+;  print("... (:,0,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(:,0,2,10))
+;  print("... (:,1,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(:,1,2,10))
+;  print("... (0,:,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(0,:,2,10))
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
 end if
+  print(" end checking the reshapeing... ")
 ;*************************************************************
 ; 3. sort into ascending and descending regions 
 ;-------------------------------------------------------------
@@ -461,7 +442,7 @@ end if
 
 ;-------------------------------------------------------------
 
-filenameout    = "mean_omega_vals_"+ndays+"d_"+model+"_"+SST+".txt"
+filenameout    = "omega_vals_"+blocksz+ndays+"d_"+model+"_"+SST+".txt"
 header = (/"CircI, omega_d, omega_u, SF"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
