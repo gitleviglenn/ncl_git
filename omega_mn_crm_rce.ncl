@@ -100,16 +100,19 @@ pch="/glade/scratch/levi/RCEMIP/"
 file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
   print("file_om is: "+file_om)
 fc_om       =addfile(file_om,"r")
+lastx=1983
+lasty=127
 if (omega .lt. 1) then
-  wvar_a=fc_om->wap500(startime:endtime,:,:)
+  wvar_a=fc_om->wap500(startime:endtime,0:lasty,0:lastx)
 else if (omega .lt. 2) then
   if (isvar("ICON_LEMfix")) then
-    wvar_a=fc_om->wa500(startime:endtime,0,:,:)
+    ;wvar_a=fc_om->wa500(startime:endtime,0,0:lasty,0:lastx)
+    wvar_a=fc_om->wa500(startime:endtime,0:lastx,0:lasty)
   else
-    wvar_a=fc_om->wa500(startime:endtime,:,:)
+    wvar_a=fc_om->wa500(startime:endtime,0:lasty,0:lastx)
   end if
 else if (omega .lt. 3) then
-  wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,:,:)
+  wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,0:lasty,0:lastx)
 end if 
 end if 
 end if
@@ -126,6 +129,11 @@ wvar_a=scalef*wvar_a
 ; 1.  interpolate to GCM like grid
 ;-------------------------------------------------------------
 
+;
+; SAM_CRM:        y X x = 128 X 2048
+; ICON_LEM_CRM:   y X x = 2000 X 134 
+;
+
 ; first method to coarsen the grid of the CRM
 
 if (isvar("UCLAfix")) then
@@ -133,19 +141,29 @@ if (isvar("UCLAfix")) then
   x_orig = fc_om->xt
   y_orig = fc_om->yt
 else if (isvar("ICON_LEMfix")) then
-  x_orig = fspan(1500,400500,134)
-  y_orig = fspan(1500,5998500,2000)
+  ;x_orig = fspan(1500,400500,134)
+  ;y_orig = fspan(1500,5998500,2000)
+  x_orig = fspan(1500,382500,128)
+  y_orig = fspan(1500,5950500,1984)
 else
-  x_orig = fc_om->x
-  y_orig = fc_om->y
+  x_orig = fc_om->x(0:1983)
+  y_orig = fc_om->y(0:127)
 end if
 end if
 
-; for ICON_LEM_CRM
+  printVarSummary(x_orig)
+  printVarSummary(y_orig)
+
+;  print("x_orig: "+x_orig)
+;  print("y_orig: "+y_orig)
+
+;; for ICON_LEM_CRM
 ;if (isvar("ICON_LEMfix")) then
-;x_orig = fspan(1500,400500,134)
-;y_orig = fspan(1500,5998500,2000)
+;  x_orig = fspan(1500,400500,134)
+;  y_orig = fspan(1500,5998500,2000)
+;end if
 
+; GRIDS for the various CRMs...
 ; UCLA horizontal grid is 128x1984
 ; ICON LEM CRM horizontal grid is 2000x134
 ; SCALE hirozontal grid is 128x2048
@@ -157,14 +175,27 @@ end if
 ;y_new=fspan(0,384000,3)
 ;x_new=fspan(0,6144000,63)
 
-; for a grid representing 96x96km blocks
+;; for a grid representing 192x192km2 blocks
+;if (isvar("ICON_LEMfix")) then
+;  y_new=fspan(96000,5808000,32)
+;  x_new=fspan(96000,288000,2)
+;else
+;  y_new=fspan(96000,288000,2)
+;  x_new=fspan(96000,6048000,32)
+;end if
+
+; for a grid representing 96x96km2 blocks
 ; in km
 if (isvar("ICON_LEMfix")) then
-  y_new=fspan(48000,5952000,64)
-  x_new=fspan(48000,354000,4)
+  ;x_new=fspan(48000,5952000,64)
+  ;y_new=fspan(48000,354000,4)
+  x_new=fspan(48000,336000,4)
+  y_new=fspan(48000,5904000,62)
 else
+;;  y_new=fspan(0,384000,3) -> this was used to produce original circulation numbers for SAM
+;;  x_new=fspan(0,6144000,63)
   y_new=fspan(48000,336000,4)
-  x_new=fspan(48000,6096000,64)
+  x_new=fspan(48000,5904000,62)
 end if
 
 ; scale for SCALE.  it has the coordinates in km instead of m.  
@@ -179,7 +210,7 @@ y_orig=scaleaxis*y_orig
 x_orig=scaleaxis*x_orig
 
 ;block_array = new((/timewindow*numperiods,4,64/),float)
-juljack_t     = new((/timewindow*numperiods,4,64/),float)
+;juljack_t     = new((/timewindow*numperiods,4,64/),float)
 
 ;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
 ;  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
@@ -238,7 +269,7 @@ if (.not.isvar("ICON_LEMfix"))
   block_array = new((/lentime,4,64/),float)
   block=floattointeger(32) ; block size for grid spacing of 96km
   iend = 3 ; for 2048 gridpoints, there are 32 blocks of 64
-  jend = 63 ; for 128 gridpoints, there are two blocks of 64
+  jend = 61 ; for 128 gridpoints, there are two blocks of 64
   
     ;printVarSummary(subfrac_a)
     ;print("lentime is :"+lentime)
@@ -280,19 +311,25 @@ end if
   print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
   print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
 
-
 dim_om1=dimsizes(intvar_out)
 dim_om2=dimsizes(wvar_a)
 
 ;intvar_ch_a = new((/timewindow,numperiods,dim_om1(1),dim_om1(2)/),float)
 ;wvar_ch_a   = new((/timewindow,numperiods,dim_om2(1),dim_om2(2)/),float)
-intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
-wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
-
 ;intvar_ch_a =reshape(intvar_out,(/timewindow,numperiods,dim_om1(1),dim_om1(2)/))
 ;wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
-intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
-wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
+
+;if (isvar("ICON_LEMfix")) then
+;  intvar_ch_a = new((/numperiods,timewindow,dim_om1(2),dim_om1(1)/),float)
+;  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(2),dim_om2(1)/),float)
+;  intvar_ch_a = reshape(intvar_out,(/numperiods,timewindow,dim_om1(2),dim_om1(1)/))
+;  wvar_ch_a   = reshape(wvar_a,(/numperiods,timewindow,dim_om2(2),dim_om2(1)/))
+;else
+  intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
+  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
+  intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
+  wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
+;end if
 
   print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
   print("dimsizes of intvar_ch_a are: "+dimsizes(intvar_ch_a))
@@ -311,6 +348,9 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
 ;  printVarSummary(intvar_ch_b)
 ;  printVarSummary(wvar_ch_b)
 
+if (isvar("ICON_LEMfix")) then
+  print("... ... ... ... ... ")
+else
   print("... ... ... ... ... ")
   print("... ... ... ... ... ")
   print("... ... ... ... ... ")
@@ -335,6 +375,7 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
   print("... ... ... ... ... ")
   print("... ... ... ... ... ")
   print(" end checking the reshapeing... ")
+end if
 ;*************************************************************
 ; 3. sort into ascending and descending regions 
 ;-------------------------------------------------------------
@@ -356,64 +397,10 @@ end if
 omega_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
-;if (make_coarse) then
-;    print("using coarse grid")
-;    print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
-;  omega_u_a      =where((intvar_out .le. 0),intvar_out,intvar_out@_FillValue)
-;  omega_u_a_frac =where((intvar_out .le. 0),1.0,0.0)
-;  omega_d_a      =where((intvar_out .ge. 0),intvar_out,intvar_out@_FillValue)
-;  omega_d_a_frac =where((intvar_out .ge. 0),1.0,0.0)
-;else
-;    print("using original grid")
-;  omega_u_a      =where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
-;  omega_u_a_frac =where((wvar_a .le. 0),1.0,0.0)
-;  omega_d_a      =where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
-;  omega_d_a_frac =where((wvar_a .ge. 0),1.0,0.0)
-;end if
-
-
-;; use 1 day chunks
-; we shouldn't have to reshape here if step 2 is correct....
-;omega_u_b     = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
-;omega_d_b     = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
-;subfrac_array = new((/24,ndays*numperiods,dim_om(1),dim_om(2)/),float)
-;
-;omega_u_b =reshape(omega_u_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
-;omega_d_b =reshape(omega_d_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
-
-;if (make_coarse) then
-;    print("using coarse grid")
-;  subfrac_array  =reshape(intvar_out,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
-;  ; haven't test line below...
-;  ;subfrac_array  =reshape(block_array,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
-;else
-;    print("using original grid")
-;  subfrac_array  =reshape(wvar_a,(/24,ndays*numperiods,dim_om(1),dim_om(2)/))
-;end if
-
-;; compute time average over first day subsidence fraction
-;subfrac_a     = dim_avg_n(subfrac_array,0)
-;omega_u_c     = dim_avg_n(omega_u_b,0)
-;omega_d_c     = dim_avg_n(omega_d_b,0)
-
-;  printVarSummary(omega_u_a)
-;  printVarSummary(omega_u_b)
-;  printVarSummary(omega_u_c)
-;  print(wvar_a(10,10,10))
-;  print(subfrac_array(10,0,10,10))
-;  print(wvar_a(34,10,10))
-;  print(subfrac_array(10,1,10,10))
-;  print(" end checking the reshapeing... ")
 
 ;*************************************************************
 ; 4. compute mn omega_u, omega_d, circulation intensity, and SF 
 ;-------------------------------------------------------------
-
-;omega_up = dim_avg_n(intvar_u_ave,0)
-;omega_dn = dim_avg_n(intvar_d_ave,0)
-;printVarSummary(omega_u_a)
-;omega_up = dim_avg_n(omega_u_a,0)
-;omega_dn = dim_avg_n(omega_d_a,0)
 
 omega_u_b = dim_avg_n(omega_u_a,0)
 omega_d_b = dim_avg_n(omega_d_a,0)
@@ -423,12 +410,6 @@ omega_up   = dim_avg_n(omega_u_c,0)
 omega_dn   = dim_avg_n(omega_d_c,0)
 
 circulation_int = omega_dn-omega_up
-
-;if (make_coarse) then
-;  subfrac            = where((subfrac_a .le. 0),1.0,0.0)
-;else
-;  subfrac            = where((block_array .le. 0),1.0,0.0)
-;end if
 
 ;subfrac         = where((subfrac_array .le. 0),1.0,0.0)
 ;subfrac@_FillValue = default_fillvalue("float")    ; set devault FillValue
