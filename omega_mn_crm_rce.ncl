@@ -146,8 +146,6 @@ if (isvar("UCLAfix")) then
   x_orig = fc_om->xt
   y_orig = fc_om->yt
 else if (isvar("ICON_LEMfix")) then
-  ;x_orig = fspan(1500,400500,134)
-  ;y_orig = fspan(1500,5998500,2000)
   x_orig = fspan(1500,382500,128)
   y_orig = fspan(1500,5950500,1984)
 else
@@ -156,34 +154,19 @@ else
 end if
 end if
 
-  printVarSummary(x_orig)
-  printVarSummary(y_orig)
-
-;; for ICON_LEM_CRM
-;if (isvar("ICON_LEMfix")) then
-;  x_orig = fspan(1500,400500,134)
-;  y_orig = fspan(1500,5998500,2000)
-;end if
+;  printVarSummary(x_orig)
+;  printVarSummary(y_orig)
 
 ; GRIDS for the various CRMs...
 ; UCLA horizontal grid is 128x1984
 ; ICON LEM CRM horizontal grid is 2000x134
 ; SCALE hirozontal grid is 128x2048
 
-; fspan creates an array from the first to last point, evenly spaced into the number of points given.
-;y_new=fspan(0,384000,5)
-;x_new=fspan(0,5952000,63)
-;
-;y_new=fspan(0,384000,3)
-;x_new=fspan(0,6144000,63)
-
 ;; for a grid representing 192x192km2 blocks
 if (blocksize .eq. 2) then
      print("!!!!!! Interpolating to a 192km by 192km block size !!!!!!")
    blocksz="192km_"
   if (isvar("ICON_LEMfix")) then
-   ; x_new=fspan(48000,336000,4)
-   ; y_new=fspan(48000,5904000,62)
     x_new=fspan(96000,288000,2)
     y_new=fspan(96000,5856000,32)
   else
@@ -229,25 +212,12 @@ option = False
 option@critpc = 50
 notmissing=num(.not.ismissing(var_to_interpolate))
   print("number of NOT MISSING values are: "+notmissing)
-;  print("array orig: "+x_orig)
-;  print("array final: "+x_new)
 juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,option)
   print("dimsizes of juljack are: "+dimsizes(juljack))
 intvar_out=juljack
 
   print("-----------Variable that will be interpolated----------------")
   printVarSummary(var_to_interpolate)
-;  print("sample of var_to_interpolate: "+var_to_interpolate(500,:,1024))
-;  print("sample of edge 1 var_to_interpolate: "+var_to_interpolate(500,:,0))
-;  print("sample of edge 2 var_to_interpolate: "+var_to_interpolate(500,:,2047))
-;  print("sample of first time of var_to_interpolate: "+var_to_interpolate(0,:,0))
-;  print("sample of last time of var_to_interpolate: "+var_to_interpolate(1199,:,0))
-;  print("-----------Variable after being interpolated-----------------")
-;  printVarSummary(juljack)
-;  print("sample of juljack: "+juljack(500,:,31))
-;  printVarSummary(intvar_out)
-;  print("sample of intvar_out: "+intvar_out(500,:,31))
-;  print("-------------------------------------------------------------")
 
 ;----------------
 ; second method to coarsen the grid of the CRM to something like a GCM
@@ -310,11 +280,6 @@ end if
 dim_om1=dimsizes(intvar_out)
 dim_om2=dimsizes(wvar_a)
 
-;intvar_ch_a = new((/timewindow,numperiods,dim_om1(1),dim_om1(2)/),float)
-;wvar_ch_a   = new((/timewindow,numperiods,dim_om2(1),dim_om2(2)/),float)
-;intvar_ch_a =reshape(intvar_out,(/timewindow,numperiods,dim_om1(1),dim_om1(2)/))
-;wvar_ch_a   =reshape(wvar_a,(/timewindow,numperiods,dim_om2(1),dim_om2(2)/))
-
 ;if (isvar("ICON_LEMfix")) then
 ;  intvar_ch_a = new((/numperiods,timewindow,dim_om1(2),dim_om1(1)/),float)
 ;  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(2),dim_om2(1)/),float)
@@ -341,8 +306,6 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
 
   printVarSummary(intvar_out)
   printVarSummary(intvar_ch_a)
-;  printVarSummary(intvar_ch_b)
-;  printVarSummary(wvar_ch_b)
 
 if (isvar("ICON_LEMfix")) then
   print("... ... ... ... ... ")
@@ -407,28 +370,13 @@ omega_dn   = dim_avg_n(omega_d_c,0)
 
 circulation_int = omega_dn-omega_up
 
-;subfrac         = where((subfrac_array .le. 0),1.0,0.0)
-;subfrac@_FillValue = default_fillvalue("float")    ; set devault FillValue
-
-;  printVarSummary(subfrac)
-;subfrac_b = dim_avg_n(subfrac,1)
-;  print("dimsizes of subfrac_b are: "+dimsizes(subfrac_b))
-;subfrac_c = dim_avg_n(subfrac_b,1)
-;  print("dimsizes of subfrac_c are: "+dimsizes(subfrac_c))
-;subfrac_d = dim_avg_n(subfrac_c,0)
-;;  printVarSummary(subfrac_c)
-;;  printVarSummary(subfrac_d)
-;  print("the subsidence fraction ISISISIS: "+subfrac_d)
-
 total_area=dim_om1(1)*dim_om1(2)
-;omega_temp =new((/1,nlat,nlon/),float)
 sfrac      =new((/dim_om1(0)/),float)
 sfrac_up   =new((/dim_om1(0)/),float)
 tend=numperiods
   print(" tend is: ")
   print(" dimsizes of omega_u_a_frac are: "+dimsizes(omega_u_a_frac))
 do tt=0,tend-1
-  ;omega_temp(1,:,:)=omega_u_a_frac(tt,:,:)
   omega_temp2  =omega_u_a_frac(tt,:,:)
   omega_temp3  =omega_d_a_frac(tt,:,:)
   sfrac_up(tt) =sum(omega_temp2)/total_area
@@ -473,7 +421,5 @@ write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
-
-
 
 end
