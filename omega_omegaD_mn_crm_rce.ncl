@@ -13,6 +13,18 @@
 ; 3. sort into ascending and descending regions
 ; 4. compute mn omega_u, omega_d, circulation intensity, and SF
 ;
+; The domain mean profiles have been provided for the RCEMIP MME.  This script
+; reads the temp, pressure, and height variables from those profiles: 
+;      ta_avg -> 1D
+;      pa_avg -> 1D
+;      z_avg  -> 1D
+; still needed is the radiative heating, vertical velocity, and mean surface pressure.
+;      rlcs -> 2D
+;      rscs -> 2D
+;      psl  -> 2D
+;
+;      wa500 or wap500 -> 2D
+;
 ; output can be computed on the native grid or on a grid composed of 96x96 km2 block or
 ; of 192x192 km2 blocks.  use the 'make_coarse' switch: 
 ; make_coarse = True
@@ -96,46 +108,101 @@ make_coarse = True
 ; define file locations via paths 
 
 pch="/glade/scratch/levi/RCEMIP/"
+p2prof=pch+"swift.dkrz.de/mn_profiles/"
 
-file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
-file_prof      =pch+"swift.dkrz.de/swift.dkrz.de/"+model+"_large"+seaST+"-profiles.nc"
-file_tntrl     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
-file_tntrs     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
-file_psl       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_psl.nc"
-
-  print("file_om is: "+file_om)
-fc_om       =addfile(file_om,"r")
+; read domain mean profile: 
+file_prof      =p2prof+model+"_large"+seaST+"-profiles.nc"
 f_prof      =addfile(file_prof,"r")
-f_rlw       =addfile(file_tntrl,"r")
-f_rsw       =addfile(file_tntrs,"r")
-f_psl       =addfile(file_psl,"r")
-if (omega .lt. 1) then
-  wvar_a=fc_om->wap500(startime:endtime,:,:)
-else if (omega .lt. 2) then
-  wvar_a=fc_om->wa500(startime:endtime,:,:)
-else if (omega .lt. 3) then
-  wvar_a=fc_om->vertical_velocity_500hpa(startime:endtime,:,:)
-end if 
-end if 
-end if
 ta    = f_prof->ta_avg(:)      ; K
 pa    = f_prof->pa_avg(:)      ; mb, hPa
-;za    = f_prof->z_avg(:)       ; km
-if (isvar("SCALEfix")) then
-  zad    = f_prof->z_avg(:)       ; km
-  za = tofloat(zad)
-else
-  za    = f_prof->z_avg(:)       ; km
+za    = f_prof->z_avg(:)       ; km
+
+if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON 
+  file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
+  ;file_prof      =pch+"swift.dkrz.de/swift.dkrz.de/"+model+"_large"+seaST+"-profiles.nc"
+  file_tntrl     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
+  file_tntrs     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
+  file_psl       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_psl.nc"
+  
+    print("file_om is: "+file_om)
+  ;fc_om       =addfile(file_om,"r")
+  file_2D      =addfile(file_om,"r")
+  ;f_prof      =addfile(file_prof,"r")
+  f_rlw       =addfile(file_tntrl,"r")
+  f_rsw       =addfile(file_tntrs,"r")
+  f_psl       =addfile(file_psl,"r")
+  if (omega .lt. 1) then
+    wvar_a=file_2D->wap500(startime:endtime,:,:)
+  else if (omega .lt. 2) then
+    wvar_a=file_2D->wa500(startime:endtime,:,:)
+  else if (omega .lt. 3) then
+    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,:,:)
+  end if 
+  end if 
+  end if
+  ;ta    = f_prof->ta_avg(:)      ; K
+  ;pa    = f_prof->pa_avg(:)      ; mb, hPa
+  ;;za    = f_prof->z_avg(:)       ; km
+  ;if (isvar("SCALEfix")) then
+  ;  zad    = f_prof->z_avg(:)       ; km
+  ;  za = tofloat(zad)
+  ;else
+  ;  za    = f_prof->z_avg(:)       ; km
+  ;end if
+  ;za    = 1000.*za  ; convert to meters
+  lw    = f_rlw->tntrlcs_avg(startime:endtime,:) ; K/s
+  sw    = f_rsw->tntrscs_avg(startime:endtime,:) ; K/s
+  psl_a = f_psl->psl(startime:endtime,:,:) 
+  psl_b        = dim_avg_n(psl_a,0)
+  psl_c        = dim_avg_n(psl_b,0)
+  psl_avg      = dim_avg_n(psl_c,0)
+  lw_avg       = dim_avg_n(lw,0)
+  sw_avg       = dim_avg_n(sw,0)
+else if (fileconglomerate .eq. 1) then
+    print("are we reading from ICON or ECHAM???")
+  file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-1D.nc"
+  file_2D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-2D_selectvars.nc"
+    print("incoming 1D file is: "+file_1D_con)
+    print("incoming 2D file is: "+file_2D_con)
+  file_1D = addfile(file_1D_con,"r")
+  file_2D = addfile(file_2D_con,"r")
+  ;temp_a  = file_1D->ta_avg(startime:endtime,:,0,0)
+  if (omega .lt. 1) then
+    wvar_a=file_2D->wap500(startime:endtime,:,:)
+  else if (omega .lt. 2) then
+    wvar_a=file_2D->wa500(startime:endtime,0,:,:)
+  else if (omega .lt. 3) then
+    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,:,:)
+  end if 
+  end if 
+  end if
+
+  ;if (isvar("stupidp")) then
+  ;  specialp = stupidp 
+  ;  if (specialp .eq. 2) then  ; ICON special case
+  ;    ;press_a = file_1D->p_avg(startime:endtime,:,0,0)
+  ;    ;zg_a    = file_1D->height_avg(:,0,0)
+  ;    ;zg_tmn  = doubletofloat(zg_a)  
+  ;    wvar_a  = file_2D->wa500(startime:endtime,0,:,:)
+  ;  end if
+  ;else
+  ;  ;press_a = file_1D->pa_avg(startime:endtime,:,0,0)
+  ;  ;zg_a    = file_1D->zg_avg(startime:endtime,:,0,0)
+  ;  ;zg_tmn  = dim_avg_n(zg_a,0)  
+  ;  wvar_a  = file_2D->wap500(startime:endtime,0,:,:)
+  ;end if
+  ;zg_tmn  = dim_avg_n(zg_a,0)  
+  ;press_tmn = dim_avg_n(press_a,0)  
+  psl_a   = file_2D->psl(startime:endtime,:,:)
+  ;hur_a   = file_1D->hur_avg(startime:endtime,:,0,0)
+    print("WARNING!! it looks like ECHAM does not have clear sky radiative fluxes!! ")
+  ;  print("WARNING!! it looks like ICON does not have clear sky radiative fluxes!! ")
+  rscs_a  = file_1D->tntrscs_avg(startime:endtime,:,0,0)
+  rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:,0,0)
+  lw_avg = dim_avg_n(rlcs_a,0)
+  sw_avg = dim_avg_n(rscs_a,0)
 end if
-za    = 1000.*za  ; convert to meters
-lw    = f_rlw->tntrlcs_avg(startime:endtime,:) ; K/s
-sw    = f_rsw->tntrscs_avg(startime:endtime,:) ; K/s
-psl_a = f_psl->psl(startime:endtime,:,:) 
-psl_b        = dim_avg_n(psl_a,0)
-psl_c        = dim_avg_n(psl_b,0)
-psl_avg      = dim_avg_n(psl_c,0)
-lw_avg       = dim_avg_n(lw,0)
-sw_avg       = dim_avg_n(sw,0)
+end if
 
 wvar_a=scalef*wvar_a
   print("scaleing by factor: "+scalef)
@@ -153,9 +220,9 @@ tsfc      =stringtofloat(seaST)
 
 Q_tmn = 86400.*(lw_avg+sw_avg); units will be K/day
 
-dims   = dimsizes(lw)
-beta   = new(dims(1),float)
-S_prof = new(dims(1),float)
+dims   = dimsizes(za)
+beta   = new(dims(0),float)
+S_prof = new(dims(0),float)
 
 ;  print("dimsizes of ta are: "+dimsizes(ta))
 ;  print("values of ta at 0 and 73 are: ")
@@ -168,7 +235,7 @@ printVarSummary(za)
 printVarSummary(grav)
 printVarSummary(cpd)
 
-do z=1,dims(1)-2
+do z=1,dims(0)-2
   ;beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(pa(z+1)-pa(z-1)))
     print("from calculation of S: "+cpd/grav+": "+ta(z)+" : "+za(z))
   beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(za(z+1)-za(z-1)))
@@ -180,9 +247,9 @@ end do
 ; for SAM, the zero level is nearest the surface 
 beta(0)        = (cpd/grav)*((ta(1)-tsfc)/za(1))
 ;beta(0)        = (cpd/grav)*((ta(1)-tsfc)/(pa(1)-psl_avg))
-beta(dims(1)-1)  = beta(dims(1)-1)
+beta(dims(0)-1)  = beta(dims(0)-1)
 S_prof(0)       = (Rd/cpd)*((ta(0)/pa(0))*(1-beta(0)))
-S_prof(dims(1)-1) = S_prof(dims(1)-1)
+S_prof(dims(0)-1) = S_prof(dims(0)-1)
 
 ; diabatically driven vertical velocity
 omega_db = Q_tmn/S_prof
@@ -198,14 +265,14 @@ omega_db = Q_tmn/S_prof
 ;delete(massweight)
 
 ; initialize
-omega_db_int = new((/dims(1)/),float)
-massweight   = new((/dims(1)/),float)
+omega_db_int = new((/dims(0)/),float)
+massweight   = new((/dims(0)/),float)
 omega_db_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
 massweight@_FillValue   = default_fillvalue("float")    ; set devault FillValue
 
 ptop = 200. ; hPa
 pbot = 600.
-do z=1,dims(1)-2
+do z=1,dims(0)-2
   temppa=pa(z)
   ;  print("pressure is: "+pa(z))
   if ((pa(z) .lt. pbot) .and. (pa(z) .gt. ptop)) then
@@ -242,8 +309,8 @@ omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
 
 ; first method to coarsen the grid of the CRM
 
-x_orig = fc_om->x
-y_orig = fc_om->y
+x_orig = file_2D->x
+y_orig = file_2D->y
 
 ;y_new=fspan(0,384000,5)
 ;x_new=fspan(0,5952000,63)
