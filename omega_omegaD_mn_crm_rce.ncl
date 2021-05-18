@@ -1,6 +1,8 @@
 ;-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 ; omega_omegaD_mn_crm_rce.ncl
 ;
+; currently this only calculates the diabatically driven vertical velocity at 500mb.
+;
 ; compute the circulation intensity, mean upward and downward vertical velocity for crms
 ;
 ; input: scalef: a scaling factor to convert wa500 from m/s to hPa/day
@@ -19,9 +21,9 @@
 ;      pa_avg -> 1D   hPa, first level is at sfc.
 ;      z_avg  -> 1D
 ; still needed is the radiative heating, vertical velocity, and mean surface pressure.
-;      rlcs -> 2D
-;      rscs -> 2D
-;      psl  -> 2D
+;      rlcs -> 1D
+;      rscs -> 1D
+;      ;psl  -> 2D  --> I think I only need this for models in pressure coordinates..
 ;
 ;      wa500 or wap500 -> 2D
 ;
@@ -117,12 +119,33 @@ pch="/glade/scratch/levi/RCEMIP/"
 p2prof=pch+"swift.dkrz.de/mn_profiles/"
 
 ; read domain mean profile: 
-file_prof      =p2prof+model+"_large"+seaST+"-profiles.nc"
+;file_prof      =p2prof+model+"_large"+seaST+"-profiles.nc"
+;  print("profile file to be read is: "+file_prof)
+;f_prof      =addfile(file_prof,"r")
+
+file_prof   =p2prof+model+"_large"+seaST+"-profiles.nc"
 f_prof      =addfile(file_prof,"r")
+if (isvar("UCLAfix")) then
+  ; special pressure file for UCLA...
+  file_pa   =pch+"swift.dkrz.de/UCLA-CRM/UCLA-CRM_RCE_large295_avg_pa_avg.nc"
+  f_pa      =addfile(file_pa,"r")
+  pa_a        = f_pa->pa_avg(:,:)      ; Pa
+  pa = 0.01*dim_avg_n(pa_a,0)          ; hPa
+    print("profile file to be read is: "+file_pa)
+else
+  ;file_prof   =p2prof+model+"_large"+seaST+"-profiles.nc"
+  ;f_prof      =addfile(file_prof,"r")
+  pa          = f_prof->pa_avg(:)      ; mb, hPa
+    print("profile file to be read is: "+file_prof)
+end if
 ta    = f_prof->ta_avg(:)      ; K
-pa    = f_prof->pa_avg(:)      ; mb, hPa
+;pad   = f_prof->pa_avg(:)      ; mb, hPa
+;pa    = f_prof->pa_avg(:)      ; mb, hPa
 za    = f_prof->z_avg(:)       ; km
 za=1000.*za
+  print("pa raw: "+pa)
+;paf = tofloat(pad)
+;  print("pa float: "+paf)
 
 if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON 
   file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
@@ -147,28 +170,20 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   end if 
   end if 
   end if
-  ;ta    = f_prof->ta_avg(:)      ; K
-  ;pa    = f_prof->pa_avg(:)      ; mb, hPa
-  ;;za    = f_prof->z_avg(:)       ; km
-  ;if (isvar("SCALEfix")) then
-  ;  zad    = f_prof->z_avg(:)       ; km
-  ;  za = tofloat(zad)
-  ;else
-  ;  za    = f_prof->z_avg(:)       ; km
-  ;end if
-  ;za    = 1000.*za  ; convert to meters
   lw    = f_rlw->tntrlcs_avg(startime:endtime,:) ; K/s
   sw    = f_rsw->tntrscs_avg(startime:endtime,:) ; K/s
-  psl_a = f_psl->psl(startime:endtime,:,:) 
-  psl_b        = dim_avg_n(psl_a,0)
-  psl_c        = dim_avg_n(psl_b,0)
-  psl_avg      = dim_avg_n(psl_c,0)
   lw_avg       = dim_avg_n(lw,0)
   sw_avg       = dim_avg_n(sw,0)
 else if (fileconglomerate .eq. 1) then
-    print("are we reading from ICON or ECHAM???")
-  file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-1D.nc"
-  file_2D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-2D_selectvars.nc"
+    print("are we reading from ICON or UCLA??")
+  ;file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-1D.nc"
+  if (isvar("ICON_LEMfix")) then
+    file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-1D.nc"
+    file_2D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"-RCE_large"+"_"+seaST+"-2D_selectvars.nc"
+  else
+    file_1D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D.nc"
+    file_2D_con    =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
+  end if
     print("incoming 1D file is: "+file_1D_con)
     print("incoming 2D file is: "+file_2D_con)
   file_1D = addfile(file_1D_con,"r")
@@ -177,35 +192,27 @@ else if (fileconglomerate .eq. 1) then
   if (omega .lt. 1) then
     wvar_a=file_2D->wap500(startime:endtime,:,:)
   else if (omega .lt. 2) then
-    wvar_a=file_2D->wa500(startime:endtime,0,:,:)
+    if (isvar("ICON_LEMfix")) then
+      wvar_a=file_2D->wa500(startime:endtime,0,:,:)
+    else ; UCLA case
+      wvar_a=file_2D->wa500(startime:endtime,:,:)
+    end if
   else if (omega .lt. 3) then
     wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,:,:)
   end if 
   end if 
   end if
 
-  ;if (isvar("stupidp")) then
-  ;  specialp = stupidp 
-  ;  if (specialp .eq. 2) then  ; ICON special case
-  ;    ;press_a = file_1D->p_avg(startime:endtime,:,0,0)
-  ;    ;zg_a    = file_1D->height_avg(:,0,0)
-  ;    ;zg_tmn  = doubletofloat(zg_a)  
-  ;    wvar_a  = file_2D->wa500(startime:endtime,0,:,:)
-  ;  end if
-  ;else
-  ;  ;press_a = file_1D->pa_avg(startime:endtime,:,0,0)
-  ;  ;zg_a    = file_1D->zg_avg(startime:endtime,:,0,0)
-  ;  ;zg_tmn  = dim_avg_n(zg_a,0)  
-  ;  wvar_a  = file_2D->wap500(startime:endtime,0,:,:)
-  ;end if
-  ;zg_tmn  = dim_avg_n(zg_a,0)  
-  ;press_tmn = dim_avg_n(press_a,0)  
-  psl_a   = file_2D->psl(startime:endtime,:,:)
+  ;psl_a   = file_2D->psl(startime:endtime,:,:)
   ;hur_a   = file_1D->hur_avg(startime:endtime,:,0,0)
     print("WARNING!! it looks like ECHAM does not have clear sky radiative fluxes!! ")
-  ;  print("WARNING!! it looks like ICON does not have clear sky radiative fluxes!! ")
-  rscs_a  = file_1D->tntrscs_avg(startime:endtime,:,0,0)
-  rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:,0,0)
+  if (isvar("ICON_LEMfix")) then
+    rscs_a  = file_1D->tntrscs_avg(startime:endtime,:,0,0)
+    rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:,0,0)
+  else ; UCLA case
+    rscs_a  = file_1D->tntrscs_avg(startime:endtime,:)
+    rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:)
+  end if
   lw_avg = dim_avg_n(rlcs_a,0)
   sw_avg = dim_avg_n(rscs_a,0)
 end if
@@ -228,8 +235,10 @@ tsfc      =stringtofloat(seaST)
 Q_tmn = 86400.*(lw_avg+sw_avg); units will be K/day
 
 ; the domain mean profiles from RCEMIP are flipped
-; relative to the raw data
-Q_tmn=Q_tmn(::-1)
+; relative to the raw data for ICON_LEM_CRM
+if (isvar("ICON_LEMfix")) then
+  Q_tmn=Q_tmn(::-1)
+end if
 
 dims   = dimsizes(za)
 beta   = new(dims(0),float)
@@ -243,9 +252,11 @@ S_prof = new(dims(0),float)
 printVarSummary(beta)
 printVarSummary(ta)
 printVarSummary(za)
+printVarSummary(pa)
 printVarSummary(grav)
 printVarSummary(cpd)
 
+; calculate the static stability...
 do z=1,dims(0)-2
   ;beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(pa(z+1)-pa(z-1)))
     print("from calculation of S: "+cpd/grav+": "+ta(z)+" : "+za(z))
@@ -263,14 +274,17 @@ S_prof(0)       = (Rd/cpd)*((ta(0)/pa(0))*(1-beta(0)))
 S_prof(dims(0)-1) = S_prof(dims(0)-1)
 
 ; diabatically driven vertical velocity
-omega_db = Q_tmn/S_prof
+omega_db = Q_tmn/S_prof  ; units will be hPa/day
 
 ;==========================
 ; calculate the vertical average of omega_db
 ; the function vibeta is build to work with pressure coordinates
 ; for models using height coordinates we need to use something different
 
-; dp/g = - rho*g*dz = -(p/(RT))dz
+; dp = - rho*g*dz = -(p/(RT))g*dz
+
+; bar(omega_db) = int(omega_db)dp/del p = -(g/R)*int(omega_db*(p/T)*dz/del p
+; where del p   = pbot-ptop
 
 ; for SAM_CRM, z=1 is the level nearest the surface
 ;delete(massweight)
