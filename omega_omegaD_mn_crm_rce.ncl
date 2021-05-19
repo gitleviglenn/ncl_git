@@ -61,11 +61,11 @@ if (isvar("seaST")) then
 else 
   SST="295"
 end if
-if (isvar("textfile")) then
-  foutname=textfile
-else
-  foutname="profiles_mn.txt"
-end if
+;if (isvar("textfile")) then
+;  foutname=textfile
+;else
+;  foutname="profiles_mn.txt"
+;end if
 if (isvar("chunkdays")) then
   ndays=chunkdays
 else
@@ -107,6 +107,10 @@ else
   blocksize=1
 end if
 
+; defines the extent of the array of grid points that will be read from all incoming models
+lastx=1983
+lasty=127
+
   print("startime for reading data is: "+startime+" and end time is: "+endtime)
   print("numperiods is: "+numperiods)
   print("timewindow or chunk period (ndays*freq) is: "+timewindow)
@@ -141,9 +145,18 @@ end if
 ta    = f_prof->ta_avg(:)      ; K
 ;pad   = f_prof->pa_avg(:)      ; mb, hPa
 ;pa    = f_prof->pa_avg(:)      ; mb, hPa
-za    = f_prof->z_avg(:)       ; km
-za=1000.*za
-  print("pa raw: "+pa)
+;zar    = f_prof->z_avg(:)       ; km
+;printVarSummary(za)
+if (isvar("SCALEfix")) then
+;  printVarSummary(za)
+  zat   = f_prof->z_avg(:)       ; km
+  zar   = tofloat(zat)
+else
+  zar   = f_prof->z_avg(:)       ; km
+end if
+za=1000.*zar   ; convert to meters
+  ;printVarSummary(za)
+  ;print("pa raw: "+pa)
 ;paf = tofloat(pad)
 ;  print("pa float: "+paf)
 
@@ -162,11 +175,15 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   f_rsw       =addfile(file_tntrs,"r")
   f_psl       =addfile(file_psl,"r")
   if (omega .lt. 1) then
-    wvar_a=file_2D->wap500(startime:endtime,:,:)
+    wvar_a=file_2D->wap500(startime:endtime,0:lasty,0:lastx)
   else if (omega .lt. 2) then
-    wvar_a=file_2D->wa500(startime:endtime,:,:)
+    ;if (isvar("ICON_LEMfix")) then
+    ;  wvar_a=file_2D->wa500(startime:endtime,0:lasty,0:lastx)
+    ;else
+      wvar_a=file_2D->wa500(startime:endtime,0:lasty,0:lastx)
+    ;end if
   else if (omega .lt. 3) then
-    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,:,:)
+    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,0:lasty,0:lastx)
   end if 
   end if 
   end if
@@ -190,15 +207,15 @@ else if (fileconglomerate .eq. 1) then
   file_2D = addfile(file_2D_con,"r")
   ;temp_a  = file_1D->ta_avg(startime:endtime,:,0,0)
   if (omega .lt. 1) then
-    wvar_a=file_2D->wap500(startime:endtime,:,:)
+    wvar_a=file_2D->wap500(startime:endtime,0:lasty,0:lastx)
   else if (omega .lt. 2) then
     if (isvar("ICON_LEMfix")) then
-      wvar_a=file_2D->wa500(startime:endtime,0,:,:)
+      wvar_a=file_2D->wa500(startime:endtime,0,0:lastx,0:lasty)
     else ; UCLA case
-      wvar_a=file_2D->wa500(startime:endtime,:,:)
+      wvar_a=file_2D->wa500(startime:endtime,0:lasty,0:lastx)
     end if
   else if (omega .lt. 3) then
-    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,:,:)
+    wvar_a=file_2D->vertical_velocity_500hpa(startime:endtime,0:lasty,0:lastx)
   end if 
   end if 
   end if
@@ -222,7 +239,9 @@ wvar_a=scalef*wvar_a
   print("scaleing by factor: "+scalef)
 wvar_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
+;-----------------------------------------
 ; calculate the static stability profile and the diabatically driven velocity
+;-----------------------------------------
 
 ; calculate net clear sky radiative heating of atmos
 grav      =9.81
@@ -246,20 +265,20 @@ S_prof = new(dims(0),float)
 
 ;  print("dimsizes of ta are: "+dimsizes(ta))
 ;  print("values of ta at 0 and 73 are: ")
-  print("dimsizes of beta are: "+dimsizes(beta))
-  print("dims is equal to: "+dims)
+;  print("dimsizes of beta are: "+dimsizes(beta))
+;  print("dims is equal to: "+dims)
 
-printVarSummary(beta)
-printVarSummary(ta)
-printVarSummary(za)
-printVarSummary(pa)
-printVarSummary(grav)
-printVarSummary(cpd)
+;printVarSummary(beta)
+;printVarSummary(ta)
+;printVarSummary(za)
+;printVarSummary(pa)
+;printVarSummary(grav)
+;printVarSummary(cpd)
 
 ; calculate the static stability...
 do z=1,dims(0)-2
   ;beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(pa(z+1)-pa(z-1)))
-    print("from calculation of S: "+cpd/grav+": "+ta(z)+" : "+za(z))
+  ;  print("from calculation of S: "+cpd/grav+": "+ta(z)+" : "+za(z))
   beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(za(z+1)-za(z-1)))
     print(" beta is: "+beta(z))
   S_prof(z) = (Rd/cpd)*((ta(z)/pa(z))*(1-beta(z)))
@@ -302,121 +321,115 @@ pbot = 900.
 do z=1,dims(0)-2
   temppa=pa(z)
   if ((pa(z) .lt. pbot) .and. (pa(z) .gt. ptop)) then
-      print("pressure at height: "+za(z)+" on level: "+z+" is: "+pa(z))
+    ;  print("pressure at height: "+za(z)+" on level: "+z+" is: "+pa(z))
     massweight(z)  = ((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
     omega_db_int(z)    = omega_db(z)*massweight(z)
   end if
 end do
 
 ; sum should ignore missing data
-  print("omega_db_int is: "+omega_db_int)
+;  print("omega_db_int is: "+omega_db_int)
   print("sum of omega_db_int is: "+sum(omega_db_int))
 omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
 
-  printVarSummary(omega_db)
+;  printVarSummary(omega_db)
 
-;omega_db_wva = vibeta(press_tmn(lev|::-1), omega_db(lev|::-1), 1, psl_avg , pbot, ptop) 
-;omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
 
-  print("diabatic omega is: "+omega_db+" Q_tmn is "+Q_tmn+" press: "+pa)
+;  print("diabatic omega is: "+omega_db+" Q_tmn is "+Q_tmn+" press: "+pa)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
-;  print("omega_dn is equal to: "+omega_dn+" and omega_up is equal to: "+omega_up)
-;  print("is the circulation intensity at "+seaST+" equal to: "+circulation_int+"?")
-;  print(">>>>>>>>>>>>")
-;  print("avg surface pressure is: "+psl_avg)
   print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva)
-;  print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
 
 
-;;*************************************************************
-;; 1.  interpolate to GCM like grid
-;;-------------------------------------------------------------
+;*************************************************************
+; 1.  interpolate to GCM like grid
+;-------------------------------------------------------------
+
 ;
-;;
-;; SAM_CRM:        y X x = 128 X 2048
-;; ICON_LEM_CRM:   y X x = 2000 X 134 
-;;
+; SAM_CRM:        y X x = 128 X 2048
+; ICON_LEM_CRM:   y X x = 2000 X 134 
 ;
-;; first method to coarsen the grid of the CRM 
-;
-;if (isvar("UCLAfix")) then
-;    print("fixing things for UCLA CRM...")
-;  x_orig = fc_om->xt
-;  y_orig = fc_om->yt
-;else if (isvar("ICON_LEMfix")) then
-;  x_orig = fspan(1500,382500,128)
-;  y_orig = fspan(1500,5950500,1984)
-;else
-;  x_orig = fc_om->x(0:1983)
-;  y_orig = fc_om->y(0:127)
-;end if
-;end if
-;
-;;  printVarSummary(x_orig)
-;;  printVarSummary(y_orig)
-;
-;; GRIDS for the various CRMs...
-;; UCLA horizontal grid is 128x1984
-;; ICON LEM CRM horizontal grid is 2000x134
-;; SCALE hirozontal grid is 128x2048
-;
-;;; for a grid representing 192x192km2 blocks
-;if (blocksize .eq. 2) then
-;     print("!!!!!! Interpolating to a 192km by 192km block size !!!!!!")
-;   blocksz="192km_"
-;  if (isvar("ICON_LEMfix")) then
-;    x_new=fspan(96000,288000,2)
-;    y_new=fspan(96000,5856000,32)
-;  else
-;    y_new=fspan(96000,288000,2)
-;    x_new=fspan(96000,5856000,32)
-;  end if
-;else
-;  ; 96x96km2 blocks
-;   blocksz="96km_"
-;  if (isvar("ICON_LEMfix")) then
-;    x_new=fspan(48000,336000,4)
-;    y_new=fspan(48000,5904000,62)
-;  else
-;    y_new=fspan(48000,336000,4)
-;    x_new=fspan(48000,5904000,62)
-;  end if
-;end if
-;
-;; scale for SCALE.  it has the coordinates in km instead of m.  
-;; ICON LEM CRM has meaningless latitude like coordinates instead of m, although they do appear to be about 3 km apart...
-;if (isvar("SCALEfix")) then
-;  scaleaxis=1000.
-;else
-;  scaleaxis=1.
-;end if
-;y_orig=scaleaxis*y_orig
-;x_orig=scaleaxis*x_orig
-;
-;;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
-;;  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
-;;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
-;
-;var_to_interpolate=wvar_a ; incoming CRM data
-;;var_to_interpolate@_FillValue = default_fillvalue("float")    ; set devault FillValue
-;
+
+; first method to coarsen the grid of the CRM 
+
+if (isvar("UCLAfix")) then
+    print("fixing things for UCLA CRM...")
+  x_orig = file_2D->xt
+  y_orig = file_2D->yt
+else if (isvar("ICON_LEMfix")) then
+  x_orig = fspan(1500,382500,128)
+  y_orig = fspan(1500,5950500,1984)
+else
+  x_orig = file_2D->x(0:1983)
+  y_orig = file_2D->y(0:127)
+end if
+end if
+
+  print("incoming dimensions from the "+model+" model")
+  printVarSummary(x_orig)
+  printVarSummary(y_orig)
+
+; GRIDS for the various CRMs...
+; UCLA horizontal grid is 128x1984
+; ICON LEM CRM horizontal grid is 2000x134
+; SCALE hirozontal grid is 128x2048
+
+;; for a grid representing 192x192km2 blocks
+if (blocksize .eq. 2) then
+     print("!!!!!! Interpolating to a 192km by 192km block size !!!!!!")
+   blocksz="192km_"
+  if (isvar("ICON_LEMfix")) then
+    x_new=fspan(96000,288000,2)
+    y_new=fspan(96000,5856000,32)
+  else
+    y_new=fspan(96000,288000,2)
+    x_new=fspan(96000,5856000,32)
+  end if
+else
+  ; 96x96km2 blocks
+   blocksz="96km_"
+  if (isvar("ICON_LEMfix")) then
+    x_new=fspan(48000,336000,4)
+    y_new=fspan(48000,5904000,62)
+  else
+    y_new=fspan(48000,336000,4)
+    x_new=fspan(48000,5904000,62)
+  end if
+end if
+
+; scale for SCALE.  it has the coordinates in km instead of m.  
+; ICON LEM CRM has meaningless latitude like coordinates instead of m, although they do appear to be about 3 km apart...
+if (isvar("SCALEfix")) then
+  scaleaxis=1000.
+else
+  scaleaxis=1.
+end if
+y_orig=scaleaxis*y_orig
+x_orig=scaleaxis*x_orig
+
 ;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
-;  print("max and min of var_to_interpolate are: "+max(var_to_interpolate)+" and "+min(var_to_interpolate))
-;  print("dimsizes of var_to_interpolate are: "+dimsizes(var_to_interpolate))
+;  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
 ;  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
-;
-;option = False
-;option@critpc = 50
-;notmissing=num(.not.ismissing(var_to_interpolate))
-;  print("number of NOT MISSING values are: "+notmissing)
-;juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,option)
-;  print("dimsizes of juljack are: "+dimsizes(juljack))
-;intvar_out=juljack
-;
-;  print("-----------Variable that will be interpolated----------------")
-;  printVarSummary(var_to_interpolate)
-;
+
+var_to_interpolate=wvar_a ; incoming CRM data
+;var_to_interpolate@_FillValue = default_fillvalue("float")    ; set devault FillValue
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of var_to_interpolate are: "+max(var_to_interpolate)+" and "+min(var_to_interpolate))
+  print("dimsizes of var_to_interpolate are: "+dimsizes(var_to_interpolate))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+option = False
+option@critpc = 50
+notmissing=num(.not.ismissing(var_to_interpolate))
+  print("number of NOT MISSING values are: "+notmissing)
+juljack=area_hi2lores(x_orig,y_orig,var_to_interpolate,False,1,x_new,y_new,option)
+  print("dimsizes of juljack are: "+dimsizes(juljack))
+intvar_out=juljack
+
+  print("-----------Variable that will be interpolated----------------")
+  printVarSummary(var_to_interpolate)
+
 ;;----------------
 ;; second method to coarsen the grid of the CRM to something like a GCM
 ;;----------------
@@ -461,14 +474,136 @@ omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
 ; 2. reshape arrays to create chunks of days
 ;-------------------------------------------------------------
 
+; at the moment it looks like data is averaged over daily chunks..
+
+; which variables need to be averaged over chunks?
+
+; 24 = chunks*frequency
+; ndays=chunks
+; does ndays*frequency*numperiods = original number of timesteps?
+; timewindow = ndays*frequency
+; test_array = new((/timewindow,numperiods,dim_om(1),dim_om(2)/),float)
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of intvar_out are: "+max(intvar_out)+" and "+min(intvar_out))
+  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+dim_om1=dimsizes(intvar_out)
+dim_om2=dimsizes(wvar_a)
+
+;if (isvar("ICON_LEMfix")) then
+;  intvar_ch_a = new((/numperiods,timewindow,dim_om1(2),dim_om1(1)/),float)
+;  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(2),dim_om2(1)/),float)
+;  intvar_ch_a = reshape(intvar_out,(/numperiods,timewindow,dim_om1(2),dim_om1(1)/))
+;  wvar_ch_a   = reshape(wvar_a,(/numperiods,timewindow,dim_om2(2),dim_om2(1)/))
+;else
+  intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
+  wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
+  intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
+  wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
+;end if
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("dimsizes of intvar_ch_a are: "+dimsizes(intvar_ch_a))
+  print(" which should be derivable from the dimensions of intvar_out: ")
+  print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
+  print("max and min of intvar_ch_a are: "+max(intvar_ch_a)+" and "+min(intvar_ch_a))
+  print("max and min of wvar_ch_a are: "+max(wvar_ch_a)+" and "+min(wvar_ch_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+; take the time average over chunks
+intvar_ch_b = dim_avg_n(intvar_ch_a,1)
+wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
+
+  printVarSummary(intvar_out)
+  printVarSummary(intvar_ch_a)
+
+if (isvar("ICON_LEMfix")) then
+  print("... ... ... ... ... ")
+else
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
+  print(" begin checking the reshapeing... ")
+  print(intvar_out(5,2,10))
+  print(intvar_ch_a(0,5,2,10))
+  print("... ... ... ... ... ")
+  print(intvar_out(30,2,10))
+  print(intvar_ch_a(1,6,2,10))
+  print(intvar_ch_a(1,7,2,10))
+  print(intvar_ch_a(1,8,2,10))
+  print("... ... ... ... ... ")
+  print("... first 125 values ... ")
+  print(intvar_out(0:125,2,10))
+  print("... (:,0,2,10) from intvar_ch_a... ")
+  print(intvar_ch_a(:,0,2,10))
+  print("... (:,1,2,10) from intvar_ch_a... ")
+  print(intvar_ch_a(:,1,2,10))
+  print("... (0,:,2,10) from intvar_ch_a... ")
+  print(intvar_ch_a(0,:,2,10))
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
+  print("... ... ... ... ... ")
+  print(" end checking the reshapeing... ")
+end if
+
 ;*************************************************************
 ; 3. sort into ascending and descending regions 
 ;-------------------------------------------------------------
+
+;if (make_coarse) then
+    print("using coarse grid")
+    print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
+  omega_u_a      =where((intvar_ch_b .le. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+  omega_u_a_frac =where((intvar_ch_b .le. 0),1.0,0.0)
+  omega_d_a      =where((intvar_ch_b .ge. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+  omega_d_a_frac =where((intvar_ch_b .ge. 0),1.0,0.0)
+;else
+;    print("using original grid")
+;  omega_u_a      =where((wvar_ch_b .le. 0),wvar_ch_b,wvar_ch_b@_FillValue)
+;  omega_u_a_frac =where((wvar_ch_b .le. 0),1.0,0.0)
+;  omega_d_a      =where((wvar_ch_b .ge. 0),wvar_ch_b,wvar_ch_b@_FillValue)
+;  omega_d_a_frac =where((wvar_ch_b .ge. 0),1.0,0.0)
+;end if
+omega_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
+omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 
 ;*************************************************************
 ; 4. compute mn omega_u, omega_d, circulation intensity, and SF 
 ;-------------------------------------------------------------
 
+omega_u_b = dim_avg_n(omega_u_a,0)
+omega_d_b = dim_avg_n(omega_d_a,0)
+omega_u_c = dim_avg_n(omega_u_b,0)
+omega_d_c = dim_avg_n(omega_d_b,0)
+omega_up   = dim_avg_n(omega_u_c,0)
+omega_dn   = dim_avg_n(omega_d_c,0)
+
+circulation_int = omega_dn-omega_up
+
+total_area=dim_om1(1)*dim_om1(2)
+sfrac      =new((/dim_om1(0)/),float)
+sfrac_up   =new((/dim_om1(0)/),float)
+tend=numperiods
+  print(" tend is: ")
+  print(" dimsizes of omega_u_a_frac are: "+dimsizes(omega_u_a_frac))
+do tt=0,tend-1
+  omega_temp2  =omega_u_a_frac(tt,:,:)
+  omega_temp3  =omega_d_a_frac(tt,:,:)
+  sfrac_up(tt) =sum(omega_temp2)/total_area
+  sfrac(tt)    =sum(omega_temp3)/total_area
+end do
+;  print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" frac of ascending air at 1 timestep is: "+sfrac_up(10))
+
+subsidenceF=dim_avg_n(sfrac,0)
+
+if (scalef .gt. 1000.)
+    print("Scale factor larger than 1000!! ")
+  subsidenceF=1-subsidenceF
+else
+  ; no need to change subsidenceF
+end if
 
 
 ;;-------------------------------------------------------------
@@ -482,21 +617,21 @@ omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
 ;
 ;;-------------------------------------------------------------
 ;
-;filenameout    = "mean_omega2_vals_"+ndays+"d_"+model+"_"+SST+".txt"
-;header = (/"omega_db, CircI, omega_d, omega_u, SF"/)
-;hlist = [/header/]
-;foot = (/"========stickittoem==========="/)
-;flist = [/foot/]
-;val_a=(/omega_db_wva/)
-;val_b=(/circulation_int/)
-;val_c=(/omega_dn/)
-;val_d=(/omega_up/)
-;val_e=(/subsidenceF/)
-;alist = [/val_a,val_b,val_c,val_d,val_e/]
-;write_table(filenameout,"w",hlist, "%s")
-;write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
-;write_table(filenameout,"a",flist, "%s")
-;
-;  print("write a paper numskull")
+filenameout    = "mean_circ_omega_"+blocksz+ndays+"d_"+model+"_"+SST+".txt"
+header = (/"omega_db, CircI, omega_d, omega_u, SF"/)
+hlist = [/header/]
+foot = (/"========stickittoem==========="/)
+flist = [/foot/]
+val_a=(/omega_db_wva/)
+val_b=(/circulation_int/)
+val_c=(/omega_dn/)
+val_d=(/omega_up/)
+val_e=(/subsidenceF/)
+alist = [/val_a,val_b,val_c,val_d,val_e/]
+write_table(filenameout,"w",hlist, "%s")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",flist, "%s")
+
+  print("write a paper numskull")
 
 end
