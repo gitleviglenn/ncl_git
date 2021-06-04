@@ -12,17 +12,44 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
 
 begin
 
-m_1=readAsciiTable("mean_vals_CAM5_295.txt",5,"float",(/1,1/))
-m_2=readAsciiTable("mean_vals_CAM6_295.txt",5,"float",(/1,1/))
-m_3=readAsciiTable("mean_vals_CNRM-CM6-1_295.txt",5,"float",(/1,1/))
-m_4=readAsciiTable("mean_vals_ECHAM6_GCM_295.txt",5,"float",(/1,1/))
-m_5=readAsciiTable("mean_vals_GEOS_GCM_295.txt",5,"float",(/1,1/))
-m_6=readAsciiTable("mean_vals_ICON_GCM_295.txt",5,"float",(/1,1/))
+if (isvar("seaST")) then
+  SST=seaST
+else
+  SST="295"
+end if
+
+if (isvar("DaysInChunk")) then
+  chunk=DaysInChunk
+else
+  chunk="5d"
+end if
+
+vertavg="600to200"
+;vertavg="900to1"
+
+m_1=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_CAM5_"+SST+".txt",9,"float",(/1,1/))
+m_2=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_CAM6_"+SST+".txt",9,"float",(/1,1/))
+m_3=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_CNRM-CM6-1_"+SST+".txt",9,"float",(/1,1/))
+m_4=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_ECHAM6_GCM_"+SST+".txt",9,"float",(/1,1/))
+m_5=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_GEOS_GCM_"+SST+".txt",9,"float",(/1,1/))
+m_6=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_ICON_GCM_"+SST+".txt",9,"float",(/1,1/))
 ; IPSL
-m_7=readAsciiTable("mean_vals_SAM0-UNICON_295.txt",5,"float",(/1,1/))
-m_8=readAsciiTable("mean_vals_SP-CAM_295.txt",5,"float",(/1,1/))
-m_9=readAsciiTable("mean_vals_SPX-CAM_295.txt",5,"float",(/1,1/))
-m_10=readAsciiTable("mean_vals_UKMO-GA7.1_295.txt",5,"float",(/1,1/))
+m_7=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_SAM0-UNICON_"+SST+".txt",9,"float",(/1,1/))
+m_8=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_SP-CAM_"+SST+".txt",9,"float",(/1,1/))
+m_9=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_SPX-CAM_"+SST+".txt",9,"float",(/1,1/))
+m_10=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_UKMO-GA7.1_"+SST+".txt",9,"float",(/1,1/))
+
+;m_1=readAsciiTable("mean_vals_CAM5_295.txt",6,"float",(/1,1/))
+;m_2=readAsciiTable("mean_vals_CAM6_295.txt",6,"float",(/1,1/))
+;m_3=readAsciiTable("mean_vals_CNRM-CM6-1_295.txt",6,"float",(/1,1/))
+;m_4=readAsciiTable("mean_vals_ECHAM6_GCM_295.txt",6,"float",(/1,1/))
+;m_5=readAsciiTable("mean_vals_GEOS_GCM_295.txt",6,"float",(/1,1/))
+;m_6=readAsciiTable("mean_vals_ICON_GCM_295.txt",6,"float",(/1,1/))
+;; IPSL
+;m_7=readAsciiTable("mean_vals_SAM0-UNICON_295.txt",6,"float",(/1,1/))
+;m_8=readAsciiTable("mean_vals_SP-CAM_295.txt",6,"float",(/1,1/))
+;m_9=readAsciiTable("mean_vals_SPX-CAM_295.txt",6,"float",(/1,1/))
+;m_10=readAsciiTable("mean_vals_UKMO-GA7.1_295.txt",6,"float",(/1,1/))
 
 printVarSummary(m_1)
 print("m_1 values are: "+m_1)
@@ -37,10 +64,10 @@ print("m_9 values are: "+m_9)
 print("m_10 values are: "+m_10)
 
 ; add the SST in the last column... need to do this in stability_omegaD.ncl
-arrayout = new((/10,6/),float)
+arrayout = new((/10,9/),float)
 
 printVarSummary(m_1)
-do y=0,4
+do y=0,8
   arrayout(0,y)=m_1(0,y)
   arrayout(1,y)=m_2(0,y)
   arrayout(2,y)=m_3(0,y)
@@ -57,14 +84,12 @@ end do
 ; write out data to a txt file...
   print(">>>>>>>>>>>> writing first text file")
 
-foutname="meanvals_10GCMs_295.txt"
+foutname="meanvals_10GCMs_"+vertavg+"hPa_"+chunk+"_"+SST+".txt"
 
 option         = True   ; if False then output is sent to standard out 
 option@fout    = foutname
-;option@title   = "gamma, sigma, hur_tmn, press, temp, rscs, rlcs, diabdiv"
-option@title   = "omega_db, CircI, omega_d, omega_u, SF, SST"
-;option@title   = "gamma_a, diabdiv, omega_d, sigma, hur_tmn, rscs, rlcs, temp, press"
-write_matrix (arrayout, "6f14.4", option)
+option@title   = "omega_db, I, omega_dn, omega_up, SF, SST, omega_db2, Qmn, sig_mn"
+write_matrix (arrayout, "9f14.4", option)
 
 
 end

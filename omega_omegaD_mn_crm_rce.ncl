@@ -104,7 +104,7 @@ startime  =endtime-timewindow*numperiods+1
 if (isvar("blocks")) then
   blocksize=blocks
 else
-  blocksize=1
+  blocksize=2
 end if
 
 ; defines the extent of the array of grid points that will be read from all incoming models
@@ -310,27 +310,36 @@ omega_db = Q_tmn/S_prof  ; units will be hPa/day
 
 ; initialize
 omega_db_int = new((/dims(0)/),float)
+qrad_int = new((/dims(0)/),float)
+sigma_int = new((/dims(0)/),float)
 massweight   = new((/dims(0)/),float)
 omega_db_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
+qrad_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
+sigma_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
 massweight@_FillValue   = default_fillvalue("float")    ; set devault FillValue
 
-;ptop = 200. ; hPa
-;pbot = 600.
-ptop = 1. ; hPa
-pbot = 900.
+ptop = 200. ; hPa
+pbot = 600.
+;ptop = 1. ; hPa
+;pbot = 900.
+vertavg="600to200"
 do z=1,dims(0)-2
-  temppa=pa(z)
+  ;temppa=pa(z)
   if ((pa(z) .lt. pbot) .and. (pa(z) .gt. ptop)) then
     ;  print("pressure at height: "+za(z)+" on level: "+z+" is: "+pa(z))
     massweight(z)  = ((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
     omega_db_int(z)    = omega_db(z)*massweight(z)
+    qrad_int(z)        = Q_tmn(z)*massweight(z)
+    sigma_int(z)       = S_prof(z)*massweight(z)
   end if
 end do
 
 ; sum should ignore missing data
 ;  print("omega_db_int is: "+omega_db_int)
   print("sum of omega_db_int is: "+sum(omega_db_int))
-omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
+omega_db_wva =grav*sum(omega_db_int)/(pbot-ptop)
+qrad_wva     =grav*sum(qrad_int)/(pbot-ptop)
+sigma_wva    =grav*sum(sigma_int)/(pbot-ptop)
 
 ;  printVarSummary(omega_db)
 
@@ -338,8 +347,9 @@ omega_db_wva=grav*sum(omega_db_int)/(pbot-ptop)
 ;  print("diabatic omega is: "+omega_db+" Q_tmn is "+Q_tmn+" press: "+pa)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
   print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva)
+  print("pressure weighted qrad between "+pbot+" and "+ptop+" is: "+qrad_wva)
+  print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
-
 
 ;*************************************************************
 ; 1.  interpolate to GCM like grid
@@ -469,7 +479,6 @@ intvar_out=juljack
 ;  print("-------------------------------------------------------------")
 ;end if
 
-
 ;*************************************************************
 ; 2. reshape arrays to create chunks of days
 ;-------------------------------------------------------------
@@ -519,34 +528,34 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
   printVarSummary(intvar_out)
   printVarSummary(intvar_ch_a)
 
-if (isvar("ICON_LEMfix")) then
-  print("... ... ... ... ... ")
-else
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print(" begin checking the reshapeing... ")
-  print(intvar_out(5,2,10))
-  print(intvar_ch_a(0,5,2,10))
-  print("... ... ... ... ... ")
-  print(intvar_out(30,2,10))
-  print(intvar_ch_a(1,6,2,10))
-  print(intvar_ch_a(1,7,2,10))
-  print(intvar_ch_a(1,8,2,10))
-  print("... ... ... ... ... ")
-  print("... first 125 values ... ")
-  print(intvar_out(0:125,2,10))
-  print("... (:,0,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(:,0,2,10))
-  print("... (:,1,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(:,1,2,10))
-  print("... (0,:,2,10) from intvar_ch_a... ")
-  print(intvar_ch_a(0,:,2,10))
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print("... ... ... ... ... ")
-  print(" end checking the reshapeing... ")
-end if
+;if (isvar("ICON_LEMfix")) then
+;  print("... ... ... ... ... ")
+;else
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+;  print(" begin checking the reshapeing... ")
+;  print(intvar_out(5,2,10))
+;  print(intvar_ch_a(0,5,2,10))
+;  print("... ... ... ... ... ")
+;  print(intvar_out(30,2,10))
+;  print(intvar_ch_a(1,6,2,10))
+;  print(intvar_ch_a(1,7,2,10))
+;  print(intvar_ch_a(1,8,2,10))
+;  print("... ... ... ... ... ")
+;  print("... first 125 values ... ")
+;  print(intvar_out(0:125,2,10))
+;  print("... (:,0,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(:,0,2,10))
+;  print("... (:,1,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(:,1,2,10))
+;  print("... (0,:,2,10) from intvar_ch_a... ")
+;  print(intvar_ch_a(0,:,2,10))
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+;  print("... ... ... ... ... ")
+;  print(" end checking the reshapeing... ")
+;end if
 
 ;*************************************************************
 ; 3. sort into ascending and descending regions 
@@ -617,8 +626,8 @@ end if
 ;
 ;;-------------------------------------------------------------
 ;
-filenameout    = "mean_circ_omega_"+blocksz+ndays+"d_"+model+"_"+SST+".txt"
-header = (/"omega_db, CircI, omega_d, omega_u, SF"/)
+filenameout    = "mean_circ_omega_"+vertavg+"_"+blocksz+ndays+"d_"+model+"_"+SST+".txt"
+header = (/"omega_db, CircI, omega_d, omega_u, SF, qrad, sigma"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
@@ -627,9 +636,11 @@ val_b=(/circulation_int/)
 val_c=(/omega_dn/)
 val_d=(/omega_up/)
 val_e=(/subsidenceF/)
-alist = [/val_a,val_b,val_c,val_d,val_e/]
+val_f=(/qrad_wva/)
+val_g=(/sigma_wva/)
+alist = [/val_a,val_b,val_c,val_d,val_e,val_f,val_g/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")

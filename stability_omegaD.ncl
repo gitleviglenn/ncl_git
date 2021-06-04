@@ -299,6 +299,8 @@ lowestlev = dims(1)-1
 ; for models with m/s, conversion factor is 6042 ?!! 
 
 wvar_a=scalef*wvar_a
+  print(" scalef is equal to: "+scalef)
+  printVarSummary(scalef)
 
 ;*************************************************************
 ; perform regridding to 1x1 degree lat lon or regrid CRM 
@@ -369,6 +371,7 @@ Q_tmn     =new((/dims(1)/),float)
 omega_db  =new((/dims(1)/),float)
 rscs_tmn  =new((/dims(1)/),float)
 rlcs_tmn  =new((/dims(1)/),float)
+q_tmn     =new((/dims(1)/),float)
 numer     =new((/dims(1)/),float)
 denom     =new((/dims(1)/),float)
 stasta    =new((/dims(0),dims(1)/),float)
@@ -440,24 +443,89 @@ dia_div(lowestlev) = dia_div(lowestlev-1)
 ;sigma=10000*sigma ;   scale to K/100hPa as in Mapes, 2001
 sigma=-100000*sigma ; scale to mK/hPa and convert to S from Bony et al, 2016
 
-;=========================
-; compute the circulation intensity
-; compute cosine weighting
 
-if (CRM .lt. 1)
-  omega_u_a      =where((intvar_out .le. 0),intvar_out,intvar_out@_FillValue)
-  omega_u_a_frac =where((intvar_out .le. 0),1.0,0.0)
-  omega_d_a      =where((intvar_out .ge. 0),intvar_out,intvar_out@_FillValue)
-  omega_d_a_frac =where((intvar_out .ge. 0),1.0,0.0)
-else
-  omega_u_a      =where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
-  omega_u_a_frac =where((wvar_a .le. 0),1.0,0.0)
-  omega_d_a      =where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
-  omega_d_a_frac =where((wvar_a .ge. 0),1.0,0.0)
+;*************************************************************
+; 2. reshape arrays to create chunks of days
+;-------------------------------------------------------------
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("max and min of intvar_out are: "+max(intvar_out)+" and "+min(intvar_out))
+  print("max and min of wvar_a are: "+max(wvar_a)+" and "+min(wvar_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+dim_om1=dimsizes(intvar_out)
+dim_om2=dimsizes(wvar_a)
+
+intvar_ch_a = new((/numperiods,timewindow,dim_om1(1),dim_om1(2)/),float)
+wvar_ch_a   = new((/numperiods,timewindow,dim_om2(1),dim_om2(2)/),float)
+intvar_ch_a =reshape(intvar_out,(/numperiods,timewindow,dim_om1(1),dim_om1(2)/))
+wvar_ch_a   =reshape(wvar_a,(/numperiods,timewindow,dim_om2(1),dim_om2(2)/))
+
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+  print("dimsizes of intvar_ch_a are: "+dimsizes(intvar_ch_a))
+  print(" which should be derivable from the dimensions of intvar_out: ")
+  print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
+  print("max and min of intvar_ch_a are: "+max(intvar_ch_a)+" and "+min(intvar_ch_a))
+  print("max and min of wvar_ch_a are: "+max(wvar_ch_a)+" and "+min(wvar_ch_a))
+  print("-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-0-")
+
+; take the time average over chunks
+intvar_ch_b = dim_avg_n(intvar_ch_a,1)
+wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
+
+  printVarSummary(intvar_out)
+  printVarSummary(intvar_ch_a)
+
+;*************************************************************
+; 3. sort into ascending and descending regions 
+;-------------------------------------------------------------
+
+if (isvar("nochunks")) then
+  if (CRM .lt. 1) then
+    if (scalef .gt. 1000.) then
+      omega_u_a      =where((intvar_out.ge. 0),-intvar_out,intvar_out@_FillValue)
+      omega_u_a_frac =where((intvar_out.ge. 0),1.0,0.0)
+      omega_d_a      =where((intvar_out.le. 0),-intvar_out,intvar_out@_FillValue)
+      omega_d_a_frac =where((intvar_out.le. 0),1.0,0.0)
+    else 
+      omega_u_a      =where((intvar_out.le. 0),intvar_out,intvar_out@_FillValue)
+      omega_u_a_frac =where((intvar_out.le. 0),1.0,0.0)
+      omega_d_a      =where((intvar_out.ge. 0),intvar_out,intvar_out@_FillValue)
+      omega_d_a_frac =where((intvar_out.ge. 0),1.0,0.0)
+    end if
+  else
+    omega_u_a      =where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
+    omega_u_a_frac =where((wvar_a .le. 0),1.0,0.0)
+    omega_d_a      =where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
+    omega_d_a_frac =where((wvar_a .ge. 0),1.0,0.0)
+  end if
+else ; use the chunks specified in run script
+  if (CRM .lt. 1) then
+    if (scalef .gt. 1000.) then
+      omega_u_a      =where((intvar_ch_b .ge. 0),-intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_u_a_frac =where((intvar_ch_b.ge. 0),1.0,0.0)
+      omega_d_a      =where((intvar_ch_b.le. 0),-intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_d_a_frac =where((intvar_ch_b.le. 0),1.0,0.0)
+    else 
+      omega_u_a      =where((intvar_ch_b.le. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_u_a_frac =where((intvar_ch_b.le. 0),1.0,0.0)
+      omega_d_a      =where((intvar_ch_b.ge. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_d_a_frac =where((intvar_ch_b.ge. 0),1.0,0.0)
+    end if
+  else
+    omega_u_a      =where((wvar_a .le. 0),wvar_a,wvar_a@_FillValue)
+    omega_u_a_frac =where((wvar_a .le. 0),1.0,0.0)
+    omega_d_a      =where((wvar_a .ge. 0),wvar_a,wvar_a@_FillValue)
+    omega_d_a_frac =where((wvar_a .ge. 0),1.0,0.0)
+  end if
 end if
 
 omega_u_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
 omega_d_a@_FillValue = default_fillvalue("float")    ; set devault FillValue
+
+;*************************************************************
+; 4. compute mn omega_u, omega_d, circulation intensity, and SF 
+;-------------------------------------------------------------
 
 dim_om=dimsizes(omega_u_a)
 
@@ -478,12 +546,19 @@ do tt=0,dim_om(0)-1
   sfrac(tt)=sum(omega_temp3)/total_area
 end do
 subsidenceF=dim_avg_n(sfrac,0)
-  ;print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" and fraction of ascending air is: "+sfrac_up(10))
   print("subs frac is: "+dim_avg_n(sfrac,0)+" and fraction of ascending air is: "+dim_avg_n(sfrac_up,0))
+;boo=1.-subsidenceF
+;  print("1-subs frac is: "+boo)
 
+;if (scalef .gt. 1000.) then
+;    print("Scale factor larger than 1000!! ")
+;  subsidenceF=1.-subsidenceF
+;else
+;  ; no need to change subsidenceF
+;end if
 
 ;-------------------------------------------------------------
-if (CRM .lt. 1)
+if (CRM .lt. 1) then
   if (interpswitch .eq. 1) then  ; perform interpolation
       print("applying cosine weighted averaging")
     lat  = LAT_out
@@ -528,6 +603,7 @@ press_tmn!0  ="lev"
 temp_tmn!0   ="lev"
 rscs_tmn!0   ="lev"
 rlcs_tmn!0   ="lev"
+q_tmn!0      ="lev"
 dia_div!0    ="lev"
 
 ;temp_tmn!0   ="lev"
@@ -548,7 +624,9 @@ if (isvar("vertrev")) then
     temp_tmn   =temp_tmn(::-1)
     rscs_tmn   =rscs_tmn(::-1)
     rlcs_tmn   =rlcs_tmn(::-1)
+    q_tmn      =q_tmn(::-1)
     dia_div    =dia_div(::-1)
+    omega_db   =omega_db(::-1)
   end if
 end if
 
@@ -557,11 +635,19 @@ end if
 ; calculate the vertical average of omega_db
 ptop = 20000.
 pbot = 60000.
+vertavg="600to200"
 
-sigma_wva    = vibeta(press_tmn(lev|::-1), sigma(lev|::-1), 1, psl_avg , pbot, ptop) 
+q_tmn = rscs_tmn+rlcs_tmn
+
+q_wva    = vibeta(press_tmn(lev|::-1), q_tmn(lev|::-1), 1, psl_avg , pbot, ptop) 
+q_wva    = q_wva/(pbot-ptop); 
+sigma_wva    = vibeta(press_tmn(lev|::-1), 0.001*sigma(lev|::-1), 1, psl_avg , pbot, ptop) 
 sigma_wva    = sigma_wva/(pbot-ptop); 
 omega_db_wva = vibeta(press_tmn(lev|::-1), omega_db(lev|::-1), 1, psl_avg , pbot, ptop) 
 omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
+
+; is omeag_db_wva = omega_db_2?
+omega_db_2=q_wva/sigma_wva
 
   print("diabatic omega is: "+omega_db+" Q_tmn is "+Q_tmn+" and the pressure is :"+press_tmn)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
@@ -571,8 +657,9 @@ omega_db_wva = omega_db_wva/(pbot-ptop); normalize by pressure depth
   print("avg surface pressure is: "+psl_avg)
   print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva)
   print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva)
+  print("pressure weighted radiative heating between "+pbot+" and "+ptop+" is: "+q_wva)
+  print("pressure weighted omega db number 2 between "+pbot+" and "+ptop+" is: "+omega_db_2)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
-
 
 ;==========================
 ; arrayout will contain the lapse rate, the adiabatic lapse rate, the dry static energy, 
@@ -603,15 +690,16 @@ end do
 
 option         = True   ; if False then output is sent to standard out
 option@fout    = foutname
-;option@title   = "gamma, sigma, hur_tmn, press, temp, rscs, rlcs, diabdiv"
 option@title   = "gamma_a, diabdiv, omega_d, sigma, hur_tmn, rscs, rlcs, temp, press"
 write_matrix (arrayout, "9f14.4", option)
 
+fltsst=tofloat(SST)
+
 ; write out mean values to txt file...
   print(">>>>>>>>>>>> writing second text file")
-filenameout    = "mean_vals_"+model+"_"+SST+".txt"
-;write_matrix (mnvalout, "4f14.4", option)
-header = (/"omega_db, CircI, omega_d, omega_u, SF"/)
+;vertavg="600to200"
+filenameout    = "mean_vals_"+vertavg+chunk+"_"+model+"_"+SST+".txt"
+header = (/"omega_db, I, omega_dn, omega_up, SF, SST, omega_db2, Qmn, sig_mn"/)
 hlist = [/header/]
 foot = (/"========stickittoem==========="/)
 flist = [/foot/]
@@ -620,9 +708,14 @@ val_b=(/circulation_int/)
 val_c=(/omega_dn/)
 val_d=(/omega_up/)
 val_e=(/subsidenceF/)
-alist = [/val_a,val_b,val_c,val_d,val_e/]
+val_f=(/fltsst/)
+val_g=(/omega_db_2/)
+val_h=(/q_wva/)
+val_i=(/sigma_wva/)
+;omega_db_2=q_wva/sigma_wva
+alist = [/val_a,val_b,val_c,val_d,val_e,val_f,val_g,val_h,val_i/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.5f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
