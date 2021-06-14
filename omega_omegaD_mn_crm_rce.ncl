@@ -137,14 +137,11 @@ if (isvar("UCLAfix")) then
   pa = 0.01*dim_avg_n(pa_a,0)          ; hPa
     print("profile file to be read is: "+file_pa)
 else
-  ;file_prof   =p2prof+model+"_large"+seaST+"-profiles.nc"
-  ;f_prof      =addfile(file_prof,"r")
   pa          = f_prof->pa_avg(:)      ; mb, hPa
     print("profile file to be read is: "+file_prof)
 end if
 ta    = f_prof->ta_avg(:)      ; K
-;pad   = f_prof->pa_avg(:)      ; mb, hPa
-;pa    = f_prof->pa_avg(:)      ; mb, hPa
+pa    = f_prof->pa_avg(:)      ; mb, hPa
 ;zar    = f_prof->z_avg(:)       ; km
 ;printVarSummary(za)
 if (isvar("SCALEfix")) then
@@ -155,16 +152,18 @@ else
   zar   = f_prof->z_avg(:)       ; km
 end if
 za=1000.*zar   ; convert to meters
-  ;printVarSummary(za)
-  ;print("pa raw: "+pa)
-;paf = tofloat(pad)
-;  print("pa float: "+paf)
+pa=100.*pa     ; convert to Pa
+
+  print("pressure should be in Pa: "+pa)
+  print("geopotential height should be in m: "+za)
 
 if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON 
   file_om        =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_wa500.nc"
   ;file_prof      =pch+"swift.dkrz.de/swift.dkrz.de/"+model+"_large"+seaST+"-profiles.nc"
   file_tntrl     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrlcs_avg.nc"
   file_tntrs     =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_tntrscs_avg.nc"
+  file_ta_prof   =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_1D_ta_avg.nc"
+;SAM_CRM_RCE_large300_1D_ta_avg.nc
   file_psl       =pch+"swift.dkrz.de/"+model+"/"+model+"_RCE_large"+seaST+"_2D_psl.nc"
   
     print("file_om is: "+file_om)
@@ -173,6 +172,7 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   ;f_prof      =addfile(file_prof,"r")
   f_rlw       =addfile(file_tntrl,"r")
   f_rsw       =addfile(file_tntrs,"r")
+  f_ta        =addfile(file_tntrs,"r")
   f_psl       =addfile(file_psl,"r")
   if (omega .lt. 1) then
     wvar_a=file_2D->wap500(startime:endtime,0:lasty,0:lastx)
@@ -189,6 +189,7 @@ if (fileconglomerate .lt. 1) then   ; should be models other than ECHAM or ICON
   end if
   lw    = f_rlw->tntrlcs_avg(startime:endtime,:) ; K/s
   sw    = f_rsw->tntrscs_avg(startime:endtime,:) ; K/s
+  ta2   = f_ta->tntrscs_avg(startime:endtime,:) ; K/s
   lw_avg       = dim_avg_n(lw,0)
   sw_avg       = dim_avg_n(sw,0)
 else if (fileconglomerate .eq. 1) then
@@ -253,11 +254,11 @@ tsfc      =stringtofloat(seaST)
 
 Q_tmn = 86400.*(lw_avg+sw_avg); units will be K/day
 
-; the domain mean profiles from RCEMIP are flipped
-; relative to the raw data for ICON_LEM_CRM
-if (isvar("ICON_LEMfix")) then
-  Q_tmn=Q_tmn(::-1)
-end if
+;; the domain mean profiles from RCEMIP are flipped
+;; relative to the raw data for ICON_LEM_CRM
+;if (isvar("ICON_LEMfix")) then
+;  Q_tmn=Q_tmn(::-1)
+;end if
 
 dims   = dimsizes(za)
 beta   = new(dims(0),float)
@@ -279,25 +280,29 @@ S_prof = new(dims(0),float)
 do z=1,dims(0)-2
   ;beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(pa(z+1)-pa(z-1)))
   ;  print("from calculation of S: "+cpd/grav+": "+ta(z)+" : "+za(z))
-  beta(z)  = (cpd/grav)*((ta(z+1)-ta(z-1))/(za(z+1)-za(z-1)))
-    print(" beta is: "+beta(z))
-  S_prof(z) = (Rd/cpd)*((ta(z)/pa(z))*(1-beta(z)))
+  beta(z)  = -(cpd/grav)*((ta(z+1)-ta(z-1))/(za(z+1)-za(z-1)))
+  S_prof(z) = (Rd/cpd)*((ta(z)/pa(z))*(1-beta(z)))  ; K/Pa
+    ;print("S_prof of is: "+S_prof(z)+" 1/gamma_d is: "+cpd/grav+" and beta is: "+beta(z)+" at z = "+za(z))
+    print("S_prof of is: "+S_prof(z)+" Rd/cp is: "+Rd/cpd+" ta/pa is: "+ta(z)/pa(z)+" and beta is: "+beta(z)+" at a height of = "+za(z)+" meters")
 end do
 
 ; boundary conditions
 ; for SAM, the zero level is nearest the surface 
-beta(0)        = (cpd/grav)*((ta(1)-tsfc)/za(1))
-;beta(0)        = (cpd/grav)*((ta(1)-tsfc)/(pa(1)-psl_avg))
-beta(dims(0)-1)  = beta(dims(0)-1)
+beta(0)         = -(cpd/grav)*((ta(1)-tsfc)/za(1))
+;beta(0)         = (cpd/grav)*((ta(1)-tsfc)/(pa(1)-psl_avg))
+beta(dims(0)-1) = beta(dims(0)-2)
 S_prof(0)       = (Rd/cpd)*((ta(0)/pa(0))*(1-beta(0)))
-S_prof(dims(0)-1) = S_prof(dims(0)-1)
+S_prof(dims(0)-1) = S_prof(dims(0)-2)
+
+scale_p=0.01 ; used to convert Pa to hPa
+;S_prof=100.*S_prof; convert to K/hPa
 
 ; diabatically driven vertical velocity
-omega_db = Q_tmn/S_prof  ; units will be hPa/day
+omega_db = scale_p*Q_tmn/S_prof  ; units will be hPa/day
 
 ;==========================
 ; calculate the vertical average of omega_db
-; the function vibeta is build to work with pressure coordinates
+; the function vibeta is build to work with presSURe coordinates
 ; for models using height coordinates we need to use something different
 
 ; dp = - rho*g*dz = -(p/(RT))g*dz
@@ -318,16 +323,17 @@ qrad_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
 sigma_int@_FillValue = default_fillvalue("float")    ; set devault FillValue
 massweight@_FillValue   = default_fillvalue("float")    ; set devault FillValue
 
-ptop = 200. ; hPa
-pbot = 600.
+ptop = 20000. ; Pa
+pbot = 60000.
 ;ptop = 1. ; hPa
 ;pbot = 900.
 vertavg="600to200"
+delp=scale_p*(pbot-ptop) ; depth of the atmosphere over which average is taken (hPa)
 do z=1,dims(0)-2
   ;temppa=pa(z)
   if ((pa(z) .lt. pbot) .and. (pa(z) .gt. ptop)) then
     ;  print("pressure at height: "+za(z)+" on level: "+z+" is: "+pa(z))
-    massweight(z)  = ((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
+    massweight(z)      = scale_p*((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
     omega_db_int(z)    = omega_db(z)*massweight(z)
     qrad_int(z)        = Q_tmn(z)*massweight(z)
     sigma_int(z)       = S_prof(z)*massweight(z)
@@ -337,18 +343,18 @@ end do
 ; sum should ignore missing data
 ;  print("omega_db_int is: "+omega_db_int)
   print("sum of omega_db_int is: "+sum(omega_db_int))
-omega_db_wva =grav*sum(omega_db_int)/(pbot-ptop)
-qrad_wva     =grav*sum(qrad_int)/(pbot-ptop)
-sigma_wva    =grav*sum(sigma_int)/(pbot-ptop)
+omega_db_wva =grav*sum(omega_db_int)/delp
+qrad_wva     =grav*sum(qrad_int)/delp
+sigma_wva    =grav*sum(sigma_int)/delp
 
 ;  printVarSummary(omega_db)
 
 
 ;  print("diabatic omega is: "+omega_db+" Q_tmn is "+Q_tmn+" press: "+pa)
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
-  print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva)
-  print("pressure weighted qrad between "+pbot+" and "+ptop+" is: "+qrad_wva)
-  print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva)
+  print("pressure weighted omega db between "+pbot+" and "+ptop+" is: "+omega_db_wva+"hPa/day")
+  print("pressure weighted qrad between "+pbot+" and "+ptop+" is: "+qrad_wva+"K/day")
+  print("pressure weighted sigma between "+pbot+" and "+ptop+" is: "+sigma_wva+"K/hPa")
   print("$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^$%^")
 
 ;*************************************************************
@@ -625,6 +631,39 @@ end if
 ;  print(">>>>>>>>>>>>")
 ;
 ;;-------------------------------------------------------------
+arrayout  =new((/dims(0),6/),float)
+
+if (isvar("textfile")) then
+  foutname=textfile
+else
+  foutname="profiles_CRM.txt"
+end if
+
+omega_db!0   ="lev"
+S_prof!0     ="lev"
+Q_tmn!0      ="lev"
+ta!0         ="lev"
+za!0         ="lev"
+pa!0         ="lev"
+
+do z=0,dims(0)-1
+  ;print("temp at z= "+z+" is: "+temp_tmn(z)+" gamma is: "+gamma_a(z)+" press is: "+press_tmn(z)+" rho is: "+rho(z)+" and gamma_m is: "+gamma_m(z)+" num: "+numer(z)+" den: "+denom(z))
+  arrayout(z,0)=omega_db(z)
+  arrayout(z,1)=S_prof(z)
+  arrayout(z,2)=Q_tmn(z)
+  arrayout(z,3)=ta(z)
+  arrayout(z,4)=za(z)
+  arrayout(z,5)=pa(z)
+end do 
+;
+; write out data to a txt file...
+  print(">>>>>>>>>>>> writing first text file")
+
+option         = True   ; if False then output is sent to standard out
+option@fout    = foutname
+option@title   = "omega_db, S_prof, Q_tmn, ta, z, pa"
+write_matrix (arrayout, "6f14.4", option)
+;==========================
 ;
 filenameout    = "mean_circ_omega_"+vertavg+"_"+blocksz+ndays+"d_"+model+"_"+SST+".txt"
 header = (/"omega_db, CircI, omega_d, omega_u, SF, qrad, sigma"/)
