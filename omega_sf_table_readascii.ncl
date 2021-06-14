@@ -24,8 +24,14 @@ else
   chunk="5d"
 end if
 
-vertavg="600to200"
-;vertavg="900to1"
+if (isvar("VertRange")) then
+  vertavg=VertRange
+else
+  vertavg="600to200"
+end if
+
+;vertavg="600to200"
+;;vertavg="900to1"
 
 m_1=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_CAM5_"+SST+".txt",9,"float",(/1,1/))
 m_2=readAsciiTable("mean_vals_"+vertavg+"_"+chunk+"_CAM6_"+SST+".txt",9,"float",(/1,1/))
