@@ -633,9 +633,11 @@ end if
 
 ;==========================
 ; calculate the vertical average of omega_db
-ptop = 20000.
-pbot = 60000.
-vertavg="600to200"
+;ptop = 20000.
+;pbot = 60000.
+ptop = 100.
+pbot = 90000.
+vertavg="900to1"
 
 q_tmn = rscs_tmn+rlcs_tmn
 

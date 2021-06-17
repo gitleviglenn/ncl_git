@@ -27,6 +27,11 @@
 ;
 ;      wa500 or wap500 -> 2D
 ;
+; The vertical dimensions of ICON (LEM and NWP) 1D conglomerate file are strange.  Is this causing
+; my radiative cooling profiles to be flipped?  it looks like the first level in the 
+; 1D conglomerate files is at the model top, not the model bottom.  this is the opposite
+; of SAM_CRM
+;
 ; output can be computed on the native grid or on a grid composed of 96x96 km2 block or
 ; of 192x192 km2 blocks.  use the 'make_coarse' switch: 
 ; make_coarse = True
@@ -123,29 +128,23 @@ pch="/glade/scratch/levi/RCEMIP/"
 p2prof=pch+"swift.dkrz.de/mn_profiles/"
 
 ; read domain mean profile: 
-;file_prof      =p2prof+model+"_large"+seaST+"-profiles.nc"
-;  print("profile file to be read is: "+file_prof)
-;f_prof      =addfile(file_prof,"r")
 
 file_prof   =p2prof+model+"_large"+seaST+"-profiles.nc"
 f_prof      =addfile(file_prof,"r")
+  print("profile file to be read is: "+file_prof)
 if (isvar("UCLAfix")) then
   ; special pressure file for UCLA...
-  file_pa   =pch+"swift.dkrz.de/UCLA-CRM/UCLA-CRM_RCE_large295_avg_pa_avg.nc"
-  f_pa      =addfile(file_pa,"r")
+  file_pa     = pch+"swift.dkrz.de/UCLA-CRM/UCLA-CRM_RCE_large295_avg_pa_avg.nc"
+  f_pa        = addfile(file_pa,"r")
   pa_a        = f_pa->pa_avg(:,:)      ; Pa
-  pa = 0.01*dim_avg_n(pa_a,0)          ; hPa
+  pa          = 0.01*dim_avg_n(pa_a,0)          ; hPa
     print("profile file to be read is: "+file_pa)
 else
   pa          = f_prof->pa_avg(:)      ; mb, hPa
     print("profile file to be read is: "+file_prof)
 end if
 ta    = f_prof->ta_avg(:)      ; K
-pa    = f_prof->pa_avg(:)      ; mb, hPa
-;zar    = f_prof->z_avg(:)       ; km
-;printVarSummary(za)
 if (isvar("SCALEfix")) then
-;  printVarSummary(za)
   zat   = f_prof->z_avg(:)       ; km
   zar   = tofloat(zat)
 else
@@ -227,12 +226,18 @@ else if (fileconglomerate .eq. 1) then
   if (isvar("ICON_LEMfix")) then
     rscs_a  = file_1D->tntrscs_avg(startime:endtime,:,0,0)
     rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:,0,0)
+    ;pres_test = file_1D->pres_avg(startime:endtime,:,0,0)
+    ;height_test  = file_1D->height(:)
   else ; UCLA case
     rscs_a  = file_1D->tntrscs_avg(startime:endtime,:)
     rlcs_a  = file_1D->tntrlcs_avg(startime:endtime,:)
   end if
   lw_avg = dim_avg_n(rlcs_a,0)
   sw_avg = dim_avg_n(rscs_a,0)
+  if (isvar("ICON_LEMfix")) then
+    lw_avg  = lw_avg(::-1)
+    sw_avg  = sw_avg(::-1)
+  end if
 end if
 end if
 
@@ -283,7 +288,10 @@ do z=1,dims(0)-2
   beta(z)  = -(cpd/grav)*((ta(z+1)-ta(z-1))/(za(z+1)-za(z-1)))
   S_prof(z) = (Rd/cpd)*((ta(z)/pa(z))*(1-beta(z)))  ; K/Pa
     ;print("S_prof of is: "+S_prof(z)+" 1/gamma_d is: "+cpd/grav+" and beta is: "+beta(z)+" at z = "+za(z))
-    print("S_prof of is: "+S_prof(z)+" Rd/cp is: "+Rd/cpd+" ta/pa is: "+ta(z)/pa(z)+" and beta is: "+beta(z)+" at a height of = "+za(z)+" meters")
+    ;print("lw_avg is: "+86400.*lw_avg(z)+" and sw_avg is: "+86400*sw_avg(z)+" S_prof of is: "+S_prof(z)+" Rd/cp is: "+Rd/cpd+" ta/pa is: "+ta(z)/pa(z)+" and beta is: "+beta(z)+" at a height of = "+za(z)+" meters")
+end do
+do z=1,dims(0)-2
+;    print("press is: "+pres_test(5,z)+"lw_avg is: "+86400.*lw_avg(z)+" and sw_avg is: "+86400*sw_avg(z)+" S_prof of is: "+S_prof(z)+" Rd/cp is: "+Rd/cpd+" ta/pa is: "+ta(z)/pa(z)+" and beta is: "+beta(z)+" at a height of = "+za(z)+" meters")
 end do
 
 ; boundary conditions
@@ -291,7 +299,7 @@ end do
 beta(0)         = -(cpd/grav)*((ta(1)-tsfc)/za(1))
 ;beta(0)         = (cpd/grav)*((ta(1)-tsfc)/(pa(1)-psl_avg))
 beta(dims(0)-1) = beta(dims(0)-2)
-S_prof(0)       = (Rd/cpd)*((ta(0)/pa(0))*(1-beta(0)))
+S_prof(0)       = (Rd/cpd)*((ta(0)/pa(0))*(1-beta(0)))  ; I believe S_prof is in units of K/Pa
 S_prof(dims(0)-1) = S_prof(dims(0)-2)
 
 scale_p=0.01 ; used to convert Pa to hPa
@@ -325,27 +333,32 @@ massweight@_FillValue   = default_fillvalue("float")    ; set devault FillValue
 
 ptop = 20000. ; Pa
 pbot = 60000.
-;ptop = 1. ; hPa
-;pbot = 900.
+;ptop = 100. ; Pa
+;pbot = 90000.
 vertavg="600to200"
+;vertavg="900to1"
 delp=scale_p*(pbot-ptop) ; depth of the atmosphere over which average is taken (hPa)
+counter=0
 do z=1,dims(0)-2
-  ;temppa=pa(z)
   if ((pa(z) .lt. pbot) .and. (pa(z) .gt. ptop)) then
     ;  print("pressure at height: "+za(z)+" on level: "+z+" is: "+pa(z))
-    massweight(z)      = scale_p*((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
+    ; do we need the mass weight over a pressure depth of at a pressure level?
+    ;massweight(z)      = scale_p*((pa(z+1)-pa(z))/(Rd*(ta(z+1)-ta(z))))*(za(z+1)-za(z))
+    massweight(z)      = scale_p*za(z)*pa(z)/(Rd*ta(z))
+      print("omega_db at "+za(z)+" meters and "+pa(z)+" Pa is: "+omega_db(z)+" and the massweight is: "+massweight(z))
     omega_db_int(z)    = omega_db(z)*massweight(z)
     qrad_int(z)        = Q_tmn(z)*massweight(z)
-    sigma_int(z)       = S_prof(z)*massweight(z)
+    sigma_int(z)       = (1/scale_p)*S_prof(z)*massweight(z)
+    counter=counter+1
   end if
 end do
 
 ; sum should ignore missing data
 ;  print("omega_db_int is: "+omega_db_int)
-  print("sum of omega_db_int is: "+sum(omega_db_int))
-omega_db_wva =grav*sum(omega_db_int)/delp
-qrad_wva     =grav*sum(qrad_int)/delp
-sigma_wva    =grav*sum(sigma_int)/delp
+;  print("sum of omega_db_int is: "+sum(omega_db_int))
+omega_db_wva =grav*sum(omega_db_int)/(counter*delp)
+qrad_wva     =grav*sum(qrad_int)/(counter*delp)
+sigma_wva    =grav*sum(sigma_int)/(counter*delp)
 
 ;  printVarSummary(omega_db)
 
@@ -570,10 +583,17 @@ wvar_ch_b   = dim_avg_n(wvar_ch_a,1)
 ;if (make_coarse) then
     print("using coarse grid")
     print("dimsizes of intvar_out are: "+dimsizes(intvar_out))
-  omega_u_a      =where((intvar_ch_b .le. 0),intvar_ch_b,intvar_ch_b@_FillValue)
-  omega_u_a_frac =where((intvar_ch_b .le. 0),1.0,0.0)
-  omega_d_a      =where((intvar_ch_b .ge. 0),intvar_ch_b,intvar_ch_b@_FillValue)
-  omega_d_a_frac =where((intvar_ch_b .ge. 0),1.0,0.0)
+    if (scalef .gt. 1000.) then
+      omega_u_a      =where((intvar_ch_b .ge. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_u_a_frac =where((intvar_ch_b .ge. 0),1.0,0.0)
+      omega_d_a      =where((intvar_ch_b .le. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_d_a_frac =where((intvar_ch_b .le. 0),1.0,0.0)
+    else
+      omega_u_a      =where((intvar_ch_b .le. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_u_a_frac =where((intvar_ch_b .le. 0),1.0,0.0)
+      omega_d_a      =where((intvar_ch_b .ge. 0),intvar_ch_b,intvar_ch_b@_FillValue)
+      omega_d_a_frac =where((intvar_ch_b .ge. 0),1.0,0.0)
+    end if
 ;else
 ;    print("using original grid")
 ;  omega_u_a      =where((wvar_ch_b .le. 0),wvar_ch_b,wvar_ch_b@_FillValue)
@@ -679,7 +699,7 @@ val_f=(/qrad_wva/)
 val_g=(/sigma_wva/)
 alist = [/val_a,val_b,val_c,val_d,val_e,val_f,val_g/]
 write_table(filenameout,"w",hlist, "%s")
-write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f")
+write_table(filenameout,"a",alist, "%9.2f%9.2f%9.2f%9.2f%9.2f%9.2f%9.4f")
 write_table(filenameout,"a",flist, "%s")
 
   print("write a paper numskull")
