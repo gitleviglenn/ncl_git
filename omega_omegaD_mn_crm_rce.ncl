@@ -615,7 +615,11 @@ omega_d_c = dim_avg_n(omega_d_b,0)
 omega_up   = dim_avg_n(omega_u_c,0)
 omega_dn   = dim_avg_n(omega_d_c,0)
 
-circulation_int = omega_dn-omega_up
+if (scalef .gt. 1000.) then
+  circulation_int = omega_up-omega_dn
+else
+  circulation_int = omega_dn-omega_up
+end if
 
 total_area=dim_om1(1)*dim_om1(2)
 sfrac      =new((/dim_om1(0)/),float)
@@ -629,16 +633,17 @@ do tt=0,tend-1
   sfrac_up(tt) =sum(omega_temp2)/total_area
   sfrac(tt)    =sum(omega_temp3)/total_area
 end do
-;  print("poor mans subs frac at 1 timestep is: "+sfrac(10)+" frac of ascending air at 1 timestep is: "+sfrac_up(10))
 
 subsidenceF=dim_avg_n(sfrac,0)
 
-if (scalef .gt. 1000.)
-    print("Scale factor larger than 1000!! ")
-  subsidenceF=1-subsidenceF
-else
-  ; no need to change subsidenceF
-end if
+; if the up and down directions have been properly defined in section 
+; 3 of this script there is no need for the loop below
+;if (scalef .gt. 1000.)
+;    print("Scale factor larger than 1000!! ")
+;  subsidenceF=1-subsidenceF
+;else
+;  ; no need to change subsidenceF
+;end if
 
 
 ;;-------------------------------------------------------------
