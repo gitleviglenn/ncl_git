@@ -42,7 +42,7 @@ varname1="clMISR" ; MODIS total cloud fraction
 ; "mdcldmodis"
 ; "locldmodis"
 ; "ttaumodis" ; MODIS total optical thickness*cpct
-; "ltaumodis" ; MODIS total liquid optical thickness*cpct
+ "ltaumodis" ; MODIS total liquid optical thickness*cpct
 ; "itaumodis" ; MODIS total ice optical thickness*cpct
 ;
 ;varname1="tot_cld_amt" 
