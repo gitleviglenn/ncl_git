@@ -18,8 +18,10 @@ datapath="~/data/albatross/"
 ;infile1=datapath+"sfcWind_Amon_MPI-ESM1-2-XR_hist-1950_r1i1p1f1_gn_198101-198112.nc"
 infile1=datapath+"sfcWind_day_MPI-ESM1-2-XR_hist-1950_r1i1p1f1_gn_19810101-19811231.nc"
 infile2=datapath+"sfcWind_day_MPI-ESM1-2-XR_highres-future_r1i1p1f1_gn_20500101-20501231.nc"
+infile3=datapath+"merra2/"+"MERRA2_100.tavg1_2d_flx_Nx.19801201.nc4"
 
   print("incoming file is: "+infile1)
+  print("incoming file is: "+infile3)
 
 day_a = 30
 day_b = 180
@@ -27,11 +29,14 @@ day_c = 350
 
 f1=addfile(infile1,"r")
 f2=addfile(infile2,"r")
+f3=addfile(infile3,"r")
 wind10m_1 = f1->sfcWind
 wind10m_2 = f2->sfcWind
+wind10m_3 = f3->SPEED(12,:,:)
 wind10m_2a = f2->sfcWind(day_a,:,:)
 wind10m_2b = f2->sfcWind(day_b,:,:)
 wind10m_2c = f2->sfcWind(day_c,:,:)
+  printVarSummary(wind10m_3)
   printVarSummary(wind10m_1)
   printMinMax(wind10m_1,1)
   printMinMax(wind10m_2,1)
@@ -48,10 +53,12 @@ wind_2050    = convfac*wind10m_2050
 wind_1day_2050a   = convfac*wind10m_2a
 wind_1day_2050b   = convfac*wind10m_2b
 wind_1day_2050c   = convfac*wind10m_2c
+wind_1hour_1980   = convfac*wind10m_3
 
 copy_VarCoords(wind10m_2a,wind_1day_2050a)
 copy_VarCoords(wind10m_2b,wind_1day_2050b)
 copy_VarCoords(wind10m_2c,wind_1day_2050c)
+copy_VarCoords(wind10m_3,wind_1hour_1980)
 
   printVarSummary(wind10m_2050)
 
@@ -159,7 +166,10 @@ plot = new(6,graphic)
   plot(4) = gsn_csm_contour_map(wks,wind_1day_2050b,res)  ; create the plot
   res@gsnFrame         = False
   res@tiMainString       = "Day 350 of 2050"; add a title
+;  res@tiMainString       = "MERRA-2"; add a title
+;  plot(5) = gsn_csm_contour_map(wks,wind_1hour_1980,res)  ; create the plot
   plot(5) = gsn_csm_contour_map(wks,wind_1day_2050c,res)  ; create the plot
+
 
 resP                          = True
 resP@gsnPanelMainString = "10m wind, Max Planck Model, HighResMIP, 50km"
