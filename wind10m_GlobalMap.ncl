@@ -214,7 +214,7 @@ my_colors_posneg = (/ 2,26,39,51,63,75,87,99,111,123,135,147,159,171,183,190,200
 ;my_colors_posneg = (/ 2,13,25,37,49,51,63,75,87,99,111,123,135,147,159,171,183,195,207,219,231,243/); 22 
 ;                     1,  2, 3, 4,5 , 6 , 7 , 8 , 9 ,10 , 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("pdf","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteBlue")
   gsn_define_colormap(wks,"WhiteYellowOrangeRed")
   ;gsn_define_colormap(wks,"NCV_blu_red")
