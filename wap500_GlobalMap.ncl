@@ -172,7 +172,7 @@ my_levels_omega= (/-50,-40,-30,-20,-15,-10,-5,-3,-1,0,1,3,5,10,15,20,30,40,50/);
 my_colors_posneg = (/ 42,50,58,66,74,82,90,98,106,114,144,152,160,168,176,184,192,200,208,216/); 20 
 ;                     1,  2, 3, 4,5 , 6 , 7 , 8 , 9 ,10 , 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
-  wks = gsn_open_wks("eps","testplot")          ; send graphics to PNG file
+  wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"BlueDarkRed18")
   gsn_define_colormap(wks,"NCV_blu_red")
   plot = new(3,graphic)
