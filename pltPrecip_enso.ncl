@@ -1,8 +1,8 @@
 ;***********************************************************************************
 ; pltWap500_enso.ncl
 ; 
-; plot 3 panel figure showing composite omega500 fields of 
-; el nino, la nina, and diff = nino-nina
+; plot 2 panel figure showing composite omega500 fields of both 
+; el nino and la nina
 ; 
 ; levi silvers                                       aug 2024
 ;***********************************************************************************
@@ -14,8 +14,10 @@
 begin 
 
 datapath="~/data/ERA5/"
-fnino="era5mn_200_850_uv_nino.nc"
-fnina="era5mn_200_850_uv_nina.nc"
+;fnino="era5mn_200_850_uv_nino.nc"
+;fnina="era5mn_200_850_uv_nina.nc"
+fnino="era5_nino_2d.nc"
+fnina="era5_nina_2d.nc"
 
 enso = 0; 0 for el nino; 1 for la nina
 
@@ -42,28 +44,25 @@ infile2=datapath+file2
 f1o=addfile(infile1,"r")
 f1a=addfile(infile2,"r")
 
-scalef=864; converts Pa/s to hPa/day
-;scalef=1; converts units if necessary
+;scalef=864; converts Pa/s to hPa/day
+scalef=1000; converts units if necessary
 ;scale2kt=1.94384; converts m/s to knots 1m/s=1.94384 knots
 
 lat  = f1a->latitude
 lon  = f1a->longitude
 time = f1a->time
-lev  = f1a->level
-
-  print("lev at 0: "+lev(0))
-  print("lev at 2: "+lev(2))
 
 ; time, level, latitude, longitude
-winda_w_fll  = f1a->w(:,:,:,:)
-windo_w_fll  = f1o->w(:,:,:,:)
+; read in the total precipitation (tp), units of meters
+winda_w_fll  = f1a->tp(:,:,:)
+windo_w_fll  = f1o->tp(:,:,:)
 winda_w_full = scalef*short2flt(winda_w_fll)
 windo_w_full = scalef*short2flt(windo_w_fll)
-winda_v_fll  = f1a->v(:,:,:,:)
-winda_v_full = scalef*short2flt(winda_v_fll)
+;winda_v_fll  = f1a->v(:,:,:,:)
+;winda_v_full = scalef*short2flt(winda_v_fll)
 ; calculate the shear
 
-nina_spd = sqrt(winda_w_full^2+winda_v_full^2)
+;nina_spd = sqrt(winda_w_full^2+winda_v_full^2)
 
 aa=dimsizes(winda_w_full)
 
@@ -72,39 +71,33 @@ aa=dimsizes(winda_w_full)
 winda_u_tmn = dim_avg_n_Wrap(winda_w_full,0)
 windo_u_tmn = dim_avg_n_Wrap(windo_w_full,0)
 
-wap500_diff = windo_u_tmn - winda_u_tmn
-
   print("********* summary of omega time averaged field *****")
   printVarSummary(winda_u_tmn)
   printMinMax(winda_u_tmn,False)
   print("****** end of summary of omega time averaged field *****")
 
-nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
+;nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
 
 ;windo_v_tmn = dim_avg_n_Wrap(windo_v_full,0)
 
 ; calculate the shear, as the diff of values on 200hPa from 850hPa: 
 
-winda_u_tmn!0="level"
-winda_u_tmn&level=winda_w_fll&level
-winda_u_tmn!1="latitude"
+winda_u_tmn!0="latitude"
 winda_u_tmn&latitude=winda_w_fll&latitude
-winda_u_tmn!2="longitude"
+winda_u_tmn!1="longitude"
 winda_u_tmn&longitude=winda_w_fll&longitude
 
-wap500_diff!0="level"
-wap500_diff&level=winda_w_fll&level
-wap500_diff!1="latitude"
-wap500_diff&latitude=winda_w_fll&latitude
-wap500_diff!2="longitude"
-wap500_diff&longitude=winda_w_fll&longitude
-
-windo_u_tmn!0="level"
-windo_u_tmn&level=winda_w_fll&level
-windo_u_tmn!1="latitude"
+windo_u_tmn!0="latitude"
 windo_u_tmn&latitude=winda_w_fll&latitude
-windo_u_tmn!2="longitude"
+windo_u_tmn!1="longitude"
 windo_u_tmn&longitude=winda_w_fll&longitude
+
+wind_diff = windo_u_tmn - winda_u_tmn
+
+wind_diff!0="latitude"
+wind_diff&latitude=winda_w_fll&latitude
+wind_diff!1="longitude"
+wind_diff&longitude=winda_w_fll&longitude
 
   print("****************************************************")
   print("****************************************************")
@@ -121,23 +114,25 @@ lsm=landsea_mask(lsdata,lat,lon)
   res                   = True
 
 
-my_levels_omega= (/-50,-40,-35,-30,-25,-20,   \
-                   -15,-10,-5,5,10,15,        \
-                    20,25,30,35,40,50/); 18
+my_levels_omega = (/0,1,2,3,4,5,   \
+                   6,7,8,9,10,11,        \
+                   12,13,14,15,16,17/); 18
+my_levels_anom = (/-9,-8,-7,-6,-5,-4,   \
+                   -3,-2,-1,1,2,3,        \
+                    4,5,6,7,8,9/); 18
 ;my_colors_posneg = (/ 50,58,66,74,82,90,      \
 ;                      98,106,114,144,152,160, \
 ;                     168,176,184,192,200,208, \
 ;                     216/); 20 
-;my_colors_posneg = (/ 4,11,18,25,32,39,      \
-;                      46,53,60,0,68,75, \
-;                     82,89,96,103,110,117, \
-;                     124/); 19 
-my_colors_posneg = (/ 124,117,110,103,96, \
-                      89,82,75,68,0,      \ 
-                      60,53,46,39,32,     \
-                      25,18,11,4/)
+my_colors_posneg = (/ 0,64,68,72,76,80,84, \
+                     88,92,96,100,104,108, \
+                     112,116,120,123,126,128/); 19 
+my_colors_anom   = (/ 4,11,18,25,32,39,      \
+                      46,53,60,0,68,75, \
+                     82,89,96,103,110,117, \
+                     124/); 19 
 
-wks = gsn_open_wks("png","testomega")               ; send graphics to PNG file
+wks = gsn_open_wks("png","testPrec")               ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteYellowOrangeRed")
   gsn_define_colormap(wks,"MPL_BrBG")
   plot = new(3,graphic)
@@ -168,7 +163,7 @@ wks = gsn_open_wks("png","testomega")               ; send graphics to PNG file
   res@cnLinesOn         = True
   res@cnLevelFlags      = (/"NoLine","NoLine","NoLine","NoLine", \ 
                             "NoLine","NoLine","NoLine","NoLine", \
-                            "LineOnly","LineOnly","NoLine","NoLine", \
+                            "NoLine","NoLine","LineOnly","NoLine", \
                             "NoLine","NoLine","NoLine","NoLine", \
                             "NoLine","NoLine"/)
   res@cnFillMode        = "RasterFill"
@@ -193,23 +188,20 @@ wks = gsn_open_wks("png","testomega")               ; send graphics to PNG file
   ;res@tiMainString       = maintitle  ; add a title
   ;res@tiMainFontHeightF  = .020                               ; font height
 
-  res@tiMainString      = "Vertical velocity at 500hPa ElNino"
+  res@tiMainString      = "Total Precipitation during ElNino"
   res@tiMainFontHeightF  = .020                               ; font height
   res@cnLevels          = my_levels_omega
   res@cnFillColors      = my_colors_posneg
   res@cnFillOn          = True
   res@gsnTickMarksOn     = False
 
-  contour_1 = gsn_csm_contour_map(wks,windo_u_tmn(1,:,:),res)  ; create the plot
-  res@tiMainString      = "Vertical velocity at 500hPa LaNina"
-  contour_2 = gsn_csm_contour_map(wks,winda_u_tmn(1,:,:),res)  ; create the plot
+  contour_1 = gsn_csm_contour_map(wks,windo_u_tmn(:,:),res)  ; create the plot
+  res@tiMainString      = "Total Precipitation during LaNina"
+  contour_2 = gsn_csm_contour_map(wks,winda_u_tmn(:,:),res)  ; create the plot
   res@tiMainString      = " "
-  res@cnLevelFlags      = (/"NoLine","NoLine","NoLine","NoLine", \ 
-                            "NoLine","NoLine","NoLine","NoLine", \
-                            "NoLine","NoLine","NoLine","NoLine", \
-                            "NoLine","NoLine","NoLine","NoLine", \
-                            "NoLine","NoLine"/)
-  contour_3 = gsn_csm_contour_map(wks,wap500_diff(1,:,:),res)  ; create the plot
+  res@cnLevels          = my_levels_anom
+  res@cnFillColors      = my_colors_anom
+  contour_3 = gsn_csm_contour_map(wks,wind_diff(:,:),res)  ; create the plot
 
   plot(0) = contour_1
   plot(1) = contour_2
