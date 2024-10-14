@@ -15,6 +15,7 @@
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/contributed.ncl"
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/shea_util.ncl"
+; load "/glade/work/levi/scripts/nclscripts/lib/trimPNG.ncl"
 ;***********************************************************************************
 begin
 
@@ -49,7 +50,8 @@ f1a=addfile(infile1a,"r")
 
 ;scalef=864; converts Pa/s to hPa/day
 scalef=1; converts units if necessary
-scale2kt=1.94384; converts m/s to knots 1m/s=1.94384 knots
+;scale2kt=1.94384; converts m/s to knots 1m/s=1.94384 knots
+scale2kt=1.0; converts m/s to knots 1m/s=1.94384 knots
 
 ;pressAtLev = f1->plev
 ;  print(pressAtLev)
@@ -66,7 +68,11 @@ winda_v_full = scale2kt*short2flt(winda_v_fll)
 nina_u_diff = winda_u_full(:,0,:,:) - winda_u_full(:,2,:,:)
 nina_v_diff = winda_v_full(:,0,:,:) - winda_v_full(:,2,:,:)
 ;nina_spd = sqrt(winda_u_full^2+winda_v_full^2)
-nina_spd = sqrt(nina_u_diff^2+nina_v_diff^2)
+
+; total shear, positive definite
+;nina_spd = sqrt(nina_u_diff^2+nina_v_diff^2)
+; zonal shear 
+nina_spd = nina_u_diff
 
 windo_u_fll  = f1o->u(:,:,:,:)
 windo_u_full = scale2kt*short2flt(windo_u_fll)
@@ -75,7 +81,11 @@ windo_v_full = scale2kt*short2flt(windo_v_fll)
 nino_u_diff = windo_u_full(:,0,:,:) - windo_u_full(:,2,:,:)
 nino_v_diff = windo_v_full(:,0,:,:) - windo_v_full(:,2,:,:)
 ;nino_spd = sqrt(windo_u_full^2+windo_v_full^2)
-nino_spd = sqrt(nino_u_diff^2+nino_v_diff^2)
+
+; total shear, positive definite
+;nino_spd = sqrt(nino_u_diff^2+nino_v_diff^2)
+; zonal shear 
+nino_spd = nino_u_diff
 
 aa=dimsizes(winda_u_full)
 
@@ -97,8 +107,8 @@ nino_spd_tmn = dim_avg_n_Wrap(nino_spd,0)
   printMinMax(nina_spd_tmn,False)
 
 printVarSummary(nina_spd)
-nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
-nino_spd_tmn = dim_avg_n_Wrap(nino_spd,0)
+;nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
+;nino_spd_tmn = dim_avg_n_Wrap(nino_spd,0)
 
 windo_u_tmn = dim_avg_n_Wrap(windo_u_full,0)
 windo_v_tmn = dim_avg_n_Wrap(windo_v_full,0)
@@ -136,52 +146,20 @@ nino_shr&latitude=winda_u_fll&latitude
 nino_shr!1="longitude"
 nino_shr&longitude=winda_u_fll&longitude
 
+; I think the typical convection would be nino-nina
+diff_shr = nino_shr-nina_shr
+;diff_shr = nina_shr-nino_shr
+
+diff_shr!0="latitude"
+diff_shr&latitude=winda_u_fll&latitude
+diff_shr!1="longitude"
+diff_shr&longitude=winda_u_fll&longitude
+
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   printVarSummary(nina_shr)
   printMinMax(nina_shr,False)
   print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
 
-;; for 2D input 
-;wind10m_full = f1->si10(:,:,:)
-;wind10m_test = f1->si10(:,:,:)
-;wind10m_inst = f1->si10(10,:,:)
-;wind10m_jan_sh  = f1->si10(0:59:12,:,:)
-;wind10m_feb_sh  = f1->si10(1:59:12,:,:)
-;wind10m_jun_sh  = f1->si10(5:59:12,:,:)
-;wind10m_jul_sh  = f1->si10(6:59:12,:,:)
-;wind10m_aug_sh  = f1->si10(7:59:12,:,:)
-;wind10m_dec_sh  = f1->si10(11:59:12,:,:)
-;  printVarSummary(wind10m_full)
-;  print("type of wind is: "+typeof(wind10m_test))
-;wind10m_flt = short2flt(wind10m_test)
-;wind10m_inst_flt = short2flt(wind10m_inst)
-;wind10m_jan = short2flt(wind10m_jan_sh)
-;wind10m_feb = short2flt(wind10m_feb_sh)
-;wind10m_jun = short2flt(wind10m_jun_sh)
-;wind10m_jul = short2flt(wind10m_jul_sh)
-;wind10m_aug = short2flt(wind10m_aug_sh)
-;wind10m_dec = short2flt(wind10m_dec_sh)
-;  printVarSummary(wind10m_jan)
-;  print("type of wind is: "+typeof(wind10m_flt))
-;wap500_mask = mask(wind10m_test,(wind10m_full .lt. 1000.),True)
-;wap500_flt_mask = mask(wind10m_flt,(wind10m_flt .lt. 1000.),True)
-;  ;print("****************************************************")
-;  ;printMinMax(wap500_mask,False)
-;  ;print("****************************************************")
-;  ;printMinMax(wap500_flt_mask,False)
-;  print("****************************************************")
-;wap500_tmn_1 = scalef*dim_avg_n_Wrap(wap500_flt_mask,0)
-;wap500_tmn_2 = scalef*wind10m_inst_flt
-;wind10_tmn_jan = scalef*dim_avg_n_Wrap(wind10m_jan,0)
-;wind10_tmn_feb = scalef*dim_avg_n_Wrap(wind10m_feb,0)
-;wind10_tmn_jun = scalef*dim_avg_n_Wrap(wind10m_jun,0)
-;wind10_tmn_jul = scalef*dim_avg_n_Wrap(wind10m_jul,0)
-;wind10_tmn_aug = scalef*dim_avg_n_Wrap(wind10m_aug,0)
-;wind10_tmn_dec = scalef*dim_avg_n_Wrap(wind10m_dec,0)
-;wind10_tmn_djf = (wind10_tmn_jan+wind10_tmn_feb+wind10_tmn_dec)/3
-;wind10_tmn_jja = (wind10_tmn_jun+wind10_tmn_jul+wind10_tmn_aug)/3
-
-  ;printMinMax(wap500_tmn_1,False)
   print("****************************************************")
   print("****************************************************")
 
@@ -190,17 +168,6 @@ a=addfile("$NCARG_ROOT/lib/ncarg/data/cdf/landsea.nc","r")
 lsdata=a->LSMASK
 lsm=landsea_mask(lsdata,lat,lon)
 
-;;wind10_mask_jja = new((/aa(0),aa(1)/),typeof(wap500_tmn_1))
-;wind10_mask_jja = new((/aa(2),aa(3)/),typeof(wap500_tmn_1))
-;wind10_mask_jja!0="latitude"
-;wind10_mask_jja&latitude=wind10m_full&latitude
-;wind10_mask_jja!1="longitude"
-;wind10_mask_jja&longitude=wind10m_full&longitude
-;wind10_mask_jja=nameDim(wind10_mask_jja,"latitude","latitude","degrees_north")
-;wind10_mask_jja=nameDim(wind10_mask_jja,"longitude","longitude","degrees_east")
-
-
-;wind10_mask_jja=mask(wind10_tmn_jja,lsm.ge.1,False)  ; apply mask 
 
 ;-----------------------------------------
 ; begin the figure
@@ -208,37 +175,69 @@ lsm=landsea_mask(lsdata,lat,lon)
 
   res                   = True
 
-;my_levels_omega= (/-35.,-30.,-25.,-20.,-15.,-10.,-8.,-6.,-4.,-2.,0,2.,4.,6,8,10,15,20,25,30,35/); 21 
+;my_levels_omega= (/-35.,-30.,-25.,-20.,-15.,  \
+;                    -10.,-8.,-6.,-4.,-2.,      \
+;                       0,2.,4.,6,8,            \
+;                      10,15,20,25,30,          \
+;                      35/); 21 
 
-my_levels_omega= (/0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40/); 21 
-my_levels_omega= (/0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,35,40,45,50,55/); 21 
+my_levels_omega= (/0,2,4,6,8,      \
+                   10,12,14,16,18, \
+                   20,22,24,26,28, \
+                   30,35,40,45,50, \
+                   55/); 21 
+;my_levels_omega= (/0,2,4,6,8,10,12,14,16,18,20,22,24,26,28,30,35,40,45,50,55/); 21 
+
+my_levels_pn= (/-20,-18,-16,-14,-12,   \
+                -10,-8,-6,-4,-2,       \
+                  0,2,4,6,8,           \
+                 10,12,14,16,18,       \
+                 20/); 21 
 
 ; below is the original color scheme
 ;my_colors_posneg = (/ 2,2,63,75,87,99,111,123,135,147,159,171,183,195,207,219,231/); 22 
 
 res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine",   \
-                   "NoLine","NoLine","LineOnly","NoLine","NoLine", \
-                   "NoLine","NoLine","NoLine","NoLine","NoLine",   \
+                   "NoLine","NoLine","NoLine","NoLine","NoLine", \
+                   "LineOnly","NoLine","NoLine","NoLine","NoLine",   \
                    "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
 
 ;my_colors_posneg = (/ 3,15,27,39,51,63,75,87,99,111,123,135,147,159,171,183,190,200,210,220,230,240/); 22 
 
-my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,164,176,188,200/); 22 
+my_colors_shr = (/ 0,130,135,140,145,150,155,160,165,170,175,180,185,190,195,200,205,210,215,220,225,230/); 22 
+
+;my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,164,176,188,200/); 22 
+
+my_colors_posneg = (/ 20,30,40,50,60,   \ 
+                      70,80,90,100,110,  \
+                      0, \
+                      0,136,146,156,166,   \
+                      176,186,196,206,216,   \
+                      226/); 22 
+my_colors_posneg = (/ 20,30,40,50,60,   \ 
+                      70,80,90,100,110,  \
+                      120, \
+                      121,136,146,156,166,   \
+                      176,186,196,206,216,   \
+                      226/); 22 
 
 
 ;my_colors_posneg = (/ 2,13,25,37,49,51,63,75,87,99,111,123,135,147,159,171,183,195,207,219,231,243/); 22 
 ;                     1,  2, 3, 4,5 , 6 , 7 , 8 , 9 ,10 , 11, 12, 13, 14, 15, 16, 17, 18, 19, 20
 
-  wks = gsn_open_wks("pdf","testplot")          ; send graphics to PNG file
+wtype = "png"
+wtype@wkWidth  = 2500  ; increase size of pdf image
+wtype@wkHeight = 2500
+fout    =  "testplot_map"
+wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
+;  wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteBlue")
   gsn_define_colormap(wks,"WhiteYellowOrangeRed")
-  ;gsn_define_colormap(wks,"BlueYellowRed")
+  gsn_define_colormap(wks,"BlueYellowRed")
   ;gsn_define_colormap(wks,"NCV_blu_red")
-  plot = new(2,graphic)
+  plotA = new(2,graphic)
+;  plotB = new(1,graphic)
 
-  ;res@lbOrientation     = "Vertical"
-  ;res@gsnPaperOrientation = "portrait" 
-  ;res@mpProjection      = "Robinson"       ; choose projection
   res@mpProjection      = "Mollweide"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
   res@mpCenterLonF      = 200.
@@ -250,8 +249,9 @@ my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,16
   res@gsnDraw           = False
   res@gsnFrame          = False
 
-  ;res@mpMinLatF            = -30      ; range to zoom in on
-  ;res@mpMaxLatF            =  30.
+  res@mpLimitMode          = "LatLon"
+  res@mpMinLatF            = -40      ; range to zoom in on
+  res@mpMaxLatF            =  40.
   res@mpMinLonF            =  0.
   res@mpMaxLonF            = 360.
  
@@ -273,58 +273,115 @@ my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,16
   ;res@txFontHeightF     = 0.018 
 
   res@vpKeepAspect    = False
-  ;res@vpXF            = 0.1                 ; make plot bigger
-  ;res@vpYF            = 0.9         
-  ;res@vpWidthF        = 0.8
-  ;res@vpHeightF       = 0.8
-  ;res@vpWidthF        = 0.4
-  ;res@vpHeightF       = 0.8
 
-  ;res@lbLabelFontHeightF  = 0.018           ; label bar font height
   res@lbLabelBarOn       = False  ; turn off individual label bars
 
-  ;res@tiMainString       = maintitle  ; add a title
-  ;res@tiMainFontHeightF  = .020                               ; font height
-
-  res@tiMainString      = "ERA5 Wind Shr ElNino"
+  res@tiMainString      = "ERA5 Wind Shr (m/s) El Nino"
   res@tiMainFontHeightF  = .020                               ; font height
-  res@cnLevels          = my_levels_omega
+  ;res@cnLevels          = my_levels_omega
+  res@cnLevels          = my_levels_pn
+  ;res@cnFillColors      = my_colors_shr
   res@cnFillColors      = my_colors_posneg
-  res@cnFillOn          = True
+  ;res@cnFillOn          = True
   res@gsnTickMarksOn     = False
 
 
   ;contour_1 = gsn_csm_contour_map(wks,wind10_mask_jja,res)  ; create the plot
   contour_1 = gsn_csm_contour_map(wks,nino_shr(:,:),res)  ; create the plot
-  res@tiMainString      = "ERA5 Wind Shr LaNina"
-  ;contour_2 = gsn_csm_contour_map(wks,wind10_mask_djf,res)  ; create the plot
-  ;contour_2 = gsn_csm_contour_map(wks,winda_u_tmn(1,:,:),res)  ; create the plot
-  ;contour_2 = gsn_csm_contour_map(wks,nina_spd_tmn(1,:,:),res)  ; create the plot
+  res@tiMainString      = "ERA5 Wind Shr (m/s) La Nina"
   contour_2 = gsn_csm_contour_map(wks,nina_shr(:,:),res)  ; create the plot
-  res@tiMainString      = " "
 
-  plot(0) = contour_1
-  plot(1) = contour_2
+  plotA(0) = contour_1
+  plotA(1) = contour_2
+  
+  res2                  = True
+  res2@mpProjection      = "Mollweide"       ; choose projection
+  ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
+  res2@mpCenterLonF      = 200.
+  res2@mpPerimOn         = False             ; turn off box around plot
+  res2@mpLimitMode       = "LatLon"
+  res2@mpMinLatF         = -40      ; range to zoom in on
+  res2@mpMaxLatF         =  40.
+  res2@mpGridLatSpacingF = 10.               ; spacing for lat lines
+  res2@mpGridLonSpacingF = 10.               ; spacing for lon lines
+  ;res@lbLabelAngleF     = 90
+  res2@cnFillOn          = True              ; color plot desired
+  res2@cnLevelSelectionMode  = "ExplicitLevels"
+  res2@cnFillPalette     = "cmocean_balance"     ; set color map: ncl 6.1
+  res2@cnMonoLevelFlag   = False
+  res2@cnLinesOn         = False
+  res2@tiMainString      = " "
+  res2@cnLevels          = my_levels_pn
+  res2@cnFillColors      = my_colors_posneg
+  res2@gsnTickMarksOn    = False
+  res2@tiMainString      = "Nino - Nina Wind Shr (kts) "
+  res2@gsnPanelLabelBar  = True              ; add common colorbar
+  res2@lbLabelFontHeightF      = 0.013
+  res2@lbTitleFontHeightF      = 0.013
+  contour_3 = gsn_csm_contour_map(wks,diff_shr(:,:),res2)  ; create the plot
+
+;  plotB(0) = contour_3
 
   resP                  = True                   ; modify the panel plot
   resP@gsnPanelLabelBar  = True              ; add common colorbar
-  ;resP@lbOrientation     = "vertical"
-  resP@pmLabelBarWidthF  = 0.75             ; make thinner
-  resP@lbLabelFontHeightF= 0.02             ; make thinner
-  resP@lbLabelFontThicknessF = 2.5             ; make thinner
-  resP@pmLabelBarHeightF = 0.15
-  resP@lbBoxLinesOn            = True
-  ;res@lbOrientation           = "Vertical"
-  resP@lbTitleString           = "wind (m/s)"
-  resP@lbTitlePosition         = "Bottom"
+;;  ;resP@lbOrientation     = "vertical"
+;  resP@pmLabelBarWidthF  = 0.75             ; make thinner
+;  resP@lbLabelFontHeightF= 0.02             ; make thinner
+;  resP@lbLabelFontThicknessF = 2.5             ; make thinner
+;  resP@pmLabelBarHeightF = 0.15
+;  resP@lbBoxLinesOn            = True
+;  ;res@lbOrientation           = "Vertical"
+;  resP@lbTitleString           = "wind (m/s)"
+;  resP@lbTitlePosition         = "Bottom"
   resP@lbLabelFontHeightF      = 0.013
   resP@lbTitleFontHeightF      = 0.013
+;
+;    ;pres@pmLabelBarHeightF = 0.20
+;  resP@gsnFrame         = False                  ; don't advance panel plot
 
-    ;pres@pmLabelBarHeightF = 0.20
-  resP@gsnFrame         = False                  ; don't advance panel plot
+pres2                        = True
+pres2@gsnFrame               = False           ; save panel until both ready
+pres2@gsnPanelLeft           = 0.5             ; draw from left edge to center
+pres2@gsnPanelLabelBar       = True            ; common label bar
+pres2@lbLabelStride          = 2               ; every other label
+;pres2@pmLabelBarWidthF       = 0.3
+;pres2@pmLabelBarHeightF      = 0.06
+pres2@vpXF                   = 0.5+.1         ; Position labelbar at
+pres2@vpYF                   = 0.3         ; Position labelbar at
+pres2@vpHeightF              = 0.075     ; Height of labelbar
+pres2@vpWidthF               = 0.3      ; Width of labelbar
+pres2@lbTitleOn           = True 
+pres2@lbTitlePosition     = "Bottom"
+pres2@lbTitleString       = "RH aloft (%)"
+pres2@lbTitleFontHeightF  = 16
+pres2@lbTitleFont         = 22
+;pres2@gsnPanelFigureStrings = (/"b.  RCE","d.  RRCE"/)
+;pres2@gsnPanelFigureStringsPerimOn = False
 
-  gsn_panel(wks,plot,(/2,1/),resP)
+;pres1                        = True
+;pres1@gsnFrame               = False           ; save panel until both ready
+;pres1@gsnPanelLeft           = 0.5             ; draw from left edge to center
+;pres1@gsnPanelLabelBar       = True            ; common label bar
+;pres1@lbLabelStride          = 2               ; every other label
+;;pres2@pmLabelBarWidthF       = 0.3
+;;pres2@pmLabelBarHeightF      = 0.06
+;pres1@vpXF                   = 0.5+.1         ; Position labelbar at
+;pres1@vpYF                   = 0.3         ; Position labelbar at
+;pres1@vpHeightF              = 0.075     ; Height of labelbar
+;pres1@vpWidthF               = 0.3      ; Width of labelbar
+;pres1@lbTitleOn           = True 
+;pres1@lbTitlePosition     = "Bottom"
+;pres1@lbTitleString       = "RH aloft (%)"
+;pres1@lbTitleFontHeightF  = 16
+;pres1@lbTitleFont         = 22
+;;pres2@gsnPanelFigureStrings = (/"b.  RCE","d.  RRCE"/)
+;;pres2@gsnPanelFigureStringsPerimOn = False
 
+  gsn_panel(wks,plotA,(/2,1/),resP)
+;  gsn_panel(wks,plotB,(/1,1/),pres2)
+
+;frame(wks)
+;trimPNG(fout)
 ;-----------------------------------------
 end
 ;-----------------------------------------

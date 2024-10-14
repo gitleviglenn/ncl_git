@@ -103,6 +103,7 @@ winda_v_tmn = dim_avg_n_Wrap(winda_v_full,0)
 ;nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
 ;nino_spd_tmn = dim_avg_n_Wrap(nino_spd,0)
 
+  printVarSummary(winda_u_tmn)
   printMinMax(winda_u_tmn,False)
   printMinMax(winda_v_tmn,False)
   ;printMinMax(nina_spd_tmn,False)
@@ -194,8 +195,10 @@ my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,16
 
   ;res@lbOrientation     = "Vertical"
   ;res@gsnPaperOrientation = "portrait" 
+;CylindricalEquidistant
   ;res@mpProjection      = "Robinson"       ; choose projection
-  res@mpProjection      = "Mollweide"       ; choose projection
+  ;res@mpProjection      = "Mollweide"       ; choose projection
+  res@mpProjection      = "CylindricalEquidistant"       ; choose projection
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
   res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
@@ -253,7 +256,10 @@ my_colors_posneg = (/ 2,7,10,15,20,28,30,38,46,56,66,76,86,96,106,116,140,152,16
   ;contour_1 = gsn_csm_contour_map(wks,wind10_mask_jja,res)  ; create the plot
   contour_1 = gsn_csm_contour_map(wks,nino_spd_tmn(0,:,:),res)  ; create the plot
   res@tiMainString      = "ERA5 Wind at level 850 hPa"
+;winda_u_tmn
+  contour_vect = gsn_csm_vector_scalar_map_ce(wks,winda_u_tmn(2,:,:),winda_v_tmn(2,:,:),winda_u_tmn(2,:,:),res)  ; create the plot
   contour_2 = gsn_csm_contour_map(wks,nino_spd_tmn(2,:,:),res)  ; create the plot
+  overlay(contour_2,contour_vect)
   res@tiMainString      = " "
 
   plot(0) = contour_1

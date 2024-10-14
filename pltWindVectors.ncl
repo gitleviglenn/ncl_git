@@ -10,6 +10,8 @@
 ;
 ; the u component of the wind is used to color the vectors.  
 ;
+; units: knots
+;
 ; to do:  figure out how to specify the particular values that are colored and 
 ; displayed.  this function seems to have limited resources relative to other ncl
 ; functions.
@@ -76,7 +78,7 @@ lev  = f1a->level
 
 ; time, level, latitude, longitude
 winda_u_fll  = f1a->u(:,:,:,:)
-  printVarSummary(winda_u_fll)
+  ;printVarSummary(winda_u_fll)
 winda_u_full = scale2kt*short2flt(winda_u_fll)
 winda_v_fll  = f1a->v(:,:,:,:)
 winda_v_full = scale2kt*short2flt(winda_v_fll)
@@ -102,9 +104,9 @@ aa=dimsizes(winda_u_full)
 
 ;nina_shr = new((/aa(2),aa(3)/),typeof(winda_v_full))
 ;nino_shr = new((/aa(2),aa(3)/),typeof(windo_v_full))
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
-  printVarSummary(winda_u_full)
-  print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  ;print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+  ;printVarSummary(winda_u_full)
+  ;print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
   ;print("levels: "+lev)
   ;print("times: "+time)
 
@@ -113,9 +115,9 @@ winda_v_tmn = dim_avg_n_Wrap(winda_v_full,0)
 ;nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
 ;nino_spd_tmn = dim_avg_n_Wrap(nino_spd,0)
 
-  printVarSummary(winda_u_tmn)
-  printMinMax(winda_u_tmn,False)
-  printMinMax(winda_v_tmn,False)
+  ;printVarSummary(winda_u_tmn)
+  ;printMinMax(winda_u_tmn,False)
+  ;printMinMax(winda_v_tmn,False)
   ;printMinMax(nina_spd_tmn,False)
 
 printVarSummary(nina_spd)
@@ -129,7 +131,7 @@ nina_spd_tmn = dim_avg_n_Wrap(nina_spd,0)
 ;nina_shr = nina_spd_tmn;     = nina_spd_tmn(0,:,:)-nina_spd_tmn(2,:,:)
 ;nino_shr = nino_spd_tmn
 
-  printVarSummary(nina_spd_tmn)
+  ;printVarSummary(nina_spd_tmn)
 winda_u_tmn!0="level"
 winda_u_tmn&level=winda_u_fll&level
 winda_u_tmn!1="latitude"
@@ -211,8 +213,8 @@ wks = gsn_open_wks("png","testvector")               ; send graphics to PNG file
 
   vcres@tiMainString            = mtitle 
 
-  printVarSummary(winda_u_tmn)
-  printVarSummary(winda_v_tmn)
+  ;printVarSummary(winda_u_tmn)
+  ;printVarSummary(winda_v_tmn)
 
   plot=gsn_csm_vector_scalar_map_ce(wks,winda_u_tmn(pltlev,:,:),winda_v_tmn(pltlev,:,:),winda_u_tmn(pltlev,:,:),vcres)  ; create plot
 
