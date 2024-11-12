@@ -1,10 +1,10 @@
 ;***********************************************************************************
-; pltWap500_enso.ncl
+; pltDiff_enso.ncl
 ; 
-; plot 3 panel figure showing composite omega500 fields of 
+; plot difference figure of composite fields of 
 ; el nino, la nina, and diff = nino-nina
 ; 
-; levi silvers                                       aug 2024
+; levi silvers                                             oct 2024
 ;***********************************************************************************
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
@@ -19,18 +19,10 @@ fnina="era5mn_200_850_uv_nina.nc"
 
 enso = 0; 0 for el nino; 1 for la nina
 
-;if (enso .eq. 0) then
-;  print("El Nino phase selected")
-  file1=fnino
-  ensoPhase = "El Nino"
-  ;infile1o=datapath+file1
-;else if (enso .eq. 1) then
-;  print("La Nina phase selected")
-  file2=fnina
-  ensoPhase = "La Nina"
-  ;infile1=datapath+file1
-;end if 
-;end if
+file1=fnino
+ensoPhase = "El Nino"
+file2=fnina
+ensoPhase = "La Nina"
 
 mtitle = ensoPhase+" vertical pressure velocity at 500hPa"
 pltlev = 1; 0 corresponds to 200, 1 to 500, and 2 to 850 hPa
@@ -140,7 +132,7 @@ my_colors_posneg = (/ 124,117,110,103,96, \
 wks = gsn_open_wks("png","omegaDiff")               ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteYellowOrangeRed")
   gsn_define_colormap(wks,"MPL_BrBG")
-  plot = new(3,graphic)
+  plot = new(1,graphic)
 
   ;res@lbOrientation     = "Vertical"
   ;res@gsnPaperOrientation = "portrait" 
@@ -185,8 +177,8 @@ wks = gsn_open_wks("png","omegaDiff")               ; send graphics to PNG file
   ;res@txFontHeightF     = 0.018 
 
   res@vpKeepAspect    = False
-  ;res@vpXF            = 0.1                 ; make plot bigger
-  ;res@vpYF            = 0.9         
+  res@vpXF            = 0.1                 ; make plot bigger
+  res@vpYF            = 0.9         
   res@vpWidthF        = 0.8
   res@vpHeightF       = 0.8
 
@@ -194,29 +186,22 @@ wks = gsn_open_wks("png","omegaDiff")               ; send graphics to PNG file
   res@lbLabelBarOn       = False  ; turn off individual label bars
 
   ;res@tiMainString       = maintitle  ; add a title
-  ;res@tiMainFontHeightF  = .020                               ; font height
 
-  res@tiMainString      = "Vertical velocity at 500hPa ElNino"
-  res@tiMainFontHeightF  = .020                               ; font height
+  res@tiMainFontHeightF  = .020                    ; font height
   res@cnLevels          = my_levels_omega
   res@cnFillColors      = my_colors_posneg
   res@cnFillOn          = True
   res@gsnTickMarksOn     = False
 
-  contour_1 = gsn_csm_contour_map(wks,windo_u_tmn(1,:,:),res)  ; create the plot
-  res@tiMainString      = "Vertical velocity at 500hPa LaNina"
-  contour_2 = gsn_csm_contour_map(wks,winda_u_tmn(1,:,:),res)  ; create the plot
   res@tiMainString      = " "
   res@cnLevelFlags      = (/"NoLine","NoLine","NoLine","NoLine", \ 
                             "NoLine","NoLine","NoLine","NoLine", \
                             "NoLine","NoLine","NoLine","NoLine", \
                             "NoLine","NoLine","NoLine","NoLine", \
                             "NoLine","NoLine"/)
-  contour_3 = gsn_csm_contour_map(wks,wap500_diff(1,:,:),res)  ; create the plot
+  contour = gsn_csm_contour_map(wks,wap500_diff(1,:,:),res)  ; create the plot
 
-  plot(0) = contour_1
-  plot(1) = contour_2
-  plot(2) = contour_3
+  plot(0) = contour
 
   resP                  = True            ; modify the panel plot
   resP@gsnPanelLabelBar  = True              ; add common colorbar
@@ -229,13 +214,13 @@ wks = gsn_open_wks("png","omegaDiff")               ; send graphics to PNG file
 ;  ;res@lbOrientation           = "Vertical"
 ;  resP@lbTitleString           = "wind (m/s)"
 ;  resP@lbTitlePosition         = "Bottom"
-;  resP@lbLabelFontHeightF      = 0.013
-;  resP@lbTitleFontHeightF      = 0.013
+  resP@lbLabelFontHeightF      = 0.013
+  resP@lbTitleFontHeightF      = 0.013
 ;
 ;    ;pres@pmLabelBarHeightF = 0.20
 ;  resP@gsnFrame         = False     ; don't advance panel plot
 ;
-  gsn_panel(wks,plot,(/3,1/),resP)
+  gsn_panel(wks,plot,(/1,1/),resP)
 
 ;-----------------------------------------
 end

@@ -163,7 +163,7 @@ my_colors_posneg = (/ 30,40,50,60,70, \
                       130,140,150,160,170,     \
                       180,190,200,210/)
 
-wks = gsn_open_wks("png","testsst")               ; send graphics to PNG file
+wks = gsn_open_wks("png","sstDiff")               ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteYellowOrangeRed")
   ;gsn_define_colormap(wks,"MPL_BrBG")
   gsn_define_colormap(wks,"cmocean_balance")  
@@ -173,6 +173,7 @@ wks = gsn_open_wks("png","testsst")               ; send graphics to PNG file
   ;res@gsnPaperOrientation = "portrait" 
   ;res@mpProjection      = "Robinson"       ; choose projection
   res@mpProjection      = "Mollweide"       ; choose projection
+  res@mpLimitMode       = "LatLon"
   ;res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
   res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
@@ -185,6 +186,8 @@ wks = gsn_open_wks("png","testsst")               ; send graphics to PNG file
 
   res@mpMinLonF            =  0.
   res@mpMaxLonF            = 360.
+  res@mpMinLatF            = -40.
+  res@mpMaxLatF            = 40.
  
 ; these commands turn off/on the varname and units at top of image
   res@gsnLeftString = ""
