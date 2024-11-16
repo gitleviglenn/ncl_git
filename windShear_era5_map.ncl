@@ -14,6 +14,12 @@ begin
 datapath="~/data/ERA5/"
 f_now   ="era5_uv_augsepoct2024.nc"
 f_climo ="era5_uv_augsepoct1991th2020.nc"
+; u(date (monthly?  3 for 2024.nc), pressure_level (2), latitude (721), longitude (1440)
+
+;fnino="era5mn_200_850_uv_nino.nc"
+;fnina="era5mn_200_850_uv_nina.nc"
+;u(time (48), level (3), latitude (721), longitude (1440))
+; what are teh 48 timesteps?  8 years with 6 months in each year?  
 
 infile_1=datapath+f_now
 infile_2=datapath+f_climo
