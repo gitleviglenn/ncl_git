@@ -33,6 +33,10 @@ winda_u_fll  = f1->u(:,:,:,:)
 winda_v_fll  = f1->v(:,:,:,:)
 windb_u_fll  = f2->u(:,:,:,:)
 windb_v_fll  = f2->v(:,:,:,:)
+windc_u_fll  = f2->u(87:89,:,:,:)
+windc_v_fll  = f2->v(87:89,:,:,:)
+
+;  printVarSummary(windc_u_fll)
 
 lev          = f1->pressure_level
 
@@ -44,6 +48,7 @@ lev          = f1->pressure_level
 ;  printVarSummary(winda_u_fll)
 ;Dimensions and sizes:	[date | 3] x [pressure_level | 2] x [latitude | 721] x [longitude | 1440]
 
+; compute the vertical shear: 
 u_2024_diff = winda_u_fll(:,1,:,:) - winda_u_fll(:,0,:,:)
 v_2024_diff = winda_v_fll(:,1,:,:) - winda_v_fll(:,0,:,:)
 
@@ -55,11 +60,26 @@ v_clim_diff = windb_v_fll(:,1,:,:) - windb_v_fll(:,0,:,:)
 
 vws_cl = sqrt(u_clim_diff^2+v_clim_diff^2)
 
+; get the august, september, and october data from 2020: 
+u_2020_diff = windc_u_fll(:,1,:,:) - windc_u_fll(:,0,:,:)
+v_2020_diff = windc_v_fll(:,1,:,:) - windc_v_fll(:,0,:,:)
+
+vws_20 = sqrt(u_2020_diff^2+v_2020_diff^2)
+
+vws_24m20 = vws - vws_20
+
+;  printVarSummary(windb_v_fll)
+
 ; average over time
+u_2020_tmn = dim_avg_n_Wrap(u_2020_diff,0)
+v_2020_tmn = dim_avg_n_Wrap(v_2020_diff,0)
+
 u_2024_tmn = dim_avg_n_Wrap(u_2024_diff,0)
 v_2024_tmn = dim_avg_n_Wrap(v_2024_diff,0)
 
 vws_tmn    = dim_avg_n_Wrap(vws,0)
+vws_20_tmn = dim_avg_n_Wrap(vws_20,0)
+vws_24m20_tmn = dim_avg_n_Wrap(vws_24m20,0)
 vws_cl_tmn = dim_avg_n_Wrap(vws_cl,0)
 
 u_clim_tmn = dim_avg_n_Wrap(u_clim_diff,0)
@@ -69,6 +89,11 @@ u_2024_tmn!0="latitude"
 u_2024_tmn&latitude=winda_u_fll&latitude
 u_2024_tmn!1="longitude"
 u_2024_tmn&longitude=winda_u_fll&longitude
+
+u_2020_tmn!0="latitude"
+u_2020_tmn&latitude=winda_u_fll&latitude
+u_2020_tmn!1="longitude"
+u_2020_tmn&longitude=winda_u_fll&longitude
 
 u_clim_tmn!0="latitude"
 u_clim_tmn&latitude=winda_u_fll&latitude
@@ -85,12 +110,23 @@ vws_cl_tmn&latitude=winda_u_fll&latitude
 vws_cl_tmn!1="longitude"
 vws_cl_tmn&longitude=winda_u_fll&longitude
 
-vws_anom = vws_tmn - vws_cl_tmn
+vws_anom    = vws_tmn - vws_cl_tmn
+vws_20_anom = vws_20_tmn - vws_cl_tmn
 
 vws_anom!0="latitude"
 vws_anom&latitude=winda_u_fll&latitude
 vws_anom!1="longitude"
 vws_anom&longitude=winda_u_fll&longitude
+
+vws_20_anom!0="latitude"
+vws_20_anom&latitude=winda_u_fll&latitude
+vws_20_anom!1="longitude"
+vws_20_anom&longitude=winda_u_fll&longitude
+
+vws_24m20_tmn!0="latitude"
+vws_24m20_tmn&latitude=winda_u_fll&latitude
+vws_24m20_tmn!1="longitude"
+vws_24m20_tmn&longitude=winda_u_fll&longitude
 
 ;vws_cl!0="latitude"
 ;vws_cl&latitude=winda_u_fll&latitude
@@ -187,7 +223,8 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 
   res@lbLabelBarOn       = False  ; turn off individual label bars
 
-  res@tiMainString      = "ERA5 Wind Shr (m/s) 2024 anom"
+  ;res@tiMainString      = "ERA5 Wind Shr (m/s) 2020 anom"
+  res@tiMainString      = "ERA5 Wind Shr (m/s) anom: 2024-2020"
   res@tiMainFontHeightF  = .016                               ; font height
   ;res@cnLevels          = my_levels_pos
   res@cnLevels          = my_levels_pn
@@ -198,7 +235,9 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 
   ;contour_1 = gsn_csm_contour_map(wks,u_2024_tmn(:,:),res)  ; create the plot
   ;contour_1 = gsn_csm_contour_map(wks,vws_tmn(:,:),res)  ; create the plot
-  contour_1 = gsn_csm_contour_map(wks,vws_anom(:,:),res)  ; create the plot
+  ;contour_1 = gsn_csm_contour_map(wks,vws_anom(:,:),res)  ; create the plot
+  ;contour_1 = gsn_csm_contour_map(wks,vws_20_anom(:,:),res)  ; create the plot
+  contour_1 = gsn_csm_contour_map(wks,vws_24m20_tmn(:,:),res)  ; create the plot
   res@tiMainString      = "ERA5 Wind Shr (m/s) Climatology"
   res@cnLevels          = my_levels_pos
   res@cnLineLabelsOn    = True ; turn off contour lines
