@@ -5,6 +5,8 @@
 ; 8 warmest seasons designated as El Nino and 8 coolest years as La Nina.
 ; using this method, the thresholds for the NH are El Nino (0.52C) and La Nina (-0.78C)
 ; and for the SH they are El Nino (0.55 C) and for La Nina (-0.81C)
+;
+; The two levels read for RH average should be 850hPa and 700hPa.
 ; 
 ; NH:       Calculate for June through November 
 ; Nino:     1991, 1994, 1997, 2002, 2004, 2009, 2015, 2023
@@ -129,18 +131,19 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 ;  wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteBlue")
   ;gsn_define_colormap(wks,"WhiteYellowOrangeRed")
-  gsn_define_colormap(wks,"BlueYellowRed")
+  ;gsn_define_colormap(wks,"BlueYellowRed")
+  gsn_define_colormap(wks,"MPL_BrBG")
   ;gsn_define_colormap(wks,"NCV_blu_red")
   plotA = new(2,graphic)
   ;plotB = new(1,graphic)
 
   res                   = True
 
-  ;res@mpProjection      = "Mollweide"       ; choose projection
+  res@mpProjection      = "Mollweide"       ; choose projection
   ;res@mpProjection      = "CylindricalEqualArea"       ; choose projection
   res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpProjection      = "Robinson"       ; choose projection
-  res@mpCenterLonF      = 200.
+  ;res@mpProjection      = "Robinson"       ; choose projection
+  res@mpCenterLonF      = 0.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 20.               ; spacing for lat lines
   res@mpGridLonSpacingF = 20.               ; spacing for lon lines
@@ -198,12 +201,14 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
  
   res1                      = True
   res1@cnLevelSelectionMode = "ExplicitLevels"
-  res1@cnFillPalette        = "BlueWhiteOrangeRed"
+  ;res1@cnFillPalette        = "BlueWhiteOrangeRed"
+  res1@cnFillPalette        = "NEO_div_vegetation_c"
   res1@cnFillColors          = my_colors_anom
+  res1@mpProjection      = "Mollweide"       ; choose projection
   ;res1@mpProjection      = "CylindricalEqualArea"       ; choose projection
-  res1@mpProjection      = "Robinson"       ; choose projection
+  ;res1@mpProjection      = "Robinson"       ; choose projection
   res1@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res1@mpCenterLonF      = 200.
+  res1@mpCenterLonF      = 0.
   res1@mpPerimOn         = False             ; turn off box around plot
   res1@mpGridLatSpacingF = 20.               ; spacing for lat lines
   res1@mpGridLonSpacingF = 20.               ; spacing for lon lines
@@ -232,11 +237,11 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 ; these commands turn off/on the varname and units at top of image
   res1@gsnLeftString = ""
   res1@gsnRightString = ""
-  res1@tiMainString          = "ERA5 hur (%) Nina"
+  res1@tiMainString          = "ERA5 hur (%) Nino - Nina"
   ;res@cnLevels              = my_levels_pos
   res1@cnLevels              = my_levels_pn
   res1@lbLabelBarOn          = True
-  res1@cnLineLabelsOn        = True ; turn off contour lines
+  ;res1@cnLineLabelsOn        = True ; turn off contour lines
   contour_2 = gsn_csm_contour_map(wks,hur_diff(:,:),res1)  ; create the plot
   ;contour_2 = gsn_csm_contour_map(wks,hura_tmn(:,:),res1)  ; create the plot
 
