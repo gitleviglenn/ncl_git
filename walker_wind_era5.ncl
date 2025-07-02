@@ -57,31 +57,38 @@ begin
 datapath="/Users/C823281551/data/ERA5/"
 
 ; for starters we could use this file: 
-file1="/Users/C823281551/data/era5_uv_augsepoct202020212022.nc"
+;file1="/Users/C823281551/data/era5_uv_augsepoct202020212022.nc"
 
+file1=datapath+"era5_u3D_1990th2024_360x180_jul.nc"
 file2=datapath+"era5_omega_pv_vort_500hPa_1990th2024_360x180_jan.nc"
 file3=datapath+"era5_omega_pv_vort_500hPa_1990th2024_360x180_jul.nc"
+file4=datapath+"era5_v3D_1990th2024_360x180_jul.nc"
 
 f1=addfile(file1,"r")
 f2=addfile(file2,"r")
 f3=addfile(file3,"r")
+f4=addfile(file4,"r")
 
   print("incoming file is: "+file1)
 
-wind_u  = f1->u(:,1,:,:)
-wind_v  = f1->v(:,1,:,:)
+wind_u  = f1->u(0:1,9,:,:)
+wind_v  = f4->v(0:1,9,:,:)
 
 wap_1   = f2->w(:,0,:,:)
 wap_7   = f3->w(:,0,:,:)
 
+p_lev   = f1->pressure_level(:)
+
+  print("******************************************************")
+  print("9nth pressure level is: "+p_lev(9))
   print("******************************************************")
   print("wap_7 before avg")
   printVarSummary(wap_7)
   print("******************************************************")
 
   print("******************************************************")
-wap_1_tmn = 100.*dim_avg_n_Wrap(wap_1,0)
-wap_7_tmn = 100.*dim_avg_n_Wrap(wap_7,0)
+wap_1_tmn  = 100.*dim_avg_n_Wrap(wap_1,0)
+wap_7_tmn  = 100.*dim_avg_n_Wrap(wap_7,0)
   print("wap_7_tmn before crap")
 
   print("******************************************************")
@@ -89,8 +96,9 @@ wap_7_tmn = 100.*dim_avg_n_Wrap(wap_7,0)
   printMinMax(wap_7,False)
   print("******************************************************")
 
-;  printVarSummary(wind_u)
-;  print("******************************************************")
+  printVarSummary(wind_u)
+  print("dimsizes of wind_u is: "+dimsizes(wind_u))
+  print("******************************************************")
 ;  printVarSummary(wap_1)
 
 div = uv2dvG_Wrap(wind_u,wind_v)
@@ -98,7 +106,24 @@ div = uv2dvG_Wrap(wind_u,wind_v)
 ud  = new ( dimsizes(wind_u), typeof(wind_u), wind_u@_FillValue )
 vd  = new ( dimsizes(wind_v), typeof(wind_v), wind_v@_FillValue )
 
+
+uvmsg = 1e+36
+
+;sf  = new ( (/nlat,mlon /), float, uvmsg )
+sf     = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
+vpRaw  = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
+;vp  = new ( (/nlat,mlon /), float, uvmsg )
+
+uv2sfvpf(wind_u,wind_v, sf,vpRaw)
 dv2uvg(div,ud,vd)
+
+vp_scale = 1e-6
+vp = vp_scale*vpRaw
+
+velp_tmn = dim_avg_n_Wrap(vp,0)
+
+  printMinMax(vp,False)
+  printVarSummary(vp)
 
 copy_VarCoords(wind_u, ud ) 
 copy_VarCoords(wind_u, vd ) 
@@ -127,6 +152,13 @@ wap_1_tmn&longitude=wap_1&lon
 wap_1_tmn&latitude@units="degrees_north"
 wap_1_tmn&longitude@units="degrees_east"
 
+velp_tmn!0="latitude"
+velp_tmn&latitude=wap_1&lat
+velp_tmn!1="longitude"
+velp_tmn&longitude=wap_1&lon
+velp_tmn&latitude@units="degrees_north"
+velp_tmn&longitude@units="degrees_east"
+
   print("******************************************************")
   print("wap_7_tmn after crap")
   printVarSummary(wap_7_tmn)
@@ -134,10 +166,14 @@ wap_1_tmn&longitude@units="degrees_east"
 ;*************************************************
 ; plot results
 ;*************************************************    
-my_levels_omega= (/-50,-40,-30,-20,-15,    \
-                   -10,-5,-3,-1,0,         \
-                     1,3,5,10,15,          \
-                     20,30,40,50/);         19
+;my_levels_omega= (/-50,-40,-30,-20,-15,    \
+;                   -10,-5,-3,-1,0,         \
+;                     1,3,5,10,15,          \
+;                     20,30,40,50/);         19
+my_levels_omega= (/-18,-16,-14,-12,-10,    \
+                   -8,-6,-4,-2,0,         \
+                     2,4,6,8,10,          \
+                     12,14,16,18/);         19
 ;my_colors_posneg = (/ 42,50,58,66,74,      \
 ;                      82,90,98,106,114,    \
 ;                     144,152,160,168,176,  \
@@ -150,83 +186,205 @@ my_colors_posneg = (/ 42,50,58,66,74,      \
 wtype = "png"
 wtype@wkWidth   = 2500
 wtype@wkHeight  = 2500
+wks = gsn_open_wks(wtype,"testplot")          ; send graphics to PNG file
 
-  wks = gsn_open_wks(wtype,"testplot")          ; send graphics to PNG file
+;*************************************************    
+; below is the segment that plots the vertical velocity
+;*************************************************    
+;  wks = gsn_open_wks(wtype,"testplot")          ; send graphics to PNG file
+;  ;gsn_define_colormap(wks,"BlueDarkRed18")
+;  gsn_define_colormap(wks,"NCV_blu_red")
+;  plot = new(2,graphic)
+;
+;  res                   = True
+;  res@cnLinesOn         = False
+;
+;  ;res@lbOrientation     = "Vertical"
+;  ;res@gsnPaperOrientation = "portrait" 
+;  ;res@mpProjection      = "Robinson"       ; choose projection
+;  res@mpProjection      = "Mollweide"       ; choose projection
+;  res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
+;  res@mpCenterLonF      = 0.
+;  ;res@mpCenterLonF      = 200.
+;  res@mpPerimOn         = False             ; turn off box around plot
+;  res@mpGridLatSpacingF = 20.               ; spacing for lat lines
+;  res@mpGridLonSpacingF = 20.               ; spacing for lon lines
+;  ;res@lbLabelAngleF     = 90
+;  res@mpFillOn          = False 
+;  res@gsnDraw           = False
+;  res@gsnFrame          = False
+; 
+;  res@mpLimitMode          = "LatLon"
+;  res@mpMinLatF            = -30      ; range to zoom in on
+;  res@mpMaxLatF            =  30.
+;  res@mpMinLonF            =  0.
+;  res@mpMaxLonF            = 360.
+;
+;  res@gsnLeftString = ""
+;  res@gsnRightString = ""
+;
+;  res@cnFillOn          = True              ; color plot desired
+;  ;res@gsnMaximize       = True
+;  ;res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
+;  ;res@cnLineLabelsOn    = False             ; turn off contour lines
+;  ; plotting only the zero contour line isn't working for some reason. 
+;  res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","LineOnly", \
+;                     "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
+;  res@gsnContourZeroLineThicknessF = 2.5
+;  res@cnLevelSelectionMode  = "ExplicitLevels"
+;  ;res@txFontHeightF     = 0.018 
+;
+;  res@vpKeepAspect    = False
+;  ;res@vpXF            = 0.1                 ; make plot bigger
+;  ;res@vpYF            = 0.9         
+;  ;res@vpWidthF        = 0.8
+;  ;res@vpHeightF       = 0.8
+;  ;res@vpWidthF        = 0.4
+;  ;res@vpHeightF       = 0.8
+;
+;  res@lbLabelFontHeightF  = 0.012           ; label bar font height
+;  res@lbLabelBarOn       = True; turn off individual label bars
+;
+;  ;res@tiMainString       = maintitle  ; add a title
+;  ;res@tiMainFontHeightF  = .023                               ; font height
+;  res@tiMainFontHeightF  = .016                              ; font height
+;
+;  res@tiMainString      = "Vertical Velocity Jan (hPa/day)"
+;  res@cnLevels          = my_levels_omega
+;  res@cnFillColors      = my_colors_posneg
+;  res@cnFillOn          = True
+;
+;
+;  contour_1 = gsn_csm_contour_map(wks,wap_1_tmn(:,:),res)  ; create the plot
+;  res@tiMainString      = "Vertical Velocity Jul (hPa/day)"
+;  contour_2 = gsn_csm_contour_map(wks,wap_7_tmn(:,:),res)  ; create the plot
+;  res@tiMainString      = "Velocity Potential Jul (hPa/day)"
+;  res@mpMinLatF            = -90      ; range to zoom in on
+;  res@mpMaxLatF            =  90.
+;  contour_3 = gsn_csm_contour_map(wks,velp_tmn(:,:),res)  ; create the plot
+;  plot(0) = contour_1
+;  plot(1) = contour_2
+; ; plot(2) = contour_3
+;
+;  resP                         = True              ; modify the panel plot
+;  resP@gsnFrame                = False
+;  res1P                         = True              ; modify the panel plot
+;  res1P@gsnFrame                = False
+;  gsn_panel(wks,plot,(/2,1/),resP)
+;  frame(wks)
+;;*************************************************    
+
+;*************************************************    
+; below is the segment that plots the velocity
+; potential and divergent wind 
+;*************************************************    
   ;gsn_define_colormap(wks,"BlueDarkRed18")
   gsn_define_colormap(wks,"NCV_blu_red")
-  plot = new(2,graphic)
+  plot = new(1,graphic)
 
   res                   = True
-  res@cnLinesOn         = False
+
+  res@lbLabelFontHeightF  = 0.012           ; label bar font height
+  res@lbLabelBarOn       = True; turn off individual label bars
+  res@tiMainFontHeightF  = .016                              ; font height
+
+  res@cnFillOn              = True              ; color plot desired
+  res@cnLinesOn             = False
+  res@cnLineLabelsOn        = False             ; turn off contour lines
+  res@gsnScalarContour      = True               ; contours desired
+  res@cnLevelSelectionMode  = "ExplicitLevels"
+  res@cnLevels              = my_levels_omega
+  res@cnFillColors          = my_colors_posneg
+
+  ;res@mpLandFillColor      = "black"            ; set land to be gray
+  res@mpLandFillColor      = "gray"            ; set land to be gray
+  res@mpMinLatF            = -40      ; range to zoom in on
+  res@mpMaxLatF            =  40.
+  res@mpCenterLonF         = 200.
 
   ;res@lbOrientation     = "Vertical"
   ;res@gsnPaperOrientation = "portrait" 
-  ;res@mpProjection      = "Robinson"       ; choose projection
-  res@mpProjection      = "Mollweide"       ; choose projection
+  ;res@mpProjection      = "Mollweide"       ; choose projection
   res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 0.
+  ;res@mpCenterLonF      = 0.
   ;res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 20.               ; spacing for lat lines
   res@mpGridLonSpacingF = 20.               ; spacing for lon lines
   ;res@lbLabelAngleF     = 90
-  res@mpFillOn          = False 
+  ;res@mpFillOn          = False   ; default is True.  False won't let continents fill
   res@gsnDraw           = False
   res@gsnFrame          = False
  
-  res@mpLimitMode          = "LatLon"
-  res@mpMinLatF            = -30      ; range to zoom in on
-  res@mpMaxLatF            =  30.
-  res@mpMinLonF            =  0.
-  res@mpMaxLonF            = 360.
+  ;res@mpLimitMode          = "LatLon"
 
   res@gsnLeftString = ""
   res@gsnRightString = ""
 
-  res@cnFillOn          = True              ; color plot desired
-  ;res@gsnMaximize       = True
-  ;res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
-  ;res@cnLineLabelsOn    = False             ; turn off contour lines
   ; plotting only the zero contour line isn't working for some reason. 
-  res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","LineOnly", \
-                     "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
-  res@gsnContourZeroLineThicknessF = 2.5
-  res@cnLevelSelectionMode  = "ExplicitLevels"
+  ;res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","LineOnly", \
+  ;                   "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
+  ;res@gsnContourZeroLineThicknessF = 2.5
+  ;res@cnLevelSelectionMode  = "ExplicitLevels"
   ;res@txFontHeightF     = 0.018 
 
   res@vpKeepAspect    = False
-  ;res@vpXF            = 0.1                 ; make plot bigger
-  ;res@vpYF            = 0.9         
-  ;res@vpWidthF        = 0.8
-  ;res@vpHeightF       = 0.8
-  ;res@vpWidthF        = 0.4
-  ;res@vpHeightF       = 0.8
-
-  res@lbLabelFontHeightF  = 0.012           ; label bar font height
-  res@lbLabelBarOn       = True; turn off individual label bars
-
-  ;res@tiMainString       = maintitle  ; add a title
-  ;res@tiMainFontHeightF  = .023                               ; font height
-  res@tiMainFontHeightF  = .016                              ; font height
 
   res@tiMainString      = "Vertical Velocity Jan (hPa/day)"
-  res@cnLevels          = my_levels_omega
-  res@cnFillColors      = my_colors_posneg
-  res@cnFillOn          = True
+  ;res@cnLevels          = my_levels_omega
+  ;res@cnFillColors      = my_colors_posneg
 
+  res@tiMainString      = "Velocity Potential Jul (hPa/day)"
+  res@vcRefMagnitudeF = 4.                    ; make vectors larger
+  res@vcRefLengthF    = 0.025                 ; reference vector length
+  res@vcMinDistanceF  = 0.03                 ; thin the vectors
 
-  contour_1 = gsn_csm_contour_map(wks,wap_1_tmn(:,:),res)  ; create the plot
-  res@tiMainString      = "Vertical Velocity Jul (hPa/day)"
-  contour_2 = gsn_csm_contour_map(wks,wap_7_tmn(:,:),res)  ; create the plot
-  plot(0) = contour_1
-  plot(1) = contour_2
+  res@vcGlyphStyle            = "CurlyVector"         ; turn on curly vectors
+  res@vcLineArrowColor        = "black"           ; change vector color
+  res@vcLineArrowThicknessF   = 8.0               ; change vector thickness
+  res@vcVectorDrawOrder       = "PostDraw"        ; draw vectors last
+
+;  plot   = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),\
+;                                    velp_tmn(:,:),res)
+  plotvp = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+  ;plotvp = gsn_csm_vector_scalar_map(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+  plot(0) = plotvp 
+
+;  resvc                 = True
+;  resvc@vcRefMagnitudeF = 3.                    ; make vectors larger
+;  resvc@vcRefLengthF    = 0.050                 ; reference vector length
+;  resvc@vcGlyphStyle    = "CurlyVector"         ; turn on curly vectors
+;  resvc@vcMinDistanceF  = 0.012                 ; thin the vectors
+
+;  resvc@gsnLeftString   = "Divergent Wind"
+                                              ; plot 1st time step
+  ;plotvc = gsn_csm_vector_map(wks,ud(0,:,:),vd(0,:,:),resvc)
+  ;plotvc = gsn_csm_vector(wks,ud(0,:,:),vd(0,:,:),resvc)
+
+; overlay the vectors on the contours
+  ;overlay(plotvp,plotvc)
+  ;overlay(plotvc,plotvp)
 
   resP                         = True              ; modify the panel plot
   resP@gsnFrame                = False
   res1P                         = True              ; modify the panel plot
   res1P@gsnFrame                = False
-  gsn_panel(wks,plot,(/2,1/),resP)
+
+  gsn_panel(wks,plot,(/1,1/),resP)
   frame(wks)
+;*************************************************    
+
+;  plotvp = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+;  plot(0) = plotvp 
+;
+;  resP                         = True              ; modify the panel plot
+;  resP@gsnFrame                = False
+;  res1P                         = True              ; modify the panel plot
+;  res1P@gsnFrame                = False
+;
+;  gsn_panel(wks,plot,(/1,1/),resP)
+;  frame(wks)
+
 ;*************************************************    
 ;  wks  = gsn_open_wks("png","wind")           ; send graphics to PNG file
 ;                                             
