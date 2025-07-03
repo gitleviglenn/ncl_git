@@ -82,6 +82,14 @@ ensoInd = (/18, 19, 20, 21, 22, 23, 54, 55, 56, 57, 58, 59, \
             90, 91, 92, 93, 94, 95, 150, 151, 152, 153, 154, 155, \
             174, 175, 176, 177, 178, 179, 234, 235, 236, 237, 238, 239, \
             306, 307, 308, 309, 310, 311, 402, 403, 404, 405, 406, 407 /)
+ensoIndWang = (/24,25,26, \
+                60,61,62, \
+                96,97,98, \
+                156,157,158, \
+                180,181,182, \
+                240,241,242, \
+                312,313,314, \
+                408,409,410 /)
 ;; Nina
 ensoInd_nina = (/102, 103, 104, 105, 106, 107, 114, 115, 116, 117, 118, 119, \
             210, 211, 212, 213, 214, 215, 246, 247, 248, 249, 250, 251, \
@@ -316,7 +324,7 @@ wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
   res@gsnDraw           = False
   res@gsnFrame          = False
  
-  res@mpLimitMode          = "LatLon"
+  ;res@mpLimitMode          = "LatLon"
   res@mpMinLatF            = -40      ; range to zoom in on
   res@mpMaxLatF            =  40.
   ;res@mpMinLonF            =  0.
@@ -337,7 +345,7 @@ wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
   ;res@txFontHeightF     = 0.018 
 
   res@mpFillOn            = True
-  res@mpLandFillColor     = "gray"            ; set land to be gray
+  res@mpLandFillColor     = "grey"            ; set land to be gray
 
   res@vpKeepAspect    = False
   ;res@vpXF            = 0.1                 ; make plot bigger
