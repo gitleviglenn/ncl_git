@@ -1,50 +1,8 @@
 ;***********************************************************************************
-; walker_wind_era5.ncl
+; walker_velpot_era5.ncl
 ;***********************************************************************************
-;
-; following some of the analysis from Wang, 2005, chapter 6. 
-;
-; desired plots: 
-; vertical velocity at 500 mb
-; divergent wind at 200 mb
-; velocity potential at 200 mb
-; vectory plot, vertical cross-section using vertical velocityand divergent wind
-;     at several vertical levels. 
-;
-; vertical pressure levels (12) used by Wang: 
-; 1000, 925, 850, 700, 600, 500, 400, 300, 250, 200, 150, 100 mb.
-;
-; to calculate the divergent wind components use: dv2uvg()
-; to calculate the divergence use: uv2dvG_Wrap()
-; see: https://www.ncl.ucar.edu/Applications/Scripts/wind_1.ncl
-;
-; to calculate the velocity potential and stream function given u and v on a global 
-; grid use: uv2sfvpf()
-;
-; should probably regrid to 360x180 so the file size is more maneagable.
-; something like this: 
-; cdo -L remapbil,mygrid -sethalo,-1,-1 era5mon1940toPresent_div_U_V_time.nc era5mon1940toPresent_div_U_V_regrid.nc
-;
-;
-;; ENSO years selected using RONI:
-; 8 warmest seasons designated as El Nino and 8 coolest years as La Nina.
-; using this method, the thresholds for the NH are El Nino (0.52C) and La Nina (-0.78C)
-; and for the SH they are El Nino (0.55 C) and for La Nina (-0.81C)
-;
-; The two levels read for RH average should be 850hPa and 700hPa.
-;
-; NH:       Calculate for June through November
-; Nino:     1991, 1994, 1997, 2002, 2004, 2009, 2015, 2023
-; Neutral:  1990, 1992, 1993, 1995, 1996, 2000, 2001, 2003, 2005, 2006, 2008,
-;           2011, 2012, 2013, 2014, 2017, 2018, 2019
-; Nina:     1998, 1999, 2007, 2010, 2016, 2020, 2021, 2022
-;
-; SH:       Calculate for November through April
-; Nino:     1992, 1993, 1995, 1998, 2003, 2010, 2016, 2019
-; Neutral:  1990, 1991, 1994, 1996, 1997, 2001, 2002, 2004, 2005, 2007, 2009,
-;           2012, 2013, 2014, 2015, 2017, 2020, 2023
-; Nina:     1999, 2000, 2008, 2011, 2012, 2018, 2021, 2022
-;
+
+
 ;***********************************************************************************
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_code.ncl"
  load "$NCARG_ROOT/lib/ncarg/nclscripts/csm/gsn_csm.ncl"
@@ -300,92 +258,133 @@ wtype@wkWidth   = 2500
 wtype@wkHeight  = 2500
 wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
 
-;*************************************************    
-; below is the segment that plots the vertical velocity
-;*************************************************    
-  ;gsn_define_colormap(wks,"BlueDarkRed18")
+;;*************************************************    
+;; below is the segment that plots the velocity
+;; potential and divergent wind 
+;;*************************************************    
+;  ;gsn_define_colormap(wks,"BlueDarkRed18")
   gsn_define_colormap(wks,"NCV_blu_red")
   plot = new(2,graphic)
 
   res                   = True
-  res@cnLinesOn         = False
+;
+  res@lbLabelFontHeightF  = 0.012           ; label bar font height
+  res@lbLabelBarOn       = True; turn off individual label bars
+  res@tiMainFontHeightF  = .016                              ; font height
+;
+  res@cnFillOn              = True              ; color plot desired
+  res@cnLinesOn             = False
+  res@cnLineLabelsOn        = False             ; turn off contour lines
+  res@gsnScalarContour      = True               ; contours desired
+  res@cnLevelSelectionMode  = "ExplicitLevels"
+  res@cnLevels              = my_levels_vp
+  res@cnFillColors          = my_colors_posneg
+
+  ;res@mpLandFillColor      = "black"            ; set land to be gray
+  res@mpLandFillColor      = "gray"            ; set land to be gray
+  res@mpMinLatF            = -40      ; range to zoom in on
+  res@mpMaxLatF            =  40.
+  res@mpCenterLonF         = 200.
 
   ;res@lbOrientation     = "Vertical"
   ;res@gsnPaperOrientation = "portrait" 
-  ;res@mpProjection      = "Robinson"       ; choose projection
   ;res@mpProjection      = "Mollweide"       ; choose projection
   res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
-  res@mpCenterLonF      = 0.
-  res@mpCenterLonF      = 200.
+  ;res@mpCenterLonF      = 0.
+  ;res@mpCenterLonF      = 200.
   res@mpPerimOn         = False             ; turn off box around plot
   res@mpGridLatSpacingF = 20.               ; spacing for lat lines
   res@mpGridLonSpacingF = 20.               ; spacing for lon lines
   ;res@lbLabelAngleF     = 90
+  ;res@mpFillOn          = False   ; default is True.  False won't let continents fill
   res@gsnDraw           = False
   res@gsnFrame          = False
  
   ;res@mpLimitMode          = "LatLon"
-  res@mpMinLatF            = -40      ; range to zoom in on
-  res@mpMaxLatF            =  40.
-  ;res@mpMinLonF            =  0.
-  ;res@mpMaxLonF            = 360.
 
   res@gsnLeftString = ""
   res@gsnRightString = ""
 
-  res@cnFillOn          = True              ; color plot desired
-  ;res@gsnMaximize       = True
-  ;res@cnFillPalette     = "gui_default"     ; set color map: ncl 6.1
-  ;res@cnLineLabelsOn    = False             ; turn off contour lines
   ; plotting only the zero contour line isn't working for some reason. 
-  res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","LineOnly", \
-                     "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
-  res@gsnContourZeroLineThicknessF = 2.5
-  res@cnLevelSelectionMode  = "ExplicitLevels"
+  ;res@cnLevelFlags=(/"NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","LineOnly", \
+  ;                   "NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine","NoLine"/)
+  ;res@gsnContourZeroLineThicknessF = 2.5
+  ;res@cnLevelSelectionMode  = "ExplicitLevels"
   ;res@txFontHeightF     = 0.018 
 
-  res@mpFillOn            = True
-  res@mpLandFillColor     = "grey"            ; set land to be gray
-
   res@vpKeepAspect    = False
-  ;res@vpXF            = 0.1                 ; make plot bigger
-  ;res@vpYF            = 0.9         
-  ;res@vpWidthF        = 0.8
-  ;res@vpHeightF       = 0.8
-  ;res@vpWidthF        = 0.4
-  ;res@vpHeightF       = 0.8
 
-  res@lbLabelFontHeightF  = 0.012           ; label bar font height
-  res@lbLabelBarOn       = True; turn off individual label bars
+  ;res@tiMainString      = "Vertical Velocity Jan (hPa/day)"
+  ;res@cnLevels          = my_levels_omega
+  ;res@cnFillColors      = my_colors_posneg
 
-  ;res@tiMainString       = maintitle  ; add a title
-  ;res@tiMainFontHeightF  = .023                               ; font height
-  res@tiMainFontHeightF  = .016                              ; font height
+  res@tiMainString      = "Composite Velocity Potential (hPa/day) and Divergent Wind"
+  res@vcRefMagnitudeF = 4.                    ; make vectors larger
+  res@vcRefLengthF    = 0.025                 ; reference vector length
+  res@vcMinDistanceF  = 0.03                 ; thin the vectors
 
-  res@tiMainString      = "Vertical Velocity Nino (hPa/day)"
-  res@cnLevels          = my_levels_omega
-  res@cnFillColors      = my_colors_posneg
-  res@cnFillOn          = True
+  res@vcGlyphStyle            = "CurlyVector"         ; turn on curly vectors
+  res@vcLineArrowColor        = "black"           ; change vector color
+  res@vcLineArrowThicknessF   = 8.0               ; change vector thickness
+  res@vcVectorDrawOrder       = "PostDraw"        ; draw vectors last
 
+;;  plot   = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),\
+;;                                    velp_tmn(:,:),res)
+  ;plotvp = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
 
-  contour_1 = gsn_csm_contour_map(wks,wap_1_tmn(:,:),res)  ; create the plot
-  res@tiMainString      = "Vertical Velocity diff (hPa/day)"
-  res@cnLevels          = my_levels_omega_anom
-  contour_2 = gsn_csm_contour_map(wks,wap_comp(:,:),res)  ; create the plot
-  res@tiMainString      = "Velocity Potential Jul (hPa/day)"
-  res@mpMinLatF            = -90      ; range to zoom in on
-  res@mpMaxLatF            =  90.
-  contour_3 = gsn_csm_contour_map(wks,velp_tmn(:,:),res)  ; create the plot
-  plot(0) = contour_1
-  plot(1) = contour_2
-  ;plot(2) = contour_3
+  ;plotvp = gsn_csm_vector_scalar_map_ce(wks,ud_tmn(:,:),vd_tmn(:,:),velp_tmn(:,:),res)  ; create the plot
+
+  plotvp = gsn_csm_vector_scalar_map(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+  plot(0) = plotvp 
+  res@tiMainString      = "Composite Difference Velocity Potential (hPa/day) and Divergent Wind"
+  plotvpComp = gsn_csm_vector_scalar_map_ce(wks,ud_comp(:,:),vd_comp(:,:),velp_comp(:,:),res)  ; create the plot
+  plot(1) = plotvpComp 
+
+;  resvc                 = True
+;  resvc@vcRefMagnitudeF = 3.                    ; make vectors larger
+;  resvc@vcRefLengthF    = 0.050                 ; reference vector length
+;  resvc@vcGlyphStyle    = "CurlyVector"         ; turn on curly vectors
+;  resvc@vcMinDistanceF  = 0.012                 ; thin the vectors
+
+;  resvc@gsnLeftString   = "Divergent Wind"
+                                              ; plot 1st time step
+  ;plotvc = gsn_csm_vector_map(wks,ud(0,:,:),vd(0,:,:),resvc)
+  ;plotvc = gsn_csm_vector(wks,ud(0,:,:),vd(0,:,:),resvc)
+
+; overlay the vectors on the contours
+  ;overlay(plotvp,plotvc)
+  ;overlay(plotvc,plotvp)
 
   resP                         = True              ; modify the panel plot
   resP@gsnFrame                = False
   res1P                         = True              ; modify the panel plot
   res1P@gsnFrame                = False
+
   gsn_panel(wks,plot,(/2,1/),resP)
   frame(wks)
 ;;*************************************************    
 
+;  plotvp = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+;  plot(0) = plotvp 
+;
+;  resP                         = True              ; modify the panel plot
+;  resP@gsnFrame                = False
+;  res1P                         = True              ; modify the panel plot
+;  res1P@gsnFrame                = False
+;
+;  gsn_panel(wks,plot,(/1,1/),resP)
+;  frame(wks)
+
+;*************************************************    
+;  wks  = gsn_open_wks("png","wind")           ; send graphics to PNG file
+;                                             
+;  res                 = True
+;  res@vcRefMagnitudeF = 3.                    ; make vectors larger
+;  res@vcRefLengthF    = 0.050                 ; reference vector length
+;  res@vcGlyphStyle    = "CurlyVector"         ; turn on curly vectors
+;  res@vcMinDistanceF  = 0.012                 ; thin the vectors
+;
+;  res@gsnLeftString   = "Divergent Wind"
+
+;  plot= gsn_csm_vector_map(wks,ud(0,:,:),vd(0,:,:),res)
 end
