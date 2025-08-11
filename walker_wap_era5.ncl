@@ -65,18 +65,9 @@ wind_v  = f4->v(ensoInd,9,:,:)
 wind_u2  = f1->u(ensoInd_nina,9,:,:)
 wind_v2  = f4->v(ensoInd_nina,9,:,:)
 
-;wind_u  = f1->u(0:1,9,:,:)
-;wind_v  = f4->v(0:1,9,:,:)
-
-;; if using only the july and january data: 
-;wap_1   = f2->w(:,0,:,:)
-;wap_7   = f3->w(:,0,:,:)
-
 ; if using the full data set: 
 wap_1   = f2->w(ensoInd,0,:,:)
-;wap_7   = f2->w(ensoInd,0,:,:)
 
-;wap_1b    = f2->w(ensoInd_nina,0,:,:)
 wap_nina  = f2->w(ensoInd_nina,0,:,:)
 
 p_lev   = f1->pressure_level(:)
@@ -84,25 +75,18 @@ p_lev   = f1->pressure_level(:)
   print("******************************************************")
   print("9nth pressure level is: "+p_lev(9))
   print("******************************************************")
-  ;print("wap_7 before avg")
-  ;printVarSummary(wap_7)
-  print("******************************************************")
 
   print("******************************************************")
 wap_1_tmn  = 100.*dim_avg_n_Wrap(wap_1,0)
-;wap_7_tmn  = 100.*dim_avg_n_Wrap(wap_7,0)
 wap_1b_tmn = 100.*dim_avg_n_Wrap(wap_nina,0)
-  ;print("wap_7_tmn before crap")
 
   print("******************************************************")
   printMinMax(wap_1,False)
-  ;printMinMax(wap_7,False)
   print("******************************************************")
 
   printVarSummary(wind_u)
   print("dimsizes of wind_u is: "+dimsizes(wind_u))
   print("******************************************************")
-;  printVarSummary(wap_1)
 
 div  = uv2dvG_Wrap(wind_u,wind_v)
 div2 = uv2dvG_Wrap(wind_u2,wind_v2)
@@ -114,11 +98,9 @@ vd2  = new ( dimsizes(wind_v), typeof(wind_v), wind_v@_FillValue )
 
 uvmsg = 1e+36
 
-;sf  = new ( (/nlat,mlon /), float, uvmsg )
 sf     = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
 vpRaw   = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
 vpRaw2  = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
-;vp  = new ( (/nlat,mlon /), float, uvmsg )
 
 ; compute and scale the velocity potential:
 uv2sfvpf(wind_u,wind_v, sf,vpRaw)
@@ -154,18 +136,8 @@ ud@units      = wind_u@units
 vd@long_name  = "Meridional Divergent Wind"
 vd@units      = wind_v@units
 
-;latitude@units = "degrees_north"
-;latitude@long_name = "latitude"
-
 wap_1&lat@units = "degrees_north"
 wap_1&lon@units = "degrees_east"
-
-;wap_7_tmn!0="latitude"
-;wap_7_tmn&latitude=wap_1&lat
-;wap_7_tmn!1="longitude"
-;wap_7_tmn&longitude=wap_1&lon
-;wap_7_tmn&latitude@units="degrees_north"
-;wap_7_tmn&longitude@units="degrees_east"
 
 wap_1_tmn!0="latitude"
 wap_1_tmn&latitude=wap_1&lat
@@ -325,23 +297,10 @@ wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
 
   res@tiMainString      = "Vertical Velocity Jan (hPa/day)"
   res@cnLevels          = my_levels_omega
-  ;res@cnFillColors      = my_colors_posneg
 
-  ;res@tiMainString      = "Composite Velocity Potential (hPa/day) and Divergent Wind"
-  ;res@vcRefMagnitudeF = 4.                    ; make vectors larger
-  ;res@vcRefLengthF    = 0.025                 ; reference vector length
-  ;res@vcMinDistanceF  = 0.03                 ; thin the vectors
-
-  ;res@vcGlyphStyle            = "CurlyVector"         ; turn on curly vectors
-  ;res@vcLineArrowColor        = "black"           ; change vector color
-  ;res@vcLineArrowThicknessF   = 8.0               ; change vector thickness
-  ;res@vcVectorDrawOrder       = "PostDraw"        ; draw vectors last
 
 ;;  plot   = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),\
-;;                                    velp_tmn(:,:),res)
-  ;plotvp = gsn_csm_vector_scalar_map_ce(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
 
-  ;plotvp = gsn_csm_vector_scalar_map_ce(wks,ud_tmn(:,:),vd_tmn(:,:),velp_tmn(:,:),res)  ; create the plot
 
   ;plotvp = gsn_csm_vector_scalar_map(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
   res@tiMainString      = "Vertical Velocity during El Nino (hPa/day)"

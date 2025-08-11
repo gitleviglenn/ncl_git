@@ -14,7 +14,7 @@ begin
 ; path to ERA5 data
 datapath="/Users/C823281551/data/ERA5/"
 
-fileout = "wap_enso_Composite_diff_1990th2024"
+fileout = "velPot4_divWind_enso_Composite_diff_1990th2024"
 
 ; if using only july and january data
 ;file1=datapath+"era5_u3D_1990th2024_360x180_jul.nc"
@@ -62,13 +62,6 @@ wind_v  = f4->v(ensoInd,9,:,:)
 wind_u2  = f1->u(ensoInd_nina,9,:,:)
 wind_v2  = f4->v(ensoInd_nina,9,:,:)
 
-;wind_u  = f1->u(0:1,9,:,:)
-;wind_v  = f4->v(0:1,9,:,:)
-
-;; if using only the july and january data: 
-;wap_1   = f2->w(:,0,:,:)
-;wap_7   = f3->w(:,0,:,:)
-
 ; if using the full data set: 
 wap_1   = f2->w(ensoInd,0,:,:)
 wap_7   = f2->w(ensoInd,0,:,:)
@@ -110,11 +103,9 @@ vd2  = new ( dimsizes(wind_v), typeof(wind_v), wind_v@_FillValue )
 
 uvmsg = 1e+36
 
-;sf  = new ( (/nlat,mlon /), float, uvmsg )
 sf     = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
 vpRaw   = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
 vpRaw2  = new ( dimsizes(wind_u) , typeof(wind_u), uvmsg )
-;vp  = new ( (/nlat,mlon /), float, uvmsg )
 
 ; compute and scale the velocity potential:
 uv2sfvpf(wind_u,wind_v, sf,vpRaw)
@@ -140,8 +131,10 @@ copy_VarCoords(wind_u, ud2 )
 copy_VarCoords(wind_u, vd2 ) 
 
 ; compute the time average of the divergent wind components
+; Nino
 vd_tmn  = dim_avg_n_Wrap(vd,0)
 ud_tmn  = dim_avg_n_Wrap(ud,0)
+; Nina
 vd2_tmn = dim_avg_n_Wrap(vd2,0)
 ud2_tmn = dim_avg_n_Wrap(ud2,0)
 
@@ -149,9 +142,6 @@ ud@long_name  = "Zonal Divergent Wind"
 ud@units      = wind_u@units
 vd@long_name  = "Meridional Divergent Wind"
 vd@units      = wind_v@units
-
-;latitude@units = "degrees_north"
-;latitude@long_name = "latitude"
 
 wap_1&lat@units = "degrees_north"
 wap_1&lon@units = "degrees_east"
@@ -190,6 +180,7 @@ ud_comp   = ud_tmn - ud2_tmn
 vd_comp   = vd_tmn - vd2_tmn
 velp_comp = velp_tmn - velp2_tmn
 wap_comp  = wap_1_tmn - wap_1b_tmn
+
 ;copy_VarCoords(wind_u, ud_comp ) 
 ;copy_VarCoords(wind_v, vd_comp ) 
 ;copy_VarCoords(wind_u, velp_comp ) 
@@ -318,7 +309,7 @@ wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
   ;res@cnLevels          = my_levels_omega
   ;res@cnFillColors      = my_colors_posneg
 
-  res@tiMainString      = "Composite Velocity Potential (hPa/day) and Divergent Wind"
+;  res@tiMainString      = "Composite Velocity Potential (hPa/day) and Divergent Wind"
   res@vcRefMagnitudeF = 4.                    ; make vectors larger
   res@vcRefLengthF    = 0.025                 ; reference vector length
   res@vcMinDistanceF  = 0.03                 ; thin the vectors
@@ -334,9 +325,13 @@ wks = gsn_open_wks(wtype,fileout)          ; send graphics to PNG file
 
   ;plotvp = gsn_csm_vector_scalar_map_ce(wks,ud_tmn(:,:),vd_tmn(:,:),velp_tmn(:,:),res)  ; create the plot
 
-  plotvp = gsn_csm_vector_scalar_map(wks,ud(0,:,:),vd(0,:,:),velp_tmn(:,:),res)  ; create the plot
+printVarSummary(ud)
+printVarSummary(ud_comp)
+  ;plotvp = gsn_csm_vector_scalar_map(wks,ud(24,:,:),vd(24,:,:),velp_tmn(:,:),res)  ; create the plot
+  res@tiMainString      = "La Nina Composite Velocity Potential (hPa/day) and Divergent Wind"
+  plotvp = gsn_csm_vector_scalar_map(wks,ud2_tmn(:,:),vd2_tmn(:,:),velp2_tmn(:,:),res)  ; create the plot
   plot(0) = plotvp 
-  res@tiMainString      = "Composite Difference Velocity Potential (hPa/day) and Divergent Wind"
+  res@tiMainString      = "Nino - Nina Composite Velocity Potential (hPa/day) and Divergent Wind"
   plotvpComp = gsn_csm_vector_scalar_map_ce(wks,ud_comp(:,:),vd_comp(:,:),velp_comp(:,:),res)  ; create the plot
   plot(1) = plotvpComp 
 
