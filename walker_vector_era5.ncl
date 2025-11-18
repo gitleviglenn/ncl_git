@@ -34,27 +34,48 @@ f2=addfile(file2,"r")
 f3=addfile(file3,"r")
 
   print("incoming file is: "+file1)
-fileout="overturningCirc_nino_pm20"
+;fileout="overturningCirc_nina_pm20"
+fileout="overturningCirc_nina_tropics_WangIndices"
   print("output figure file is: "+fileout)
 
+; deep tropics
 ;lat1 = 87
 ;lat2 = 93
 
+; 10-20 degrees north
 ;lat1 = 100 
 ;lat2 = 110
 
+; 20S to 20N
 lat1 = 70 
 lat2 = 110
 
 ; time indices
-ensoInd = (/18, 19, 20, 21, 22, 23, 54, 55, 56, 57, 58, 59, \
-            90, 91, 92, 93, 94, 95, 150, 151, 152, 153, 154, 155, \
-            174, 175, 176, 177, 178, 179, 234, 235, 236, 237, 238, 239, \
-            306, 307, 308, 309, 310, 311, 402, 403, 404, 405, 406, 407 /)
+;-----------------------------------------------------------
+; these indices correspond to the definition used by Phil 
+;; and I in our work that focuses on the N Atl TC season:
+;ensoInd = (/18, 19, 20, 21, 22, 23, \
+;            54, 55, 56, 57, 58, 59, \
+;            90, 91, 92, 93, 94, 95, \
+;            150, 151, 152, 153, 154, 155, \
+;            174, 175, 176, 177, 178, 179, \
+;            234, 235, 236, 237, 238, 239, \
+;            306, 307, 308, 309, 310, 311, \
+;            402, 403, 404, 405, 406, 407 /)
+;;; Nina
+;ensoInd_nina = (/102, 103, 104, 105, 106, 107, \
+;                 114, 115, 116, 117, 118, 119, \
+;                 210, 211, 212, 213, 214, 215, \
+;                 246, 247, 248, 249, 250, 251, \
+;                 318, 319, 320, 321, 322, 323, \
+;                 366, 367, 368, 369, 370, 371, \
+;                 378, 379, 380, 381, 382, 383, \
+;                 390, 391, 392, 393, 394, 395 /)
+;-----------------------------------------------------------
 ; these indices correspond to the definition that Wang used: 
-;ensoIndWang = (/24,25,26, \
 ; corresonds to November, December, and January
-ensoIndW = (/23,24,25, \
+;ensoIndW = (/23,24,25, \
+ensoInd = (/23,24,25, \
              59,60,61, \
              95,96,97, \
              155,156,157, \
@@ -63,11 +84,8 @@ ensoIndW = (/23,24,25, \
              311,312,313, \
              407,408,409 /)
 ;; Nina
-ensoInd_nina = (/102, 103, 104, 105, 106, 107, 114, 115, 116, 117, 118, 119, \
-            210, 211, 212, 213, 214, 215, 246, 247, 248, 249, 250, 251, \
-            318, 319, 320, 321, 322, 323, 366, 367, 368, 369, 370, 371, \
-            378, 379, 380, 381, 382, 383, 390, 391, 392, 393, 394, 395 /)
-ensoIndW_nina = (/107,108,109, \
+;ensoIndW_nina = (/107,108,109, \
+ensoInd_nina = (/107,108,109, \
                   119,120,121, \
                   215,216,217, \
                   251,252,253, \
@@ -75,8 +93,9 @@ ensoIndW_nina = (/107,108,109, \
                   371,372,373, \
                   383,384,385, \
                   395,396,397 /)
+;-----------------------------------------------------------
 
-; first set of data: 
+; first set of data (El Nino): 
 wind_u  = f1->u(ensoInd,:,lat1:lat2,:)
 wind_w  = f2->w(ensoInd,:,lat1:lat2,:)
 sphum   = f3->q(ensoInd,:,lat1:lat2,:)
@@ -98,7 +117,7 @@ wscale = -w*scale
 print("scaling factor 1 is: "+scale)
 
 ;-----------------
-; second set of data: 
+; second set of data (La Nina): 
 
 ;lat1 = 100 
 ;lat2 = 110 
@@ -129,9 +148,14 @@ wscale_b = -w_b*scale
 
 ;-----------------
 ; compute differences
-u_diff  = u - u_b
-w_diff  = wscale - wscale_b
-qh_diff = qh - qh_b
+; Nino - Nina
+;u_diff  = u - u_b
+;w_diff  = wscale - wscale_b
+;qh_diff = qh - qh_b
+; Nina - Nino
+u_diff  = u_b - u
+w_diff  = wscale_b - wscale
+qh_diff = qh_b - qh
 
 print("dimsizes of u: "+dimsizes(u_diff))
 print("dimsizes of w: "+dimsizes(w_diff))
@@ -165,9 +189,21 @@ printVarSummary(qh_diff)
 
 shum_levs = (/0.002,0.004,0.006,0.008,0.01,0.012,0.014,0.016,0.018/)
 ;shum_levs_diff = (/0.00073,0.00076,0.0008,0.00083,0.00086,0.001,0.0013,0.0016,0.002/)
-shum_levs_diff = (/-0.0001,-0.00005,-0.00001,-0.000005,0.0,0.000005,0.00001,0.00005,0.0001/); 9
 shum_cols = (/1,60,80,100,120,140,160,180,200,220,240/)
-shum_cols_diff = (/2,3,4,5,6,7,8,9,10,11/); 11 
+;
+shum_levs_diff = (/-0.0001,-0.00005,-0.00001,-0.000005,0.0,0.000005,0.00001,0.00005,0.0001/); 9
+;shum_levs_diff = (/-0.0001,-0.00005,-0.00001,-0.000005,-0.000001,0.0,0.000001,0.000005,0.00001,0.00005,0.0001/); 11 
+;shum_levs_diff = (/-0.00005,-0.00001,-0.000005,-0.000001,0.000001,0.000005,0.00001,0.00005/); 8 
+;shum_cols_diff = (/2,3,4,5,6,7,8,9,10,11,12/); 11 
+;shum_cols_diff = (/3,4,5,6,7,8,9,10,11/); 9 
+;shum_cols_diff = (/2,3,4,5,6,7,8,9,10/); 9 
+;shum_cols_diff = (/16,15,14,13,12,11,10,9,8,7/); 10 
+;shum_cols_diff = (/7,8,9,10,11,12,13,14,15,16/); 10 
+
+; worked
+;shum_cols_diff = (/2,3,4,5,6,7,8,9,10,11/); 10 
+
+shum_cols_diff = (/215,195,175,155,114,114,75,55,35,15/); 10 
 
 wtype = "png"
 wtype@wkWidth   = 2500
@@ -226,7 +262,8 @@ print("******************************************************")
  ;plot(2)  = gsn_csm_pres_hgt_vector(wks,qh_diff(:,:),u_diff(:,:),\
                                 ;w_diff(:,:),res )  
  res2                 = True                     ; plot mods desired
- res2@tiMainString    = "Nino - Nina" ; title
+ ;res2@tiMainString    = "Nino - Nina" ; title
+ res2@tiMainString    = "Nina - Nino" ; title
 
  res2@cnLineLabelsOn  = False                ; turn off line labels
  res2@cnFillOn        = True                 ; turn on color fill
@@ -249,7 +286,9 @@ print("******************************************************")
  res2@vcLineArrowThicknessF  = 5.0         ; vector thickness
  res2@vcMapDirection  = False
 
- res2@cnFillPalette   = "BrownBlue12"
+ ;res2@cnFillPalette   = "BrownBlue12"
+ ;res2@cnFillPalette   = "temp_diff_18lev"
+ res2@cnFillPalette   = "BlueWhiteOrangeRed"
  res2@cnLevels        = shum_levs_diff
  res2@cnFillColors    = shum_cols_diff
  plot(2)  = gsn_csm_pres_hgt_vector(wks,qh_diff(:,:),u_diff(:,:),\
