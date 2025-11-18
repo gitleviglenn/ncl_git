@@ -1,5 +1,23 @@
 ;***********************************************************************************
 ; windShear_era5_Map.ncl
+;
+; Plot vertical wind shear in the tropical atlantic and Caribbean using ERA5 data.
+; A two panel figure is created.   The top panel shows anamolous shear and the 
+; bottom panel shows the climatological values.  shear is computed as the difference
+; between the 200hPa and 850hPa pressure surfaces.
+;
+; this script was used to make figures for a few presentations that Phil Klotzbach
+; made and for some of the analysis in the November forecast verification document
+;
+; The anomalies can be computed relative to the climatology (1991-2020) or relative
+; to 2020 values.
+;
+; for some reason, in order for the outline of land to work this needs to be run
+; in the base environment like this: 
+;
+; (base) luft:ncl_git C823281551$ ncl windShear_era5_map.ncl
+;
+; levi silvers
 ;***********************************************************************************
 ;
 ;***********************************************************************************
@@ -12,7 +30,8 @@
 begin
 
 datapath="~/data/ERA5/"
-f_now   ="era5_uv_augsepoct2024.nc"
+;f_now   ="era5_uv_augsepoct2024.nc"
+f_now   ="era5_uv_augsepoct2025.nc"
 f_climo ="era5_uv_augsepoct1991th2020.nc"
 ; u(date (monthly?  3 for 2024.nc), pressure_level (2), latitude (721), longitude (1440)
 
@@ -43,8 +62,6 @@ lev          = f1->pressure_level
   print("level 0 is: "+lev(0))
   print("level 1 is: "+lev(1))
 
-;winda_u_full = scale2kt*short2flt(winda_u_fll)
-
 ;  printVarSummary(winda_u_fll)
 ;Dimensions and sizes:	[date | 3] x [pressure_level | 2] x [latitude | 721] x [longitude | 1440]
 
@@ -52,21 +69,38 @@ lev          = f1->pressure_level
 u_2024_diff = winda_u_fll(:,1,:,:) - winda_u_fll(:,0,:,:)
 v_2024_diff = winda_v_fll(:,1,:,:) - winda_v_fll(:,0,:,:)
 
-vws = sqrt(u_2024_diff^2+v_2024_diff^2)
+;;vws = sqrt(u_2024_diff^2+v_2024_diff^2)
+;vws = sqrt(u_2024_diff^2)
 
 ; climatology
 u_clim_diff = windb_u_fll(:,1,:,:) - windb_u_fll(:,0,:,:)
 v_clim_diff = windb_v_fll(:,1,:,:) - windb_v_fll(:,0,:,:)
 
-vws_cl = sqrt(u_clim_diff^2+v_clim_diff^2)
+;;vws_cl = sqrt(u_clim_diff^2+v_clim_diff^2)
+;vws_cl = sqrt(u_clim_diff^2)
 
 ; get the august, september, and october data from 2020: 
 u_2020_diff = windc_u_fll(:,1,:,:) - windc_u_fll(:,0,:,:)
 v_2020_diff = windc_v_fll(:,1,:,:) - windc_v_fll(:,0,:,:)
 
-vws_20 = sqrt(u_2020_diff^2+v_2020_diff^2)
+
+; choose whether to plot the total shear or the zonal shear: 
+; total shear:
+;vws = sqrt(u_2024_diff^2+v_2024_diff^2)
+;vws_cl = sqrt(u_clim_diff^2+v_clim_diff^2)
+;vws_20 = sqrt(u_2020_diff^2+v_2020_diff^2)
+; zonal shear:
+vws = sqrt(u_2024_diff^2)
+vws_cl = sqrt(u_clim_diff^2)
+vws_20 = sqrt(u_2020_diff^2)
+
+  printVarSummary(vws)
+  printVarSummary(vws_20)
+  printVarSummary(vws_cl) ; vws_cl has more timesteps than vws_20 or vws
 
 vws_24m20 = vws - vws_20
+
+  printVarSummary(vws_24m20)
 
 ;  printVarSummary(windb_v_fll)
 
@@ -110,6 +144,7 @@ vws_cl_tmn&latitude=winda_u_fll&latitude
 vws_cl_tmn!1="longitude"
 vws_cl_tmn&longitude=winda_u_fll&longitude
 
+; vws_anom is the 2024 tmn minus the climatology.   
 vws_anom    = vws_tmn - vws_cl_tmn
 vws_20_anom = vws_20_tmn - vws_cl_tmn
 
@@ -166,13 +201,14 @@ wtype = "png"
 wtype@wkWidth  = 2500  ; increase size of pdf image
 wtype@wkHeight = 2500
 
-fout    =  "vws_Shear_grid_nolineslabels"
+fout    =  "vws_Shear_grid_nolineslabels_test_zonal"
 
 wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 
 ;  wks = gsn_open_wks("png","testplot")          ; send graphics to PNG file
   ;gsn_define_colormap(wks,"WhiteBlue")
   ;gsn_define_colormap(wks,"WhiteYellowOrangeRed")
+
   gsn_define_colormap(wks,"BlueYellowRed")
   ;gsn_define_colormap(wks,"NCV_blu_red")
   plotA = new(2,graphic)
@@ -183,7 +219,7 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
   res@mpProjection      = "CylindricalEqualArea"       ; choose projection
   res@mpGridAndLimbOn   = True            ; turn on lat/lon lines
   res@mpCenterLonF      = 200.
-  res@mpPerimOn         = False             ; turn off box around plot
+  res@mpPerimOn         = True ; turn off box around plot
   res@mpGridLatSpacingF = 20.               ; spacing for lat lines
   res@mpGridLonSpacingF = 20.               ; spacing for lon lines
   res@mpGeophysicalLineThicknessF = 3. 
@@ -224,7 +260,8 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
   res@lbLabelBarOn       = False  ; turn off individual label bars
 
   ;res@tiMainString      = "ERA5 Wind Shr (m/s) 2020 anom"
-  res@tiMainString      = "ERA5 Wind Shr (m/s) anom: 2024-2020"
+  res@tiMainString      = "ERA5 Wind Shr (m/s) 2025 anom"
+  ;res@tiMainString      = "ERA5 Wind Shr (m/s) anom: 2024-2020"
   res@tiMainFontHeightF  = .016                               ; font height
   ;res@cnLevels          = my_levels_pos
   res@cnLevels          = my_levels_pn
@@ -235,9 +272,15 @@ wks = gsn_open_wks(wtype,fout)          ; send graphics to PNG file
 
   ;contour_1 = gsn_csm_contour_map(wks,u_2024_tmn(:,:),res)  ; create the plot
   ;contour_1 = gsn_csm_contour_map(wks,vws_tmn(:,:),res)  ; create the plot
-  ;contour_1 = gsn_csm_contour_map(wks,vws_anom(:,:),res)  ; create the plot
   ;contour_1 = gsn_csm_contour_map(wks,vws_20_anom(:,:),res)  ; create the plot
-  contour_1 = gsn_csm_contour_map(wks,vws_24m20_tmn(:,:),res)  ; create the plot
+
+; vws_anom is what was used in the last years forecast verification 
+; vws_anom is the vws anomaly from 2024 relative to the climatology
+  contour_1 = gsn_csm_contour_map(wks,vws_anom(:,:),res)  ; create the plot
+
+; vws_24m20 is the vws anomaly from 2024 relative to 2020. 
+  ;contour_1 = gsn_csm_contour_map(wks,vws_24m20_tmn(:,:),res)  ; create the plot
+
   res@tiMainString      = "ERA5 Wind Shr (m/s) Climatology"
   res@cnLevels          = my_levels_pos
   res@cnLineLabelsOn    = True ; turn off contour lines
